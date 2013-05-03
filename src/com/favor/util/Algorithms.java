@@ -5,42 +5,51 @@ import java.util.LinkedList;
 
 import android.util.Log;
 
+import com.favor.util.*;
 
 public class Algorithms {
+  private static ArrayList<Long> sentTimes = new ArrayList<Long>();
+  private static ArrayList<Long> recTimes = new ArrayList<Long>();
+  private static double avgSentTime;
+  private static double avgRecTime;
+  private static long[] sentCharCount;
+  private static long[] recCharCount;
+
 
   
-  public static long[] charCount (String address, long fromDate, long untilDate) {
-	  DataHandler db = DataHandler.get();
-	  long [] values = {0,0};
-	  ArrayList <textMessage> sent = db.queryToAddress(address, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(address, fromDate, untilDate);
-	  for (textMessage t : sent) {
-		  values[0] += t.charCount();
+  DataHandler db = DataHandler.get();
+  
+  public long getRecCount (String address) {
+	  long totalRecChar = 0;
+	  ArrayList<textMessage> list = db.queryFromAddress(address, -1, -1);
+	  for (textMessage t : list) {
+		  totalRecChar += t.charCount();
 	  }
-	  for (textMessage t : rec) {
-		  values[1] += t.charCount();
-	  }
-	  return values;  
+	  return totalRecChar;
   }
   
-  public static double charRatio (String address, long fromDate, long untilDate) {
-	  long [] values = charCount(address, fromDate, untilDate);
-	  double ratio = values[0]/values[1];
-	  return ratio;
+  public long getSentCount (String address) {
+	  long totalSentChar = 0;
+	  ArrayList<textMessage> list = db.queryToAddress(address, -1, -1);
+	  for (textMessage t : list) {
+		  totalSentChar += t.charCount();
+	  }
+	  return totalSentChar;
+  }
+  
+  private long[] friendCount (String address) {
+	  long [] mmsChar = {0,0};
+	  ArrayList<textMessage list> = db.query 
+	  
+	  
   }
 
-  public static double[] responseTime (String address, long fromDate, long untilDate)
+  private void responseTime (LinkedList<textMessage> list)
 	{
-	  DataHandler db = DataHandler.get();
-	  LinkedList<textMessage> list = db.queryConversation(address, fromDate, untilDate);
 		//well, averages are obv wrong, but the consecutive stripping works like a charm
+		Log.v("size", ""+list.size());
 		long sendTotal = 0;
 		long receiveTotal = 0;
-		double avgSentTime;
-		double avgRecTime;
-		double [] ratios = {(Double) null, (Double) null};
-		ArrayList<Long> sentTimes = new ArrayList<Long>();
-		ArrayList<Long> recTimes = new ArrayList<Long>();
 		textMessage temp, prev = null;
 		Long time;
 		while(list.peekLast()!=null)
@@ -62,23 +71,11 @@ public class Algorithms {
 			}
 			prev = temp;
 		}
+		Log.v("sendsize", ""+sentTimes.size());
+		Log.v("recsize", ""+recTimes.size());
 		avgSentTime = sendTotal/sentTimes.size();
+		Log.v("sendavg:", ""+avgSentTime);
 		avgRecTime = receiveTotal/recTimes.size();
-		ratios[0] = avgSentTime;
-		ratios[1] = avgRecTime;
-		return ratios;
+		Log.v("receiveavg:", ""+avgRecTime);
 	}
-  
-  	public static double responseRatio (String address, long fromDate, long untilDate) {
-	  double [] times = responseTime(address, fromDate, untilDate);
-	  double ratio = times[0]/times[1];
-	  return ratio;
-  	}
-  	
-  	public static double friendScore (String address) {
-  		DataHandler db = DataHandler.get();
-  		LinkedList<textMessage> convo = db.queryConversation(address, -1, -1);
-  		double score = 0;
-  		return score;
-  	}
 }
