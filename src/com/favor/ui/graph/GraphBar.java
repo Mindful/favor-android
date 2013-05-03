@@ -1,0 +1,64 @@
+package com.favor.ui.graph;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.AssetManager;
+import android.util.Log;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+
+import com.favor.util.ContactUtil;
+import com.favor.util.Misc;
+import com.favor.widget.Contact;
+
+public class GraphBar implements Graph {
+
+	@SuppressLint("SetJavaScriptEnabled")
+	@Override
+	public void showBar(Context context, WebView webView, List<Contact> contacts) {
+		WebSettings webSettings = webView.getSettings();
+		AssetManager assetManager = context.getAssets();
+		webSettings.setJavaScriptEnabled(true);
+
+		try {
+			InputStream is = assetManager.open("graph/bar.html");
+			byte[] buffer = new byte[is.available()];
+			is.read(buffer, 0, buffer.length);
+
+			String html = new String(buffer);
+
+			String[] labels = new String[1];
+			int[] red = new int[1];
+			int[] blue = new int[1];
+
+			int size = contacts.size();
+			
+			labels[0] = size + " Contact" + (size == 1 ? "" : "s");
+
+			for (int i = 0; i < contacts.size(); i++) {
+				Contact c = contacts.get(i);
+				long thread = ContactUtil.findThreadIdFromAddress(context,
+						c.getAddress());
+				red[0] += ContactUtil.countRecievedMessages(context, thread);
+				
+				blue[0] += ContactUtil.countSentMessages(context, thread);
+			}
+
+			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
+			html = html.replaceAll("%REDBAR", Misc.intToJSON(red));
+			html = html.replaceAll("%BLUEBAR", Misc.intToJSON(blue));
+
+
+			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
+					null, "UTF-8", null);
+			is.close();
+		} catch (IOException e) {
+			Log.e("Failed", "Could not load '" + e.getMessage() + "'!");
+		}
+	}
+
+}
