@@ -16,7 +16,6 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
-import com.favor.ui.graph.GraphBar;
 import com.favor.ui.graph.GraphZ;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;

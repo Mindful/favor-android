@@ -11,7 +11,8 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-import com.favor.util.ContactUtil;
+
+import com.favor.util.Algorithms;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 
@@ -33,22 +34,21 @@ public class GraphLine implements Graph {
 
 			int size = contacts.size();
 			String[] labels = new String[size];
-			int[] red = new int[size];
-			int[] blue = new int[size];
+			long[] red = new long[size];
+			long[] blue = new long[size];
 
 			for (int i = 0; i < contacts.size(); i++) {
 				Contact c = contacts.get(i);
-				long thread = ContactUtil.findThreadIdFromAddress(context,
-						c.getAddress());
-
+				String address = c.getAddress();
 				labels[i] = contacts.get(i).getName();
-				red[i] = ContactUtil.countRecievedMessages(context, thread);
-				blue[i] = ContactUtil.countSentMessages(context, thread);
+				long[] results = Algorithms.charCount(address, -1, -1);
+				red[i] = results[1];
+				blue[i] = results[0];
 			}
 
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-			html = html.replaceAll("%REDBAR", Misc.intToJSON(red));
-			html = html.replaceAll("%BLUEBAR", Misc.intToJSON(blue));
+			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
+			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));
 
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);

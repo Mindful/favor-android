@@ -1,101 +1,84 @@
 package com.favor.util;
 
 import java.util.ArrayList;
-import com.favor.util.*;
+import java.util.LinkedList;
 
-/*public class queryBeast {
-	messageCounter(queryFromAll(currentTimeMillis(), currentTimeMillis() - 31557600000));
-	
-	
-}
-*/
-
-
+import android.util.Log;
 
 
 public class Algorithms {
-  private int mmsCount = 0;
-  private int smsCount = 0;
-  private int totalCount = 0; 
-  private long totalCharCount = 0;
-  private double avgCharCount;
-  private double avgPerYear;
-  private double avgPerMonth;
-  private double avgPerWeek;
-  private double avgPerDay; 
-  private double timeSpan;
 
-
-/*
-* isMMS returns 0/1
-* isSMS returns 1/0
-* charCount returns int
-* rawdate returns long
-*/
-
-//count mms/sms, produce total count
-  public void messageCounter (ArrayList<textMessage> a) {
-	  for (textMessage t : a) {
-		  if(t.mms()) mmsCount++;
-		  else smsCount++;
+  
+  public static long[] charCount (String address, long fromDate, long untilDate) {
+	  DataHandler db = DataHandler.get();
+	  long [] values = {0,0};
+	  ArrayList <textMessage> sent = db.queryToAddress(address, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(address, fromDate, untilDate);
+	  for (textMessage t : sent) {
+		  values[0] += t.charCount();
 	  }
-	  totalCount = mmsCount + smsCount;
-  }
-
-//getters for counting messages
-  public int getMMS () {
-	  return mmsCount;
-  }
-
-  public int getSMS () {
-	  return smsCount;
-  }
-
-  public int getTotal () {
-	  return totalCount;
-  }
-
-//date calcs
-  //public long getTimeSpan {return long 1;}
-
-/*Count characters if part of same array, likely N/A
-  public void charCounter (ArrayList<textMessage> a) {
-  for (textMessage t : a) {
-    if (fromYou) yourCharCount += t.charCount();
-    else theirCharCount += t.charCount();
-  }
-  totalCharCount = yourCharCount + theirCharCount;
-  }
-*/
-
-// counts total characters in message array 
-  public void charCounter (ArrayList<textMessage> a) {
-	  for (textMessage t : a)
-		  totalCharCount += t.charCount();
-  }
-
-//getter 4 Character Count
-  public long getCharCount () {
-	  return totalCharCount;
-  }
-
-  public void CharCountPerDay () {
-	  avgCharCount = getCharCount()/totalCount;
-  }
-
-  public void averageCharCountPerMonth (double months) {
-	  avgCharCount = getCharCount()/months;
+	  for (textMessage t : rec) {
+		  values[1] += t.charCount();
+	  }
+	  return values;  
   }
   
-
-
-// Getter for average character count
-  public double getAvgCharCount () {
-	  return avgCharCount;
+  public static double charRatio (String address, long fromDate, long untilDate) {
+	  long [] values = charCount(address, fromDate, untilDate);
+	  double ratio = values[0]/values[1];
+	  return ratio;
   }
 
-// Getter for average # sms per day
-  public double getAvgPerDay () {
-	  return avgPerDay;
-  }
+  public static double[] responseTime (String address, long fromDate, long untilDate)
+	{
+	  DataHandler db = DataHandler.get();
+	  LinkedList<textMessage> list = db.queryConversation(address, fromDate, untilDate);
+		//well, averages are obv wrong, but the consecutive stripping works like a charm
+		long sendTotal = 0;
+		long receiveTotal = 0;
+		double avgSentTime;
+		double avgRecTime;
+		double [] ratios = {(Double) null, (Double) null};
+		ArrayList<Long> sentTimes = new ArrayList<Long>();
+		ArrayList<Long> recTimes = new ArrayList<Long>();
+		textMessage temp, prev = null;
+		Long time;
+		while(list.peekLast()!=null)
+		{
+		    temp = list.pollLast(); //removes from queue
+			if (prev!= null)
+			{
+				time = prev.rawDate() - temp.rawDate(); //make time negative, because it will be. also consider switch ifs?
+				if (temp.received()){ sentTimes.add(time); sendTotal += time; } //our response time
+				else {recTimes.add(time); receiveTotal += time;}
+				
+			}
+			while(list.peekLast() != null && list.peekLast().received() == temp.received()) //short circuits
+			{
+				if (list.peekLast().received())	Log.v("look", "received:"+list.peekLast().textDate()+" temp:"+temp.textDate());
+				else Log.v("look", "sent:"+list.peekLast().textDate()+" temp:"+temp.textDate());
+	
+				list.pollLast();
+			}
+			prev = temp;
+		}
+		avgSentTime = sendTotal/sentTimes.size();
+		avgRecTime = receiveTotal/recTimes.size();
+		ratios[0] = avgSentTime;
+		ratios[1] = avgRecTime;
+		return ratios;
+	}
+  
+  	public static double responseRatio (String address, long fromDate, long untilDate) {
+	  double [] times = responseTime(address, fromDate, untilDate);
+	  double ratio = times[0]/times[1];
+	  return ratio;
+  	}
+  	
+  	public static double friendScore (String address) {
+  		DataHandler db = DataHandler.get();
+  		LinkedList<textMessage> convo = db.queryConversation(address, -1, -1);
+  		double score = 0;
+  		return score;
+  	}
 }

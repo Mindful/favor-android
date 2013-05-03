@@ -14,11 +14,11 @@ public class Misc {
 		return JSONValue.toJSONString(list);
 	}
 
-	public static String intToJSON(int[] array) {
-		LinkedList<Integer> list = new LinkedList<Integer>();
+	public static String longToJSON(long[] array) {
+		LinkedList<Long> list = new LinkedList<Long>();
 
 		for (int i = 0; i < array.length; i++)
-			list.add(Integer.valueOf(array[i]));
+			list.add(Long.valueOf(array[i]));
 
 		return JSONValue.toJSONString(list);
 	}
