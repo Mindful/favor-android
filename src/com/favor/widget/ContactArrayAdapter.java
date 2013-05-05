@@ -16,7 +16,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.favor.ui.MainActivity;
-import com.text2much.R;
+import com.favor.R;
 
 @SuppressWarnings("serial")
 public class ContactArrayAdapter extends ArrayAdapter<Contact> implements

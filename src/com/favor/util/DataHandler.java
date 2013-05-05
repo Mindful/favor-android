@@ -56,7 +56,7 @@ class textMessage {
 	{
 		this.id = id;
 		this.date = date;
-		this.address = address;
+		this.address = Misc.formatAddress(address);
 		this.charCount = msg.length();
 		this.sms = sms;
 		this.sent = sent;
@@ -107,11 +107,12 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "messagesDatabase";
     
+    
     //Messages tables
     private static final String TABLE_SENT = "sent";
     private static final String TABLE_RECEIVED = "received";
  
-    // Messages table contacts names
+    //Messages table column names
     public static final String PRIMARY_KEY_ID = "_id"; //unique integer message id
     public static final String KEY_DATE = "date"; //integer date 
     public static final String KEY_ADDRESS = "address"; //address
@@ -119,6 +120,17 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     public static final String KEY_SMS = "sms"; //1:sms, 0:mms (or other?)
     public static final String GENERATED_KEY_SENT = "sent";
     //public static final String[] KEYS = {PRIMARY_KEY_ID, KEY_DATE, KEY_ADDRESS, KEY_CHARCOUNT, KEY_SMS};
+    
+    //Data table
+    private static final String TABLE_DATA = "data";
+    
+    //Data table column names
+    //USE KEY_ADDRESS
+    public static final String KEY_TYPE = "type";
+    //USE KEY_DATE
+    public static final String KEY_COUNT = "count";
+    public static final String KEY_TOTAL = "total";
+    
     
     //onCreate
     @Override
@@ -128,6 +140,9 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
         KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
     	db.execSQL("CREATE TABLE "+TABLE_RECEIVED+"("+PRIMARY_KEY_ID+" INTEGER PRIMARY KEY,"+
     	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
+    	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" TEXT,"+KEY_DATE+
+    	" INTEGER,"+KEY_COUNT+" INTEGER,"+KEY_TOTAL+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+
+    	KEY_TYPE+"))");
 		edit.putLong("lastFetch", 0);
 		edit.apply();
     }
@@ -137,6 +152,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     {
     	db.execSQL("DROP TABLE IF EXISTS "+TABLE_SENT);
     	db.execSQL("DROP TABLE IF EXISTS "+TABLE_RECEIVED);
+    	db.execSQL("DROP TABLE IF EXISTS "+TABLE_DATA);
     	onCreate(db);
     }
     
@@ -169,8 +185,6 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final Uri SMS_OUT = Uri.parse("content://sms/sent");
 	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
 	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
-	//private static final Uri CONVERSATIONS = Uri.parse("content://mms-sms/conversations/");
-	//Order matters on the projections; it should be the input order for the textMessage constructor
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
 	private static final String[] MMS_PROJECTION={"fuckpants"};
 	
@@ -237,6 +251,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	{
 		//-1 for no date, empty string for no address. Obviously, table is mandatory.
 		//Automatically sorted by date.
+		address = Misc.formatAddress(address);
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		
 		int sent;
@@ -279,6 +294,10 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		
 		//-1 for no date, empty string for no address. Obviously, table is mandatory.
 		//Automatically sorted by date.
+		for (int i = 0; i < addresses.length; i++)
+		{
+			addresses[i] = Misc.formatAddress(addresses[i]);
+		}
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (addresses.length < 2) throw new dataException("multiQuery should not be used with less than 2 addresses.");
 		

@@ -19,7 +19,7 @@ import com.favor.ui.graph.Graph;
 import com.favor.ui.graph.GraphZ;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
-import com.text2much.R;
+import com.favor.R;
 
 public class GraphBarActivity extends Activity {
 
@@ -118,7 +118,7 @@ public class GraphBarActivity extends Activity {
 									if (selected != -1) {
 										try {
 											Class<? extends Graph> clazz = (Class<? extends Graph>) Class
-													.forName("com.text2much.ui.graph.Graph"
+													.forName("com.favor.ui.graph.Graph"
 															+ items[selected]);
 											showBar(clazz);
 										} catch (ClassNotFoundException e) {

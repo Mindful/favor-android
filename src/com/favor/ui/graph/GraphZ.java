@@ -36,16 +36,14 @@ public class GraphZ implements Graph {
 			String[] labels = new String[size];
 			long[] red = new long[size];
 			long[] blue = new long[size];
-
 			for (int i = 0; i < contacts.size(); i++) {
 				Contact c = contacts.get(i);
 				String address = c.getAddress();
 				labels[i] = contacts.get(i).getName();
-				long[] results = Algorithms.charCount(address, -1, -1);
+				long[] results = Algorithms.charCount(address, -1, -1); //problem here
 				red[i] = results[1];
 				blue[i] = results[0];
 			}
-
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
 			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
 			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));

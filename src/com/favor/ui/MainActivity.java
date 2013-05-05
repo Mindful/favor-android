@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,10 +21,12 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ViewAnimator;
 
+import com.favor.util.DataHandler;
+import com.favor.util.Misc;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.ContactArrayAdapter.ContactViewHolder;
-import com.text2much.R;
+import com.favor.R;
 
 public class MainActivity extends Activity {
 
@@ -42,6 +45,9 @@ public class MainActivity extends Activity {
 		va.setInAnimation(inFromLeftAnimation());
 		va.setOutAnimation(outToRightAnimation());
 
+		DataHandler db = DataHandler.initialize(this);
+		db.update();
+		Log.v("test", Misc.formatAddress("(619) 908-2292"));
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -14,16 +14,22 @@ public class Algorithms {
   // 1 indicates you respond more.
   
   public static long[] charCount (String address, long fromDate, long untilDate) {
+	  Log.v("things", address);
 	  DataHandler db = DataHandler.get();
+	  Log.v("things", "1");
 	  long [] values = {0,0};
 	  ArrayList <textMessage> sent = db.queryToAddress(address, fromDate, untilDate);
+	  Log.v("things", "1.5");
 	  ArrayList <textMessage> rec = db.queryFromAddress(address, fromDate, untilDate);
+	  Log.v("things", "2");
 	  for (textMessage t : sent) {
 		  values[0] += t.charCount();
 	  }
+	  Log.v("things", "3");
 	  for (textMessage t : rec) {
 		  values[1] += t.charCount();
 	  }
+	  Log.v("things", "4");
 	  return values;  
   }
   

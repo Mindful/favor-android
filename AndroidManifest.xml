@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.text2much"
+    package="com.favor"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -31,7 +31,7 @@
             android:parentActivityName="com.favor.ui.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.text2much.ui.MainActivity" />
+                android:value="com.favor.ui.MainActivity" />
         </activity>
     </application>
 
