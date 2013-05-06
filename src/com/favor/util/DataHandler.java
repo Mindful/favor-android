@@ -234,7 +234,18 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]),  formatAddress(c.getString(cols[2]), false), c.getString(cols[3]), 1, 1).content());
 		}
 		c.close();
-		//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+		c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
+		while (c.moveToNext())
+		{
+			//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+		}
+		c.close();
+		c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
+		while (c.moveToNext())
+		{
+			//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+		}
+		c.close();
 		} 
 		catch (Exception ex){throw new dataException(ex.toString());}
 		finally {db.setTransactionSuccessful();}
@@ -245,6 +256,11 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		edit.putLong("lastFetch", d.getTime());
 		edit.apply();
 		//edit.apply(); //not commit, because we're the only ones setting this value
+	}
+	
+	private ContentValues mmsContent(String id)
+	{
+		return new textMessage(0l, 0l,"cats",0, 0, 0).content();
 	}
 	
 	//Data Section
