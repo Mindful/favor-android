@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.ViewAnimator;
 
 import com.favor.util.DataHandler;
+import com.favor.util.Debug;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
@@ -47,7 +48,8 @@ public class MainActivity extends Activity {
 
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
-		Log.v("test", Misc.formatAddress("(619) 908-2292"));
+		//Debug.remakeDB();
+		//Debug.writeDatabase(this);
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {

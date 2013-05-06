@@ -3,8 +3,6 @@ package com.favor.util;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import android.util.Log;
-
 import com.favor.util.*;
 
 public class Algorithms {
@@ -14,29 +12,23 @@ public class Algorithms {
   // 1 indicates you respond more.
   
   public static long[] charCount (String address, long fromDate, long untilDate) {
-	  Log.v("things", address);
 	  DataHandler db = DataHandler.get();
-	  Log.v("things", "1");
 	  long [] values = {0,0};
 	  ArrayList <textMessage> sent = db.queryToAddress(address, fromDate, untilDate);
-	  Log.v("things", "1.5");
 	  ArrayList <textMessage> rec = db.queryFromAddress(address, fromDate, untilDate);
-	  Log.v("things", "2");
 	  for (textMessage t : sent) {
 		  values[0] += t.charCount();
 	  }
-	  Log.v("things", "3");
 	  for (textMessage t : rec) {
 		  values[1] += t.charCount();
 	  }
-	  Log.v("things", "4");
 	  return values;  
   }
   
   public static double charRatio (String address, long fromDate, long untilDate) {
 	  long [] values= charCount(address, fromDate, untilDate);
-	  Log.v("testing value of 1", values[1] + "");
-	  Log.v("testing value of 0", values[0] + "");
+	  Debug.log(values[1] + "");
+	  Debug.log(values[0] + "");
 	  double ratio = values[1]/(float)values[0];
 	  return ratio;
   }
@@ -69,15 +61,15 @@ public class Algorithms {
 			}
 			while(list.peekLast() != null && list.peekLast().received() == temp.received()) //short circuits
 			{
-				if (list.peekLast().received())	Log.v("look", "received:"+list.peekLast().textDate()+" temp:"+temp.textDate());
-				else Log.v("look", "sent:"+list.peekLast().textDate()+" temp:"+temp.textDate());
+				if (list.peekLast().received())	Debug.log("received:"+list.peekLast().textDate()+" temp:"+temp.textDate());
+				else Debug.log("sent:"+list.peekLast().textDate()+" temp:"+temp.textDate());
 	
 				list.pollLast();
 			}
 			prev = temp;
 		}
-		Log.v("sentTimes"+sentTimes.size(), "tempSent"+tempSentCount);
-		Log.v("recTimes"+recTimes.size(), "tempRec"+tempRecCount);
+		Debug.log("sentTimes"+sentTimes.size()+"tempSent"+tempSentCount);
+		Debug.log("recTimes"+recTimes.size()+"tempRec"+tempRecCount);
 		avgSentTime = sendTotal/(1000*tempSentCount); //sentTimes.size();
 		avgRecTime = receiveTotal/(1000*tempRecCount); //recTimes.size();
 		ratios[0] = avgSentTime;

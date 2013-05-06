@@ -23,11 +23,4 @@ public class Misc {
 		return JSONValue.toJSONString(list);
 	}
 	
-	public static String formatAddress(String address)
-	{
-		if (address.contains("@")) address = "\"" + address +"\"";
-		else address = address.replaceAll("[^0-9]", ""); //regex matches anything except digits
-		//todo: string formatting. make sure address is just ##########, no parenthesis or spaces
-		return address;
-	}
 }

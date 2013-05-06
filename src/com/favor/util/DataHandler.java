@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.SparseArray;
 //import android.util.Log;
 
 class dataException extends RuntimeException {
@@ -56,7 +57,7 @@ class textMessage {
 	{
 		this.id = id;
 		this.date = date;
-		this.address = Misc.formatAddress(address);
+		this.address = address;
 		this.charCount = msg.length();
 		this.sms = sms;
 		this.sent = sent;
@@ -78,14 +79,6 @@ class textMessage {
 		return d.format(new Date(date));
 	}
 	
-	//parsed sender name
-	
-	/*
-	public void log()
-	{
-		Log.v("Text Message:", "Id: "+id+", Date: "+date+", Address: "+address+", charCount:"+charCount+", Sms: "+sms);
-	}
-	*/
 	
 	public ContentValues content()
 	{
@@ -129,7 +122,13 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     public static final String KEY_TYPE = "type";
     //USE KEY_DATE
     public static final String KEY_COUNT = "count";
-    public static final String KEY_TOTAL = "total";
+    
+	private static String formatAddress(String address, boolean fetch)
+	{
+		if (address.contains("@")){ if (fetch) {address = "\"" + address +"\"";}}
+		else address = address.replaceAll("[^0-9]", ""); //regex matches anything except digits
+		return address;
+	}
     
     
     //onCreate
@@ -140,9 +139,8 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
         KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
     	db.execSQL("CREATE TABLE "+TABLE_RECEIVED+"("+PRIMARY_KEY_ID+" INTEGER PRIMARY KEY,"+
     	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
-    	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" TEXT,"+KEY_DATE+
-    	" INTEGER,"+KEY_COUNT+" INTEGER,"+KEY_TOTAL+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+
-    	KEY_TYPE+"))");
+    	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" INTEGER,"+KEY_DATE+
+    	" INTEGER,"+KEY_COUNT+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+KEY_TYPE+"))");
 		edit.putLong("lastFetch", 0);
 		edit.apply();
     }
@@ -186,7 +184,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
 	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
-	private static final String[] MMS_PROJECTION={"fuckpants"};
+	private static final String[] MMS_PROJECTION={"_id", "date"}; //I think just date and ID
 	
 	
 	//Instance aspects
@@ -221,21 +219,27 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		{
 			cols[i] = c.getColumnIndex(SMS_PROJECTION[i]);
 		}
+		db.beginTransaction();
+		try{
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_RECEIVED, null, 
-			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]), c.getString(cols[2]), c.getString(cols[3]), 1, 0).content());
+			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]), formatAddress(c.getString(cols[2]), false), c.getString(cols[3]), 1, 0).content());
 		}
 		c.close();
 		c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_SENT, null, 
-			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]), c.getString(cols[2]), c.getString(cols[3]), 1, 1).content());
+			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]),  formatAddress(c.getString(cols[2]), false), c.getString(cols[3]), 1, 1).content());
 		}
 		c.close();
-		
 		//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+		} 
+		catch (Exception ex){throw new dataException(ex.toString());}
+		finally {db.setTransactionSuccessful();}
+		db.endTransaction();
+		
 		db.close();
 		Date d = new Date();
 		edit.putLong("lastFetch", d.getTime());
@@ -243,7 +247,83 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		//edit.apply(); //not commit, because we're the only ones setting this value
 	}
 	
-	//TODO: saving running averages. where and how?
+	//Data Section
+	public static final int DATA_SENT_CHARS = 1; //total characters sent to this contact (long)
+	public static final int DATA_RECEIVED_CHARS = 2; //total characters received from this contact (long)
+	public static final int DATA_SEND_TIME = 3; //average response time to this contact (longdate)
+	public static final int DATA_RECEIVE_TIME = 4; //average response from this contact (longdate)
+	public static final int DATA_SENT_MMS = 5; //mms messages sent to this contact (long)
+	public static final int DATA_RECEIVED_MMS = 6; //mms messages received from this contact (long)
+	public static final int DATA_SENT_TOTAL = 7; //total messages (sms+mms) sent to this contact (long)
+	public static final int DATA_RECEIVED_TOTAL = 8; //total messages (sms+mms) received from this contact (long)
+	
+	private void validDate(int type)
+	{
+		if (type <= 0 || type >= 9) throw new dataException("Invalid data type. Please use class constants.");
+	}
+	/**
+	 * Loads data about a user. Data types are listed
+	 * as class constants in the form DATA_xxxxx. Returns -1 if no data is found.
+	 * @param address The address of the user you are saving data about.
+	 * @param type The data type you wish to save. Use class constants (DATA_xxxxx)
+	 * 
+	 */
+	public long getData(String address, int type)
+	{
+		validDate(type);
+		SQLiteDatabase db = getReadableDatabase();
+		Cursor c = db.query(TABLE_DATA, new String[] {KEY_COUNT}, KEY_ADDRESS+"="+address+" AND "+KEY_TYPE+"="+type, null, null, null, null);
+		if (c.getCount()==0) return -1;
+		else if (c.getCount()>1) throw new dataException("getData producing multiple results.");
+		c.moveToNext();
+		return c.getLong(0);
+	}
+	/**
+	 * Loads all data about a user, returning anything found in a SparseArray, with data mapped
+	 * to its type. Data types are listed as class constants in the form DATA_xxxxx. 
+	 * Returns -1 if no data is found.
+	 * @param address The address of the user you are saving data about.
+	 * 
+	 */
+	
+	public SparseArray<Long> getAllData(String address)
+	{
+		SparseArray<Long> ret = new SparseArray<Long>();
+		SQLiteDatabase db = getReadableDatabase();
+		Cursor c = db.query(TABLE_DATA, new String[] {KEY_TYPE, KEY_COUNT}, KEY_ADDRESS+"="+address, null, null, null, null);
+		while (c.moveToNext())
+		{
+			ret.put(c.getInt(0), c.getLong(1));
+		}
+		return ret;
+		
+	}
+	/**
+	 * Saves data of a given type about a user. Data types are listed
+	 * as class constants in the form DATA_xxxx.
+	 * Also, data MUST BE SAVED IMMEDIATELY after it is calculated
+	 * so that the savedate is appropriate. Do not preserve results and save them later.
+	 * @param address The address of the user you are saving data about.
+	 * @param type The data type you wish to save. Use class constants (DATA_xxxxx)
+	 * 
+	 */
+	public void saveData(String address, int type, long data)
+	{
+		validDate(type);
+		SQLiteDatabase db = getWritableDatabase();
+		ContentValues values = new ContentValues();
+		values.put(KEY_ADDRESS, formatAddress(address, false));
+		values.put(KEY_TYPE, type);
+		values.put(KEY_DATE, new Date().getTime());
+		values.put(DataHandler.KEY_COUNT, data);
+		db.insert(TABLE_DATA, null, values);
+	}
+	
+	
+	
+	
+	
+	//Message Section
 	
 	private static final String SORT_DIRECTION = "DESC"; //or ASC for most recent message last
 	
@@ -251,7 +331,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	{
 		//-1 for no date, empty string for no address. Obviously, table is mandatory.
 		//Automatically sorted by date.
-		address = Misc.formatAddress(address);
+		address = formatAddress(address, true);
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		
 		int sent;
@@ -296,7 +376,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		//Automatically sorted by date.
 		for (int i = 0; i < addresses.length; i++)
 		{
-			addresses[i] = Misc.formatAddress(addresses[i]);
+			addresses[i] = formatAddress(addresses[i], true);
 		}
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (addresses.length < 2) throw new dataException("multiQuery should not be used with less than 2 addresses.");
@@ -375,6 +455,8 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	{
 		//same sort direction as the other two
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
+		
+		address = formatAddress(address, true);
 		
 		LinkedList<textMessage> res = new LinkedList<textMessage>();
 		SQLiteDatabase db = getReadableDatabase();
