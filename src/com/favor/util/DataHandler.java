@@ -271,6 +271,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	public long getData(String address, int type)
 	{
 		validDate(type);
+		address = formatAddress(address, true);
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] {KEY_COUNT}, KEY_ADDRESS+"="+address+" AND "+KEY_TYPE+"="+type, null, null, null, null);
 		if (c.getCount()==0) return -1;
@@ -288,6 +289,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	
 	public SparseArray<Long> getAllData(String address)
 	{
+		address = formatAddress(address, true);
 		SparseArray<Long> ret = new SparseArray<Long>();
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] {KEY_TYPE, KEY_COUNT}, KEY_ADDRESS+"="+address, null, null, null, null);
@@ -310,6 +312,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	public void saveData(String address, int type, long data)
 	{
 		validDate(type);
+		address = formatAddress(address, false);
 		SQLiteDatabase db = getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(KEY_ADDRESS, formatAddress(address, false));

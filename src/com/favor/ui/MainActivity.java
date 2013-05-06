@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
 
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
+		//Debug.testData("3607087506");
 		//Debug.remakeDB();
 		//Debug.writeDatabase(this);
 		ListView view = (ListView) findViewById(R.id.contactList);
