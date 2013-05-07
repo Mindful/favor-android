@@ -184,7 +184,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
 	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
-	private static final String[] MMS_PROJECTION={"_id", "date"}; //I think just date and ID
+	private static final String[] MMS_PROJECTION={"_id", "date", "m_id"}; //I think just date and ID
 	
 	
 	//Instance aspects
@@ -213,14 +213,14 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	{
 		lastFetch = prefs.getLong("lastFetch", 0); //mandatory. not sure how this wasn't here before
 		SQLiteDatabase db = getWritableDatabase();
+		db.beginTransaction();
+		try{
 		Cursor c = context.getContentResolver().query(SMS_IN, SMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		int[] cols = new int[SMS_PROJECTION.length];
 		for (int i = 0; i < SMS_PROJECTION.length; i++)
 		{
 			cols[i] = c.getColumnIndex(SMS_PROJECTION[i]);
 		}
-		db.beginTransaction();
-		try{
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_RECEIVED, null, 
@@ -235,15 +235,24 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
+		cols = new int[MMS_PROJECTION.length];
+		for (int i = 0; i < MMS_PROJECTION.length; i++)
+		{
+			cols[i] = c.getColumnIndex(MMS_PROJECTION[i]);
+		}
 		while (c.moveToNext())
 		{
-			//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+			Debug.uriProperties("content://mms/"+c.getLong(cols[0])+"/addr", context);
+			break;
+			//mmsContent(c.getLong(cols[0]), c.getLong(cols[1]), c.getLong(cols[2]));
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
-			//TODO: WE NEED TO HANDLE MMS FETCHING AS WELL. IMPORTANTTTTT!
+			Debug.uriProperties("content://mms/"+c.getLong(cols[0])+"/addr", context);
+			break;
+			//mmsContent(c.getLong(cols[0]), c.getLong(cols[1]), c.getLong(cols[2]));
 		}
 		c.close();
 		} 
@@ -258,9 +267,20 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		//edit.apply(); //not commit, because we're the only ones setting this value
 	}
 	
-	private ContentValues mmsContent(String id)
+	private ContentValues mmsContent(long id, long date, long m_id)
 	{
-		return new textMessage(0l, 0l,"cats",0, 0, 0).content();
+		//TODO: this has to work, and then the code probably has to be copied so multi-recipient messages
+		//generate themselves multiple times
+		//MAY NOT NEED M_ID at all
+		//Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+m_id+"/addr"), null, null, null, null);
+		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), null, null, null, null);
+		Debug.log(""+c.getCount()+"entries with "+c.getColumnCount()+" columns");
+		while (c.moveToNext())
+		{
+			Debug.log(c.getString(0));
+			
+		}
+		return new textMessage(id, date,"cats",0, 0, 0).content();
 	}
 	
 	//Data Section
