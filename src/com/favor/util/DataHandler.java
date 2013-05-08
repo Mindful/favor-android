@@ -93,7 +93,8 @@ class textMessage {
 	
 }
 
-
+//TODO: do we need to find column indices if we're using projections? 
+//Doesn't that tell us what will be where?
 public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should be done on pauses, can't count on exits
 	
 	//SQLite aspects
@@ -184,7 +185,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
 	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
-	private static final String[] MMS_PROJECTION={"_id", "date", "m_id"}; //I think just date and ID
+	private static final String[] MMS_PROJECTION={"_id", "date"}; //I think just date and ID
 	
 	
 	//Instance aspects
@@ -242,17 +243,13 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		}
 		while (c.moveToNext())
 		{
-			Debug.uriProperties("content://mms/"+c.getLong(cols[0])+"/addr", context);
-			break;
-			//mmsContent(c.getLong(cols[0]), c.getLong(cols[1]), c.getLong(cols[2]));
+			receivedMMS(c.getLong(cols[0]), c.getLong(cols[1]), db);
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
-			Debug.uriProperties("content://mms/"+c.getLong(cols[0])+"/addr", context);
-			break;
-			//mmsContent(c.getLong(cols[0]), c.getLong(cols[1]), c.getLong(cols[2]));
+			sentMMS(c.getLong(cols[0]), c.getLong(cols[1]), db);
 		}
 		c.close();
 		} 
@@ -267,21 +264,91 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		//edit.apply(); //not commit, because we're the only ones setting this value
 	}
 	
-	private ContentValues mmsContent(long id, long date, long m_id)
+	private static final String MMS_CC = "130"; //0x82 in com.google.android.mms.pdu.PduHeaders
+	private static final String MMS_BCC = "129"; //0x81 in com.google.android.mms.pdu.PduHeaders
+	private static final String MMS_TO = "151"; //0x97 in com.google.android.mms.pdu.PduHeaders
+	private static final String MMS_FROM = "137"; //0x89 in com.google.android.mms.pdu.PduHeaders
+	
+	private void sentMMS(long id, long date, SQLiteDatabase db)
 	{
-		//TODO: this has to work, and then the code probably has to be copied so multi-recipient messages
-		//generate themselves multiple times
-		//MAY NOT NEED M_ID at all
-		//Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+m_id+"/addr"), null, null, null, null);
-		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), null, null, null, null);
-		Debug.log(""+c.getCount()+"entries with "+c.getColumnCount()+" columns");
+		int media = 0;
+		String type, data = "";
+		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
 		while (c.moveToNext())
 		{
-			Debug.log(c.getString(0));
-			
+			   type = c.getString(2);
+			   if (type.equals("text/plain"))
+			   {
+				   data = c.getString(0);
+				   if (data==null)
+				   {
+					   data = c.getString(1); //fetch from the "text" column
+				   }
+				   else 
+				   {
+					   Debug.log(data); //we have pure data
+				   }
+			   }
+			   else media = 1;
 		}
-		return new textMessage(id, date,"cats",0, 0, 0).content();
+		c.close();
+		
+		String filter = "(type="+MMS_TO+" OR type="+MMS_CC+" OR type="+MMS_BCC+")";
+		
+		c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), new String[] {"address"}, filter, null, null);
+		String[] addresses = new String[c.getCount()];
+		while (c.moveToNext())
+		{
+			addresses[c.getPosition()] = c.getString(0);
+		}
+		c.close();
+		if (addresses.length <= 1)
+		{
+			db.insert(TABLE_SENT, null, 
+			new textMessage(id, date,  formatAddress(addresses[0], false), data, media, 0).content());
+		}
+		else
+		{
+			for (int i = 0; i < addresses.length; i++)
+			{
+				db.insert(TABLE_SENT, null, 
+				new textMessage(id, date,  formatAddress(addresses[i], false), data, media, 0).content());
+			}
+		}
 	}
+	
+	private void receivedMMS(long id, long date, SQLiteDatabase db)
+	{
+		int media = 0;
+		String type, data = "";
+		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
+		while (c.moveToNext())
+		{
+			   type = c.getString(2);
+			   if (type.equals("text/plain"))
+			   {
+				   data = c.getString(0);
+				   if (data==null)
+				   {
+					   data = c.getString(1); //fetch from the "text" column
+				   }
+				   else 
+				   {
+					   Debug.log(data); //we have pure data
+				   }
+			   }
+			   else media = 1;
+		}
+		c.close();
+		String filter = "type="+MMS_FROM;
+		c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), new String[] {"address"}, filter, null, null);
+		c.moveToFirst();
+		String address = c.getString(0);
+		c.close();
+		db.insert(TABLE_RECEIVED, null, 
+		new textMessage(id, date,  formatAddress(address, false), data, media, 0).content());
+	}
+	
 	
 	//Data Section
 	public static final int DATA_SENT_CHARS = 1; //total characters sent to this contact (long)

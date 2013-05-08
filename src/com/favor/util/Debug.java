@@ -9,6 +9,7 @@ import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,6 +23,53 @@ import android.widget.Toast;
 
 @SuppressLint("NewApi") //suppressing error on L46
 public class Debug {
+	
+	/*
+	 * 	private ContentValues mmsContent(long id, long date, long m_id, boolean sent)
+	{		
+		int media = 0;
+		String type, data = "";
+		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
+		while (c.moveToNext())
+		{
+			   type = c.getString(2);
+			   if (type.equals("text/plain"))
+			   {
+				   data = c.getString(0);
+				   if (data==null)
+				   {
+					   data = c.getString(1); //fetch from the "text" column
+				   }
+				   else 
+				   {
+					   Debug.log(data); //we have pure data
+				   }
+			   }
+			   else media = 1;
+		}
+		c.close();
+		
+		String filter;
+		if (sent) filter = "(type="+MMS_TO+" OR type="+MMS_CC+" OR type="+MMS_BCC+")";
+		else filter = "type="+MMS_FROM;
+		
+		c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), new String[] {"address", "type"}, filter, null, null);
+		String[] addresses = new String[c.getCount()];
+		while (c.moveToNext())
+		{
+			addresses[c.getPosition()] = c.getString(1)+":"+c.getString(0);
+		}
+		String lo = c.getCount()+" entries sent:"+sent+":";
+		for (int i = 0; i < addresses.length; i++)
+		{
+			lo+=addresses[i]+",";
+		}
+		Debug.log(lo);
+		c.close();
+		//actually need to generate one text per address;
+		return new textMessage(id, date,addresses[0],data.length(), media, 0).content();
+	}
+	 */
 	
 	public static void uriProperties(String uri, Context con)
 	  {
