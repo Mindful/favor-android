@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ViewAnimator;
 
+import com.favor.util.Algorithms;
 import com.favor.util.DataHandler;
 import com.favor.util.Debug;
 import com.favor.util.Misc;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity {
 
 		new PopulateContactListTask().execute();
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
+		Debug.algotest();
 	}
 
 	@Override
