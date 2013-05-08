@@ -3,7 +3,7 @@ package com.favor.util;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import com.favor.util.*;
+
 
 public class Algorithms {
 
@@ -43,14 +43,14 @@ public class Algorithms {
  		long avgSentTime;
  		long avgRecTime;
  		long [] ratios = {0, 0};
- 		ArrayList<Long> sentTimes = new ArrayList<Long>();
- 		ArrayList<Long> recTimes = new ArrayList<Long>();
+ 		LinkedList<Long> sentTimes = new LinkedList<Long>();
+ 		LinkedList<Long> recTimes = new LinkedList<Long>();
  		textMessage temp, prev = null;
  		Long time;
  		int tempSentCount = 0;
  		int tempRecCount = 0;
- 		ArrayList<Long> checkSentTimes = new ArrayList<Long>();
- 		ArrayList<Long> checkRecTimes = new ArrayList<Long>();
+ 		LinkedList<Long> checkSentTimes = new LinkedList<Long>();
+ 		LinkedList<Long> checkRecTimes = new LinkedList<Long>();
  		while(list.peekLast()!=null)
  		{
  		    temp = list.pollLast(); //removes from queue
@@ -70,35 +70,11 @@ public class Algorithms {
  			}
  			prev = temp;
  		}
- 		int n1 = checkSentTimes.size(); //n for sent
- 		int n2 = checkRecTimes.size(); //n for received
- 		for (int i=0;i<n1;i++) Debug.log(" THIS IS A CHECK OF SENT TIMES" + checkSentTimes.get(i)+ " "  + i);
- 		for (int i=0;i<n2;i++) Debug.log(checkRecTimes.get(i) + " This is a check of received times" + i);
- 		double meanSent = 0; // Y-bar for the sent times
- 		double meanRec = 0; // Y-bar for the received times
- 		double sentStdDev = 0;
- 		double recStdDev = 0;
- 		for (int i = 0; i < n1; i++) meanSent += checkSentTimes.get(i);
- 		for (int i = 0; i < n2; i++) meanRec += checkRecTimes.get(i);
- 		meanSent = meanSent/n1;
- 		meanRec = meanRec/n2;
- 		for (int i = 0; i < n1; i++) sentStdDev += (checkSentTimes.get(i) - meanSent)*(checkSentTimes.get(i) - meanSent);
- 		for (int i = 0; i < n2; i++) recStdDev += (checkRecTimes.get(i) - meanRec)*(checkRecTimes.get(i) - meanRec);
- 		sentStdDev = Math.sqrt((1/(n1))*sentStdDev);
- 		recStdDev = Math.sqrt((1/(n2))*recStdDev);
- 		for (int i = 0; i < n1; i++) {
- 			if (checkSentTimes.get(i) > (meanSent + (2*sentStdDev)) || checkSentTimes.get(i) < (meanSent - (2*sentStdDev)))
- 				checkSentTimes.remove(i);
- 		}
- 		for (int i = 0; i < n2; i++) {
- 			if (checkRecTimes.get(i) > (meanRec + (2*recStdDev)) || checkRecTimes.get(i) < (meanRec - (2*recStdDev)))
- 				checkRecTimes.remove(i);
- 		}
+ 		int n1 = tempSentCount; //n for sent
+ 		int n2 = tempRecCount; //n for received
+ 	
  		sentTimes = checkSentTimes;
  		recTimes = checkRecTimes;
- 		for (int i=0;i<n1;i++) Debug.log(sentTimes.get(i) + " THIS IS A CHECK OF SENT TIMES after clean" + i);
- 		for (int i=0;i<n2;i++) Debug.log(recTimes.get(i) + " This is a check of received times after clean" + i);
- 		
  		Debug.log("sentTimes"+sentTimes.size()+"tempSent"+tempSentCount);
  		Debug.log("recTimes"+recTimes.size()+"tempRec"+tempRecCount);
  		avgSentTime = sendTotal/(1000*tempSentCount); //sentTimes.size();
@@ -117,11 +93,71 @@ public class Algorithms {
   	
   	
   	//Will perform separate queries, doesn't call other algos
-  	public static double friendScore (String address) {
+  	public static long friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		LinkedList<textMessage> convo = db.queryConversation(address, -1, -1);
-  		double score = 100;
+  		for (textMessage t : convo) ;
+  		long score = 100;
   		
   		return score;
   	}
+  	
+  	// 
+  	public static LinkedList<Long> finiteMixture (LinkedList<Long> totalData) {
+  		LinkedList<Long> A = new LinkedList<Long>();
+  		LinkedList<Long> B = new LinkedList<Long>();
+  		LinkedList<Long> temp = totalData;
+  		LinkedList<Long> check = new LinkedList<Long>();
+  		
+
+	
+  		//Standard Deviation of the total dataset
+  		double mean = 0;
+  		long stdDev = 0;
+  		int totalN = totalData.size();
+ 		for (int i = 0; i < totalN; i++) mean += temp.get(i);
+ 		mean = mean/totalN;
+ 		while(temp.peekLast() != null) {
+ 			check.add(temp.peek());
+ 			stdDev += (temp.peek() - meanSent)*(temp.poll() - meanSent);	
+ 		}
+ 		stdDev = (long) (Math.sqrt(1/(totalN))*stdDev);
+ 		while (totalData.peekLast() != null) {
+ 			if (totalData.peek() > mean+stdDev) A.add(totalData.poll());
+ 			else B.add(totalData.poll());
+ 		}
+ 		int aN = A.size();
+  		int bN = B.size();
+ 		
+ 		double aMean;
+ 		for (long l : A) aMean += l;
+ 		aMean = aMean/aN;
+  		double bMean;
+  		for (long l : B) bMean += l;
+  		bMean = bMean/bN;
+  		double aVar = 0;
+  		double bVar = 0;
+  		for (long l : A) aVar += (l - aMean)*(l - aMean);
+		for (long l : B) bVar += (l - bMean)*(l - bMean);
+  		aVar = aVar/aN;
+  		bVar = bVar/bN;
+ 		double likelihood = 0;
+ 		double margin = 1;
+ 		int counter = 0;
+ 		double [] pAs = new double[aN];
+ 		double [] pBs = new double[bN];
+ 		while (counter < 30 || margin > 0.000000001) {
+ 		
+ 			for (int i =0;i<check.size();i++) {
+ 				pAs[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)))*Math.exp(((A.get(i)-aMean)*(A.get(i)-aMean))/(2*aVar));
+ 				pBs[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)))*Math.exp(((B.get(i)-bMean)*(B.get(i)-bMean))/(2*bVar));
+ 			}
+ 			counter++;
+ 		}
+ 	
+
+  		
+  		
+  		return totalData;
+   	}
 }
