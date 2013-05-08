@@ -40,31 +40,30 @@ class textMessage {
 	private long date;
 	private int charCount;
 	private String address;
-	private int sms;
+	private int media;
 	private int sent;
 	
-	public textMessage(long id, long date, String address, int charCount, int sms, int sent)
+	public textMessage(long id, long date, String address, int charCount, int media, int sent)
 	{
 		this.id = id;
 		this.date = date;
 		this.address = address;
 		this.charCount = charCount;
-		this.sms = sms;
+		this.media = media;
 		this.sent = sent;
 	}
 	
-	public textMessage(long id, long date, String address, String msg, int sms, int sent)
+	public textMessage(long id, long date, String address, String msg, int media, int sent)
 	{
 		this.id = id;
 		this.date = date;
 		this.address = address;
 		this.charCount = msg.length();
-		this.sms = sms;
+		this.media = media;
 		this.sent = sent;
 	}
 	
-	public boolean mms(){return sms==0;}
-	public boolean sms(){return sms!=0;}
+	public boolean multimedia(){return media==1;}
 	public boolean received(){return sent==0;}
 	public boolean sent(){return sent!=0;}
 	public int charCount(){return charCount;}
@@ -87,7 +86,7 @@ class textMessage {
 		ret.put(DataHandler.KEY_DATE, date);
 		ret.put(DataHandler.KEY_ADDRESS, address);
 		ret.put(DataHandler.KEY_CHARCOUNT, charCount);
-		ret.put(DataHandler.KEY_SMS, sms);
+		ret.put(DataHandler.KEY_MEDIA, media);
 		return ret;
 	}
 	
@@ -110,7 +109,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     public static final String KEY_DATE = "date"; //integer date 
     public static final String KEY_ADDRESS = "address"; //address
     public static final String KEY_CHARCOUNT = "chars"; //character count
-    public static final String KEY_SMS = "sms"; //1:sms, 0:mms (or other?)
+    public static final String KEY_MEDIA = "media"; //1:media, 0:no media (sms or plain mms)
     public static final String GENERATED_KEY_SENT = "sent";
     //public static final String[] KEYS = {PRIMARY_KEY_ID, KEY_DATE, KEY_ADDRESS, KEY_CHARCOUNT, KEY_SMS};
     
@@ -141,14 +140,14 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     	//Note that because of the ability to send MMS to multiple recipients, 
     	//this table is UNIQUE to KEY_ID & KEY_ADDRESS, instead of using KEY_ID as INTEGER PRIMARY KEY
     	db.execSQL("CREATE TABLE "+TABLE_SENT+"("+KEY_ID+" INTEGER,"+
-        KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER,"+
+        KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_MEDIA+" INTEGER,"+
         "UNIQUE ("+KEY_ID+","+KEY_ADDRESS+"))");
     	
     	//Received Table
     	//TODO: is there a better way to handle duplicate outgoing multi-address MMS than
     	//this needing a unique index for KEY_ADDRESS and KEY_DATE together?
     	db.execSQL("CREATE TABLE "+TABLE_RECEIVED+"("+KEY_ID+" INTEGER PRIMARY KEY,"+
-    	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
+    	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_MEDIA+" INTEGER)");
     	
     	//Indices
     	if (prefs.getBoolean("index", true))
@@ -271,14 +270,14 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_RECEIVED, null, 
-			new textMessage(c.getLong(0), c.getLong(1), formatAddress(c.getString(2), false), c.getString(3), 1, 0).content());
+			new textMessage(c.getLong(0), c.getLong(1), formatAddress(c.getString(2), false), c.getString(3), 0, 0).content());
 		}
 		c.close();
 		c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_SENT, null, 
-			new textMessage(c.getLong(0), c.getLong(1),  formatAddress(c.getString(2), false), c.getString(3), 1, 1).content());
+			new textMessage(c.getLong(0), c.getLong(1),  formatAddress(c.getString(2), false), c.getString(3), 0, 1).content());
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
@@ -309,7 +308,6 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final String MMS_TO = "151"; //0x97 in com.google.android.mms.pdu.PduHeaders
 	private static final String MMS_FROM = "137"; //0x89 in com.google.android.mms.pdu.PduHeaders
 	
-	//TODO: my method for determining whether or not an MMS is text only doesn't seem to work very well
 	private void sentMMS(long id, long date, SQLiteDatabase db)
 	{
 		//MMS IDs are negative to avoid overlap 
