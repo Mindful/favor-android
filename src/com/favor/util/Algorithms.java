@@ -119,7 +119,7 @@ public class Algorithms {
  		mean = mean/totalN;
  		while(temp.peekLast() != null) {
  			check.add(temp.peek());
- 			stdDev += (temp.peek() - meanSent)*(temp.poll() - meanSent);	
+ 			stdDev += (temp.peek() - mean)*(temp.poll() - mean);	
  		}
  		stdDev = (long) (Math.sqrt(1/(totalN))*stdDev);
  		while (totalData.peekLast() != null) {
@@ -129,10 +129,10 @@ public class Algorithms {
  		int aN = A.size();
   		int bN = B.size();
  		
- 		double aMean;
+ 		double aMean = 0;
  		for (long l : A) aMean += l;
  		aMean = aMean/aN;
-  		double bMean;
+  		double bMean = 0;
   		for (long l : B) bMean += l;
   		bMean = bMean/bN;
   		double aVar = 0;
