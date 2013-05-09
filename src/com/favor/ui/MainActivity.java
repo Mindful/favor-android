@@ -48,9 +48,10 @@ public class MainActivity extends Activity {
 		va.setOutAnimation(outToRightAnimation());
 
 		DataHandler db = DataHandler.initialize(this);
-		//db.update();
-		//Debug.testData("3607087506");
+		db.update();
 		Debug.remakeDB();
+		//Debug.testData("3607087506");
+		//Debug.queryTest("3607087506");
 		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);

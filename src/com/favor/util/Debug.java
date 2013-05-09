@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.annotation.SuppressLint;
@@ -24,52 +26,25 @@ import android.widget.Toast;
 @SuppressLint("NewApi") //suppressing error on L46
 public class Debug {
 	
-	/*
-	 * 	private ContentValues mmsContent(long id, long date, long m_id, boolean sent)
-	{		
-		int media = 0;
-		String type, data = "";
-		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
-		while (c.moveToNext())
+	public static void queryTest(String address)
+	{
+		DataHandler db = DataHandler.get();
+		List<textMessage> list = db.queryFromAddress(address, -1, -1);
+		for (textMessage t : list )
 		{
-			   type = c.getString(2);
-			   if (type.equals("text/plain"))
-			   {
-				   data = c.getString(0);
-				   if (data==null)
-				   {
-					   data = c.getString(1); //fetch from the "text" column
-				   }
-				   else 
-				   {
-					   Debug.log(data); //we have pure data
-				   }
-			   }
-			   else media = 1;
+			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
 		}
-		c.close();
-		
-		String filter;
-		if (sent) filter = "(type="+MMS_TO+" OR type="+MMS_CC+" OR type="+MMS_BCC+")";
-		else filter = "type="+MMS_FROM;
-		
-		c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), new String[] {"address", "type"}, filter, null, null);
-		String[] addresses = new String[c.getCount()];
-		while (c.moveToNext())
+		list = db.queryToAddress(address, -1, -1);
+		for (textMessage t : list )
 		{
-			addresses[c.getPosition()] = c.getString(1)+":"+c.getString(0);
+			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
 		}
-		String lo = c.getCount()+" entries sent:"+sent+":";
-		for (int i = 0; i < addresses.length; i++)
+		list = db.queryConversation(address, -1, -1);
+		for (textMessage t : list )
 		{
-			lo+=addresses[i]+",";
+			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
 		}
-		Debug.log(lo);
-		c.close();
-		//actually need to generate one text per address;
-		return new textMessage(id, date,addresses[0],data.length(), media, 0).content();
 	}
-	 */
 	
 	public static void uriProperties(String uri, Context con)
 	  {
