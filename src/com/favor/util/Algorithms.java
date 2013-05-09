@@ -141,17 +141,71 @@ public class Algorithms {
 		for (long l : B) bVar += (l - bMean)*(l - bMean);
   		aVar = aVar/aN;
   		bVar = bVar/bN;
+  		
+  		
  		double likelihood = 0;
  		double margin = 1;
  		int counter = 0;
- 		double [] pAs = new double[aN];
- 		double [] pBs = new double[bN];
+ 		double [] pAs = new double[totalN];
+ 		double [] pBs = new double[totalN];
+ 		double [] pAsTemp = new double[totalN];
+ 		double [] pBsTemp = new double[totalN];
+ 		double sumOfAWeights = 0;
+ 		double sumOfBWeights = 0;
+ 		
+ 		
+ 		//Calculating mixture
  		while (counter < 30 || margin > 0.000000001) {
  		
- 			for (int i =0;i<check.size();i++) {
- 				pAs[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)))*Math.exp(((A.get(i)-aMean)*(A.get(i)-aMean))/(2*aVar));
- 				pBs[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)))*Math.exp(((B.get(i)-bMean)*(B.get(i)-bMean))/(2*bVar));
+ 			//Calculates un-normalized probabilities (weights) for each point
+ 			for (int i =0;i<totalN;i++) {
+ 				pAsTemp[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)))*Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar))*(aN/totalN);
+ 				pBsTemp[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)))*Math.exp(((check.get(i)-bMean)*(check.get(i)-bMean))/(2*bVar))*(bN/totalN);
  			}
+ 			
+ 			//Normalizes and sums weights
+ 			for (int i=0;i<totalN;i++) {
+ 				pAs[i] = pAsTemp[i]/(pAsTemp[i] + pBsTemp[i]);
+ 				pBs[i] = pBsTemp[i]/(pAsTemp[i] + pBsTemp[i]);
+ 				sumOfAWeights += pAs[i];
+ 				sumOfBWeights += pBs[i];
+ 			}
+ 			
+ 			//new means
+ 			for (int i=0;i<totalN;i++) {
+ 				aMean += pAs[i]*check.get(i);
+ 				bMean += pBs[i]*check.get(i);
+ 			}
+ 			aMean = aMean/sumOfAWeights;
+ 			bMean = bMean/sumOfBWeights;
+ 			
+ 			//new vars
+ 			for (int i=0;i<totalN;i++) {
+ 				aVar += pAs[i]*((check.get(i) - aMean)*(check.get(i) - aMean));
+ 				bVar += pBs[i]*((check.get(i) - bMean)*(check.get(i) - bMean));
+ 			}
+ 			aVar = aVar/sumOfAWeights;
+ 			bVar = bVar/sumOfBWeights;
+ 			
+ 			
+ 			//set new aN and bN
+ 			aN = 0;
+ 			bN = 0;
+ 			for (int i=0;i<totalN;i++) {
+ 				if (pAs[i] > 0.5) aN++;
+ 				else bN++;
+ 			}
+ 			
+ 			//likelihood
+ 			for (int i=0;i<check.size();i++) {
+ 				likelihood += Math.log(((aN/totalN)*pAs[i]) + (bN/totalN)*pBs[i]);
+ 			}
+ 			
+ 			//check if first time through the loop, otherwise find the diff between this calc and the last.
+ 			if (counter == 0) margin = likelihood;
+ 			else margin = Math.abs(likelihood - margin);
+ 			
+ 			//loop counter
  			counter++;
  		}
  	
