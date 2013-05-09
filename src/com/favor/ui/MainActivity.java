@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
 		//db.update();
 		//Debug.testData("3607087506");
 		Debug.remakeDB();
-		//Debug.writeDatabase(this);
+		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
 
 		new PopulateContactListTask().execute();
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
-		Debug.algotest();
+		//Debug.algotest(); this shit breaks SO MUCH SHIT. Don't commit code that breaks things, please
 	}
 
 	@Override

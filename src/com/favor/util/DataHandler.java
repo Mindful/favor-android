@@ -40,31 +40,30 @@ class textMessage {
 	private long date;
 	private int charCount;
 	private String address;
-	private int sms;
+	private int media;
 	private int sent;
 	
-	public textMessage(long id, long date, String address, int charCount, int sms, int sent)
+	public textMessage(long id, long date, String address, int charCount, int media, int sent)
 	{
 		this.id = id;
 		this.date = date;
 		this.address = address;
 		this.charCount = charCount;
-		this.sms = sms;
+		this.media = media;
 		this.sent = sent;
 	}
 	
-	public textMessage(long id, long date, String address, String msg, int sms, int sent)
+	public textMessage(long id, long date, String address, String msg, int media, int sent)
 	{
 		this.id = id;
 		this.date = date;
 		this.address = address;
 		this.charCount = msg.length();
-		this.sms = sms;
+		this.media = media;
 		this.sent = sent;
 	}
 	
-	public boolean mms(){return sms==0;}
-	public boolean sms(){return sms!=0;}
+	public boolean multimedia(){return media==1;}
 	public boolean received(){return sent==0;}
 	public boolean sent(){return sent!=0;}
 	public int charCount(){return charCount;}
@@ -83,18 +82,18 @@ class textMessage {
 	public ContentValues content()
 	{
 		ContentValues ret = new ContentValues();
-		ret.put(DataHandler.PRIMARY_KEY_ID, id);
+		ret.put(DataHandler.KEY_ID, id);
 		ret.put(DataHandler.KEY_DATE, date);
 		ret.put(DataHandler.KEY_ADDRESS, address);
 		ret.put(DataHandler.KEY_CHARCOUNT, charCount);
-		ret.put(DataHandler.KEY_SMS, sms);
+		ret.put(DataHandler.KEY_MEDIA, media);
 		return ret;
 	}
 	
 }
 
-//TODO: do we need to find column indices if we're using projections? 
-//Doesn't that tell us what will be where?
+//http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
+//Indicates that "order depends on projection i.e. select name, lastname from table"
 public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should be done on pauses, can't count on exits
 	
 	//SQLite aspects
@@ -105,13 +104,12 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     //Messages tables
     private static final String TABLE_SENT = "sent";
     private static final String TABLE_RECEIVED = "received";
- 
     //Messages table column names
-    public static final String PRIMARY_KEY_ID = "_id"; //unique integer message id
+    public static final String KEY_ID = "_id"; //unique integer message id
     public static final String KEY_DATE = "date"; //integer date 
     public static final String KEY_ADDRESS = "address"; //address
     public static final String KEY_CHARCOUNT = "chars"; //character count
-    public static final String KEY_SMS = "sms"; //1:sms, 0:mms (or other?)
+    public static final String KEY_MEDIA = "media"; //1:media, 0:no media (sms or plain mms)
     public static final String GENERATED_KEY_SENT = "sent";
     //public static final String[] KEYS = {PRIMARY_KEY_ID, KEY_DATE, KEY_ADDRESS, KEY_CHARCOUNT, KEY_SMS};
     
@@ -136,10 +134,29 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-    	db.execSQL("CREATE TABLE "+TABLE_SENT+"("+PRIMARY_KEY_ID+" INTEGER PRIMARY KEY,"+
-        KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
-    	db.execSQL("CREATE TABLE "+TABLE_RECEIVED+"("+PRIMARY_KEY_ID+" INTEGER PRIMARY KEY,"+
-    	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_SMS+" INTEGER)");
+    	//Both tables are indexed by address and then date for query optimization
+    	
+    	//Sent table
+    	//Note that because of the ability to send MMS to multiple recipients, 
+    	//this table is UNIQUE to KEY_ID & KEY_ADDRESS, instead of using KEY_ID as INTEGER PRIMARY KEY
+    	db.execSQL("CREATE TABLE "+TABLE_SENT+"("+KEY_ID+" INTEGER,"+
+        KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_MEDIA+" INTEGER,"+
+        "UNIQUE ("+KEY_ID+","+KEY_ADDRESS+"))");
+    	
+    	//Received Table
+    	//TODO: is there a better way to handle duplicate outgoing multi-address MMS than
+    	//this needing a unique index for KEY_ADDRESS and KEY_DATE together?
+    	db.execSQL("CREATE TABLE "+TABLE_RECEIVED+"("+KEY_ID+" INTEGER PRIMARY KEY,"+
+    	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_MEDIA+" INTEGER)");
+    	
+    	//Indices
+    	if (prefs.getBoolean("index", true))
+    	{
+    		db.execSQL("CREATE INDEX i_"+TABLE_SENT+" ON "+TABLE_SENT+" ("+KEY_ADDRESS+","+KEY_DATE+")");
+        	db.execSQL("CREATE INDEX i_"+TABLE_RECEIVED+" ON "+TABLE_RECEIVED+" ("+KEY_ADDRESS+","+KEY_DATE+")");
+    	}
+
+    	//Data table
     	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" INTEGER,"+KEY_DATE+
     	" INTEGER,"+KEY_COUNT+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+KEY_TYPE+"))");
 		edit.putLong("lastFetch", 0);
@@ -151,6 +168,8 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
     {
     	db.execSQL("DROP TABLE IF EXISTS "+TABLE_SENT);
     	db.execSQL("DROP TABLE IF EXISTS "+TABLE_RECEIVED);
+    	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_SENT);
+    	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_RECEIVED);
     	db.execSQL("DROP TABLE IF EXISTS "+TABLE_DATA);
     	onCreate(db);
     }
@@ -185,7 +204,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
 	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
-	private static final String[] MMS_PROJECTION={"_id", "date"}; //I think just date and ID
+	private static final String[] MMS_PROJECTION={"_id", "date"}; 
 	
 	
 	//Instance aspects
@@ -200,10 +219,41 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		super(mainActivity.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
 		context = mainActivity.getApplicationContext();
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		//prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		edit = prefs.edit();
 		lastFetch = prefs.getLong("lastFetch", 0);
-		//fetch();
+	}
+	
+	/**
+	 * Returns true if indexing is enabled (or defaulted to true), else returns false.
+	 */
+	
+	public boolean indexingEnabled()
+	{
+		return prefs.getBoolean("index", true);
+	}
+	
+	/**
+	 * Enables indexing. This will build the indexes and save indexing as enabled, and can take a
+	 * significant amount of time.
+	 */
+	public void enableIndexing()
+	{
+		if (indexingEnabled()) return;
+		SQLiteDatabase db = getWritableDatabase();
+		db.execSQL("CREATE INDEX i_"+TABLE_SENT+" ON "+TABLE_SENT+" ("+KEY_ADDRESS+","+KEY_DATE+")");
+    	db.execSQL("CREATE INDEX i_"+TABLE_RECEIVED+" ON "+TABLE_RECEIVED+" ("+KEY_ADDRESS+","+KEY_DATE+")");
+	}
+	
+	/**
+	 * Disables indexing. This will drop built indexes and save indexing as disabled.
+	 */
+	
+	public void disableIndexing()
+	{
+		if (!indexingEnabled()) return;
+		SQLiteDatabase db = getWritableDatabase();
+    	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_SENT);
+    	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_RECEIVED);
 	}
 	
 	/**
@@ -217,39 +267,29 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		db.beginTransaction();
 		try{
 		Cursor c = context.getContentResolver().query(SMS_IN, SMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
-		int[] cols = new int[SMS_PROJECTION.length];
-		for (int i = 0; i < SMS_PROJECTION.length; i++)
-		{
-			cols[i] = c.getColumnIndex(SMS_PROJECTION[i]);
-		}
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_RECEIVED, null, 
-			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]), formatAddress(c.getString(cols[2]), false), c.getString(cols[3]), 1, 0).content());
+			new textMessage(c.getLong(0), c.getLong(1), formatAddress(c.getString(2), false), c.getString(3), 0, 0).content());
 		}
 		c.close();
 		c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
 			db.insert(TABLE_SENT, null, 
-			new textMessage(c.getLong(cols[0]), c.getLong(cols[1]),  formatAddress(c.getString(cols[2]), false), c.getString(cols[3]), 1, 1).content());
+			new textMessage(c.getLong(0), c.getLong(1),  formatAddress(c.getString(2), false), c.getString(3), 0, 1).content());
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
-		cols = new int[MMS_PROJECTION.length];
-		for (int i = 0; i < MMS_PROJECTION.length; i++)
-		{
-			cols[i] = c.getColumnIndex(MMS_PROJECTION[i]);
-		}
 		while (c.moveToNext())
 		{
-			receivedMMS(c.getLong(cols[0]), c.getLong(cols[1]), db);
+			receivedMMS(c.getLong(0), c.getLong(1), db);
 		}
 		c.close();
 		c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION, KEY_DATE+" > "+lastFetch, null, KEY_DATE);
 		while (c.moveToNext())
 		{
-			sentMMS(c.getLong(cols[0]), c.getLong(cols[1]), db);
+			sentMMS(c.getLong(0), c.getLong(1), db);
 		}
 		c.close();
 		} 
@@ -261,7 +301,6 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		Date d = new Date();
 		edit.putLong("lastFetch", d.getTime());
 		edit.apply();
-		//edit.apply(); //not commit, because we're the only ones setting this value
 	}
 	
 	private static final String MMS_CC = "130"; //0x82 in com.google.android.mms.pdu.PduHeaders
@@ -271,6 +310,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 	
 	private void sentMMS(long id, long date, SQLiteDatabase db)
 	{
+		//MMS IDs are negative to avoid overlap 
 		int media = 0;
 		String type, data = "";
 		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
@@ -305,20 +345,23 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		if (addresses.length <= 1)
 		{
 			db.insert(TABLE_SENT, null, 
-			new textMessage(id, date,  formatAddress(addresses[0], false), data, media, 0).content());
+			new textMessage(-id, date,  formatAddress(addresses[0], false), data, media, 0).content());
 		}
 		else
 		{
+			//TODO: start transaction; also somehow deal with the issue of repeated IDs for duplicate
+			//messages
 			for (int i = 0; i < addresses.length; i++)
 			{
 				db.insert(TABLE_SENT, null, 
-				new textMessage(id, date,  formatAddress(addresses[i], false), data, media, 0).content());
+				new textMessage(-id, date,  formatAddress(addresses[i], false), data, media, 0).content());
 			}
 		}
 	}
 	
 	private void receivedMMS(long id, long date, SQLiteDatabase db)
 	{
+		//MMS IDs are negative to avoid overlap 
 		int media = 0;
 		String type, data = "";
 		Cursor c = context.getContentResolver().query(Uri.parse("content://mms/"+id+"/part"), new String[] {"_data", "text", "ct"}, "ct<>\"application/smil\"", null, null);
@@ -346,7 +389,7 @@ public class DataHandler extends SQLiteOpenHelper{ //saves (what saves?) should 
 		String address = c.getString(0);
 		c.close();
 		db.insert(TABLE_RECEIVED, null, 
-		new textMessage(id, date,  formatAddress(address, false), data, media, 0).content());
+		new textMessage(-id, date,  formatAddress(address, false), data, media, 0).content());
 	}
 	
 	
