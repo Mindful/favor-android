@@ -208,10 +208,9 @@ public class Algorithms {
  			//loop counter
  			counter++;
  		}
- 	
-
-  		
-  		
+ 		for (int i=0;i<totalN;i++) if (check.contains(pAs[i])) check.remove(pBs[i]);
+ 		while (check.peekLast() != null)
+ 			totalData.remove(check.poll());
   		return totalData;
    	}
 }
