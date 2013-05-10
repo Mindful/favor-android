@@ -117,7 +117,7 @@ public class Algorithms {
   		//Standard Deviation of the total dataset
   		double mean = 0;
   		double stdDev = 0;
-  		int totalN = totalData.size();
+  		double totalN = totalData.size();
  		for (int i = 0; i < totalN; i++) mean += temp.get(i);
  		mean = mean/totalN;
  		Debug.log("The initial mean = " + mean);
@@ -126,14 +126,19 @@ public class Algorithms {
  			stdDev += (temp.get(i) - mean)*(temp.get(i) - mean);	
  			Debug.log("seeing if std dev adds = " + stdDev);
  		}
- 		stdDev = (Math.sqrt((1/(totalN))*stdDev));
  		Debug.log("Initial stdDev = " + stdDev);
+ 		stdDev = Math.sqrt(stdDev);
+ 		Debug.log("totalN " + totalN);
+ 		Debug.log("" + 1/totalN);
+ 		Debug.log("  " +(1/totalN)*stdDev);
+ 		stdDev = (Math.sqrt((1/(totalN))*stdDev));
+ 		Debug.log("stdDev = " + stdDev);
  		while (totalData.peekLast() != null) {
  			if (totalData.peek() > mean+stdDev) B.add(totalData.poll());
  			else A.add(totalData.poll());
  		}
- 		int aN = A.size();
-  		int bN = B.size();
+ 		double aN = A.size();
+  		double bN = B.size();
   		Debug.log("A size: " + aN + " B size: " + bN);
  		
  		double aMean = 0;
@@ -153,10 +158,10 @@ public class Algorithms {
  		double likelihood = 0;
  		double margin = 1;
  		int counter = 0;
- 		double [] pAs = new double[totalN];
- 		double [] pBs = new double[totalN];
- 		double [] pAsTemp = new double[totalN];
- 		double [] pBsTemp = new double[totalN];
+ 		double [] pAs = new double[(int)totalN];
+ 		double [] pBs = new double[(int)totalN];
+ 		double [] pAsTemp = new double[(int)totalN];
+ 		double [] pBsTemp = new double[(int)totalN];
  		double sumOfAWeights = 0;
  		double sumOfBWeights = 0;
  		
@@ -165,10 +170,16 @@ public class Algorithms {
  		while (counter < 30 || margin > 0.000000001) {
  		
  			//Calculates un-normalized probabilities (weights) for each point
+ 			double pA = aN/totalN;
+ 			double pB = bN/totalN;
+ 			Debug.log("A prob: " + pA + " B prob: " + pB);
+ 			double otherTermA = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)));
+ 			double otherTermB = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)));
+ 			Debug.log("otherTerms: " + otherTermA + " // " + otherTermB);
  			for (int i =0;i<totalN;i++) {
- 				pAsTemp[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)))*Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar))*(aN/totalN);
+ 				pAsTemp[i] = (otherTermA*Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar)))*pA;
  				Debug.log("pAs before normalize ["+i+"] - " + pAsTemp[i]);
- 				pBsTemp[i] = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)))*Math.exp(((check.get(i)-bMean)*(check.get(i)-bMean))/(2*bVar))*(bN/totalN);
+ 				pBsTemp[i] = (otherTermB*Math.exp(((check.get(i)-bMean)*(check.get(i)-bMean))/(2*bVar)))*pB;
  				Debug.log("pBs before normalize ["+i+"] - " + pBsTemp[i]);
  			}
  			
