@@ -14,8 +14,9 @@ public class Algorithms {
   public static long[] charCount (String address, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
-	  ArrayList <textMessage> sent = db.queryToAddress(address, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(address, fromDate, untilDate);
+	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
 	  for (textMessage t : sent) {
 		  values[0] += t.charCount();
 	  }
@@ -36,7 +37,8 @@ public class Algorithms {
   public static long[] responseTime (String address, long fromDate, long untilDate)
  	{
  	  DataHandler db = DataHandler.get();
- 	  LinkedList<textMessage> list = db.queryConversation(address, fromDate, untilDate);
+ 	 String[] keys = new String[] {DataHandler.KEY_DATE};
+ 	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
  		//well, averages are obi wrong, but the consecutive stripping works like a charm
  		long sendTotal = 0;
  		long receiveTotal = 0;
@@ -97,7 +99,12 @@ public class Algorithms {
   	//Will perform separate queries, doesn't call other algos
   	public static long friendScore (String address) {
   		DataHandler db = DataHandler.get();
-  		LinkedList<textMessage> convo = db.queryConversation(address, -1, -1);
+  		String[] keys = DataHandler.KEYS_PUBLIC; 
+  		//TODO: REBAR - READ THIS COMMENT BLOCK:
+  		//DataHandler.KEYS_PUBLIC accounts for all public keys
+  		//I'm assuming you'll use charCount, date, media, and address. If there are any
+  		//that you don't use, just build your own array with the keys excluding the one you don't need
+  		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
   		for (textMessage t : convo) ;
   		long score = 100;
   		

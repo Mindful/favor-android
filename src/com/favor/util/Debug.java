@@ -11,7 +11,6 @@ import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,25 +25,44 @@ import android.widget.Toast;
 @SuppressLint("NewApi") //suppressing error on L46
 public class Debug {
 	
-	public static void queryTest(String address)
+	public static void queryTest(String[] addresses, String[] keys)
 	{
+		String address = addresses[0];
 		DataHandler db = DataHandler.get();
-		List<textMessage> list = db.queryFromAddress(address, -1, -1);
+		List<textMessage> list = db.queryFromAddress(address, keys, -1, -1);
+		Debug.log("From");
 		for (textMessage t : list )
 		{
-			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
+			Debug.log(""+t);
 		}
-		list = db.queryToAddress(address, -1, -1);
+		list = db.queryToAddress(address, keys, -1, -1);
+		Debug.log("To");
 		for (textMessage t : list )
 		{
-			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
+			Debug.log(""+t);
 		}
-		list = db.queryConversation(address, -1, -1);
+		list = db.queryConversation(address, keys, -1, -1);
+		Debug.log("Convo");
 		for (textMessage t : list )
 		{
-			Debug.log("Address:"+t.address()+" Date:"+t.textDate()+" ID:"+t.id());
+			Debug.log(""+t);
+		}
+		Debug.log("MultiFrom");
+		HashMap<String, ArrayList<textMessage>> multi = db.queryFromAddresses(addresses, keys, -1, -1);
+		for (Map.Entry<String, ArrayList<textMessage>> entry : multi.entrySet()) {
+		    Debug.log(entry.getKey()+":"+entry.getValue().size());
+		}
+		
+		for (int i = 0; i < addresses.length; i++)
+		{
+			list = multi.get(addresses[i]);
+			for (textMessage t : list )
+			{
+				Debug.log(""+t);
+			}
 		}
 	}
+	
 	
 	public static void uriProperties(String uri, Context con)
 	  {
@@ -103,7 +121,7 @@ public class Debug {
 		long[] chars = Algorithms.charCount(address, -1, -1);
 		db.saveData(address, DataHandler.DATA_RECEIVED_CHARS, chars[1]);
 		db.saveData(address, DataHandler.DATA_SENT_CHARS, chars[0]);
-		SparseArray<Long> all = db.getAllData(address);
+		SparseArray<dataTime> all = db.getAllData(address);
 		log("Received Chars:"+all.get(DataHandler.DATA_RECEIVED_CHARS));
 		log("Sent chars:"+all.get(DataHandler.DATA_SENT_CHARS));
 		db.saveData(address, DataHandler.DATA_SENT_MMS, 250l);
@@ -119,6 +137,7 @@ public class Debug {
 		data.update();
 	}
 	
+	@SuppressLint("SdCardPath")
 	public static void writeDatabase(Activity act)
 	{
 	String path = DataHandler.get().getReadableDatabase().getPath();
