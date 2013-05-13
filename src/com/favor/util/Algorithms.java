@@ -5,11 +5,18 @@ import java.util.LinkedList;
 
 
 
+
 public class Algorithms {
+	
 
   DataHandler db = DataHandler.get();
   // All Ratios are received over sent because then values over 1 indicate people responding more, under
   // 1 indicates you respond more.
+  
+  private static final double CHAR_WEIGHT = 0.45;
+  private static final double COUNT_WEIGHT = 0.15;
+  private static final double MEDIA_WEIGHT = 0.15;
+  private static final double RESPONSE_WEIGHT = 0.25;
   
   public static long[] charCount (String address, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
@@ -97,7 +104,7 @@ public class Algorithms {
   	
   	
   	//Will perform separate queries, doesn't call other algos
-  	public static long friendScore (String address) {
+  	public static double friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
@@ -105,8 +112,64 @@ public class Algorithms {
   		//I'm assuming you'll use charCount, date, media, and address. If there are any
   		//that you don't use, just build your own array with the keys excluding the one you don't need
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
-  		for (textMessage t : convo) ;
-  		long score = 100;
+  		long sentChar = 0;
+  		long recChar = 0;
+  		double charRatio = 0;
+  		double sentCount = 0;
+  		double recCount = 0;
+  		double countRatio = 0;
+  		double sentMedia = 0;
+  		double recMedia = 0;
+  		double mediaRatio = 0;
+  		double responseRatio = 0;
+  		
+  		for (textMessage t : convo) {
+  			if (t.received()) { 
+  				recChar += t.charCount(); 
+  				recCount++;	
+  				if (t.multimedia()) recMedia++;
+  			}
+  			else {
+  				sentChar += t.charCount();
+  				sentCount++;
+  				if (!t.multimedia()) sentMedia++;
+  			}
+  			
+  		}
+  		charRatio = recChar/sentChar;
+  		countRatio = recCount/sentCount;
+  		mediaRatio = recMedia/sentMedia;
+  		
+  		//response time calc
+  		LinkedList<Long> sentTimes = new LinkedList<Long>();
+  		LinkedList<Long> recTimes = new LinkedList<Long>();
+  		textMessage prev = null;
+  		long time = 0;
+  		while(convo.peekLast()!=null)
+ 		{
+ 		    textMessage temp = convo.pollLast(); //removes from queue
+ 			if (prev!= null)
+ 			{
+ 				time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
+ 				if (temp.received()) sentTimes.add(time); //our response time
+ 				else recTimes.add(time);
+ 				
+ 			}
+ 			while(convo.peekLast() != null && convo.peekLast().received() == temp.received()) //short circuits
+ 			{
+ 				convo.pollLast();
+ 			}
+ 			prev = temp;
+ 		}
+  		double avgSent = 0;
+  		double avgRec = 0;
+  		for (long l : sentTimes) avgSent += l;
+  		for (long l : recTimes) avgRec += l;
+  		avgSent /= (double) sentTimes.size();
+  		avgRec /= (double) recTimes.size();
+  		responseRatio = avgRec/avgSent;
+  		double score = 100;
+  		score = (CHAR_WEIGHT * charRatio) + (COUNT_WEIGHT * countRatio) + (MEDIA_WEIGHT * mediaRatio) + (RESPONSE_WEIGHT * responseRatio);
   		
   		return score;
   	}
