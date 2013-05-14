@@ -10,23 +10,30 @@ public class Algorithms {
 	
 
   DataHandler db = DataHandler.get();
-  // All Ratios are received over sent because then values over 1 indicate people responding more, under
-  // 1 indicates you respond more.
-  
+
+  //weightings for proprietary scoring
   private static final double CHAR_WEIGHT = 0.45;
   private static final double COUNT_WEIGHT = 0.15;
   private static final double MEDIA_WEIGHT = 0.15;
   private static final double RESPONSE_WEIGHT = 0.25;
   
+  //character counting
   public static long[] charCount (String address, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
+	  
+	  //only gets character count, all other fields are null
 	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  
+	  //queries take an address, keys, and dates
 	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
 	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
+	  
+	  //counting sent values, stored at index 0 in the array values
 	  for (textMessage t : sent) {
 		  values[0] += t.charCount();
 	  }
+	  //couting received values, stored at index 1 in the array values
 	  for (textMessage t : rec) {
 		  values[1] += t.charCount();
 	  }
@@ -34,42 +41,61 @@ public class Algorithms {
   }
   
   public static double charRatio (String address, long fromDate, long untilDate) {
+	  
+	  //calls character count
 	  long [] values= charCount(address, fromDate, untilDate);
 	  Debug.log(values[1] + "");
 	  Debug.log(values[0] + "");
+	  
+	  //some kewl casting here jk
 	  double ratio = values[1]/(float)values[0];
 	  return ratio;
   }
 
-  public static long[] responseTime (String address, long fromDate, long untilDate)
- 	{
+  //response time calculator
+  public static double[] responseTime (String address, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
  	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
- 		//well, averages are obi wrong, but the consecutive stripping works like a charm
  		long sendTotal = 0;
  		long receiveTotal = 0;
- 		long avgSentTime;
- 		long avgRecTime;
- 		long [] ratios = {0, 0};
+ 		double [] averages = {0, 0};
+ 		
+ 		// creates lists of longs
  		LinkedList<Long> sentTimes = new LinkedList<Long>();
  		LinkedList<Long> recTimes = new LinkedList<Long>();
  		textMessage temp, prev = null;
- 		Long time;
+ 		long time;
+ 		
+ 		//too many variables, don't think we need these
  		int tempSentCount = 0;
  		int tempRecCount = 0;
+ 		
+ 		//too many intermediary list objects?
  		LinkedList<Long> checkSentTimes = new LinkedList<Long>();
  		LinkedList<Long> checkRecTimes = new LinkedList<Long>();
- 		while(list.peekLast()!=null)
- 		{
- 		    temp = list.pollLast(); //removes from queue
+ 		
+ 		/*this is the stripping algorithm, it takes out consecutive messages from the same person
+ 		 *the check is performed on whether there is anything left in the list, this method
+ 		 *dequeues the list, it will be empty after this loop runs.
+ 		 *IMPORTANT: IT GOES IN REVERSE. NOTE THAT IT DOES NOT POLL, IT POLLS LAST
+ 		 * 
+ 		 */
+ 		while(list.peekLast()!=null) {
+ 			//makes temp the end of the queue, removes end of the queue
+ 		    temp = list.pollLast(); 		    
+ 		    //checks if there is a value in prev
  			if (prev!= null)
  			{
- 				time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
+ 				//time is positive, temp minus prev is equivalent to 
+ 				//newest message minus last message from the other party
+ 				time = temp.rawDate() - prev.rawDate();
+ 				//adding times to one of two lists, not textMessage objects any more
  				if (temp.received()){ checkSentTimes.add(time); tempSentCount++; } //our response time
  				else {checkRecTimes.add(time); tempRecCount++;}
  				
  			}
+ 			//strips consecutive texts from the same person (no response counted for those)
  			while(list.peekLast() != null && list.peekLast().received() == temp.received()) //short circuits
  			{
  				if (list.peekLast().received())	Debug.log("received:"+list.peekLast().textDate()+" temp:"+temp.textDate());
@@ -77,33 +103,38 @@ public class Algorithms {
  	
  				list.pollLast();
  			}
+ 			//current selection is now the previous selection, lets get a new current selection
  			prev = temp;
  		}
- 		int n1 = tempSentCount; //n for sent
- 		int n2 = tempRecCount; //n for received
- 	
- 		sentTimes = checkSentTimes;
- 		recTimes = checkRecTimes;
- 		sentTimes = Algorithms.finiteMixture(sentTimes);
- 		recTimes = Algorithms.finiteMixture(recTimes);
+ 		//runs finite mixture on the check lists
+ 		sentTimes = Algorithms.finiteMixture(checkSentTimes);
+ 		recTimes = Algorithms.finiteMixture(checkRecTimes);
  		Debug.log("sentTimes"+sentTimes.size()+"tempSent"+tempSentCount);
  		Debug.log("recTimes"+recTimes.size()+"tempRec"+tempRecCount);
- 		avgSentTime = sendTotal/(1000*tempSentCount); //sentTimes.size();
- 		avgRecTime = receiveTotal/(1000*tempRecCount); //recTimes.size();
- 		ratios[0] = avgSentTime;
- 		ratios[1] = avgRecTime;
- 		return ratios;
+ 		//total the response times
+ 		for (long l : sentTimes) sendTotal += l;
+ 		for (long l : recTimes) receiveTotal += l;
+ 		
+ 
+ 		//set the array equal to the averages
+ 		averages[0] = sendTotal/(float)(1000*sentTimes.size());
+ 		averages[1] = receiveTotal/(float)(1000*recTimes.size());
+ 		return averages;
  	}
 
-  
+  	//ratio of averages currently, consider moving to mean ratio between each X-i and Y-i
   	public static double responseRatio (String address, long fromDate, long untilDate) {
-	  long[] times = responseTime(address, fromDate, untilDate);
-	  double ratio = times[1]/times[0];
-	  return ratio;
+  		//calls
+  		double[] times = Algorithms.responseTime(address, fromDate, untilDate);
+  		double ratio = times[1]/times[0];
+  		return ratio;
   	}
   	
   	
-  	//Will perform separate queries, doesn't call other algos
+  	/* Will perform separate queries, doesn't call other algos, friendscore
+  	 * This is a score that will represent their interest in you, less so 
+  	 * your overall relationship
+  	 */
   	public static double friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
@@ -174,7 +205,21 @@ public class Algorithms {
   		return score;
   	}
   	
-  	// 
+  	
+  	
+  	/* relationship score
+  	 * uses same weights as friend score - considering diff ways of executing this.
+  	 */
+  	
+  	public static double relationshipScore (String address) {
+  		DataHandler db = DataHandler.get();
+  		String[] keys = DataHandler.KEYS_PUBLIC; 
+  		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
+  		double score = 0;
+  		return score;
+  	}
+  	
+  	// gaussian mixtures
   	public static LinkedList<Long> finiteMixture (LinkedList<Long> totalData) {
   		LinkedList<Long> A = new LinkedList<Long>();
   		LinkedList<Long> B = new LinkedList<Long>();
