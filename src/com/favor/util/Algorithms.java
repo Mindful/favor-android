@@ -3,12 +3,8 @@ package com.favor.util;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-
-
-
 public class Algorithms {
 	
-
   DataHandler db = DataHandler.get();
 
   //weightings for proprietary scoring
@@ -17,7 +13,13 @@ public class Algorithms {
   private static final double MEDIA_WEIGHT = 0.15;
   private static final double RESPONSE_WEIGHT = 0.25;
   
-  //character counting
+  /**
+   * Calculates the total characters sent and received for a contact and period of time
+   * @param address
+   * @param fromDate
+   * @param untilDate
+   * @return
+   */
   public static long[] charCount (String address, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
@@ -40,6 +42,13 @@ public class Algorithms {
 	  return values;  
   }
   
+  /**
+   * Calculates a ratio of characters, calls the charCount method
+   * @param address
+   * @param fromDate
+   * @param untilDate
+   * @return
+   */
   public static double charRatio (String address, long fromDate, long untilDate) {
 	  
 	  //calls character count
@@ -216,6 +225,8 @@ public class Algorithms {
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
   		double score = 0;
+  		
+  		//needs to get the running averages for stuff (totals, etc, without too many calls)
   		return score;
   	}
   	
@@ -291,7 +302,9 @@ public class Algorithms {
  			double otherTermA = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)));
  			double otherTermB = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)));
  			Debug.log("otherTerms: " + otherTermA + " // " + otherTermB);
+ 			
  			for (int i =0;i<totalN;i++) {
+ 				Debug.log("Checking to see if zero in exponent" + Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar)));
  				pAsTemp[i] = (otherTermA*Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar)))*pA;
  				Debug.log("pAs before normalize ["+i+"] - " + pAsTemp[i]);
  				pBsTemp[i] = (otherTermB*Math.exp(((check.get(i)-bMean)*(check.get(i)-bMean))/(2*bVar)))*pB;
