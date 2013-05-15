@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 
 		new PopulateContactListTask().execute();
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
-		//Debug.algotest(); //this shit breaks SO MUCH SHIT. Don't commit code that breaks things, please
+		Debug.algotest(); //this shit breaks SO MUCH SHIT. Don't commit code that breaks things, please
 	}
 
 	@Override

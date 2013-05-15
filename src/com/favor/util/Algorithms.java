@@ -20,6 +20,8 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
+  
+  
   public static long[] charCount (String address, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
@@ -61,7 +63,15 @@ public class Algorithms {
 	  return ratio;
   }
 
-  //response time calculator
+  /**
+   * calculates response time by stripping consecutive messages,from last sent by each party, 
+   * averages calc'd values, returns an array of the average response times with the 0th index 
+   * being the user's average response time and the 1st index being the contact's response time
+   * @param address
+   * @param fromDate
+   * @param untilDate
+   * @return
+   */
   public static double[] responseTime (String address, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
@@ -144,7 +154,7 @@ public class Algorithms {
   	 * This is a score that will represent their interest in you, less so 
   	 * your overall relationship
   	 */
-  	public static double friendScore (String address) {
+  	public static double relationshipScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
@@ -220,13 +230,44 @@ public class Algorithms {
   	 * uses same weights as friend score - considering diff ways of executing this.
   	 */
   	
-  	public static double relationshipScore (String address) {
+  	public static double friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
+  		int media = 0;
+  		int messages = 0;
+  		long charCount = 0;
+  		double responseAvg = 0;
   		double score = 0;
-  		
-  		//needs to get the running averages for stuff (totals, etc, without too many calls)
+  		double numResponse = 0;
+  		LinkedList<Long> recTimes = new LinkedList<Long>();
+  		for (textMessage t: convo) {
+  			if (t.received()) {
+  				messages++;
+  				charCount += t.charCount();
+  				if (t.multimedia()) media++;
+  			}
+  		}
+  		textMessage prev = null;
+  		while(convo.peekLast()!=null)
+ 		{
+ 		    textMessage temp = convo.pollLast(); //removes from queue
+ 			if (prev!= null)
+ 			{
+ 				long time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
+ 				if (!temp.received()) {
+ 					responseAvg += time;
+ 					numResponse++;
+ 				}
+ 			}
+ 			while(convo.peekLast() != null && convo.peekLast().received() == temp.received()) //short circuits
+ 			{
+ 				convo.pollLast();
+ 			}
+ 			prev = temp;
+ 		}
+  		responseAvg = responseAvg/numResponse;
+  		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
   		return score;
   	}
   	
