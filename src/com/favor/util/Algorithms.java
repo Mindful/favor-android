@@ -1,7 +1,11 @@
 package com.favor.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Vector;
+
+import jMEF.*;
 
 public class Algorithms {
 	
@@ -14,7 +18,9 @@ public class Algorithms {
   private static final double RESPONSE_WEIGHT = 0.25;
   
   /**
-   * Calculates the total characters sent and received for a contact and period of time
+   * Calculates the total characters sent and received for a contact and period of time,
+   * returns an array of longs with sent characters in the 0th index and received
+   * characters in the 1st index.
    * @param address
    * @param fromDate
    * @param untilDate
@@ -126,8 +132,17 @@ public class Algorithms {
  			prev = temp;
  		}
  		//runs finite mixture on the check lists
- 		sentTimes = Algorithms.finiteMixture(checkSentTimes);
- 		recTimes = Algorithms.finiteMixture(checkRecTimes);
+ 		//sentTimes = Algorithms.finiteMixture(checkSentTimes);
+ 		//recTimes = Algorithms.finiteMixture(checkRecTimes);
+ 		
+ 		//count how many in the upper cluster
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
  		Debug.log("sentTimes"+sentTimes.size()+"tempSent"+tempSentCount);
  		Debug.log("recTimes"+recTimes.size()+"tempRec"+tempRecCount);
  		//total the response times
@@ -141,7 +156,15 @@ public class Algorithms {
  		return averages;
  	}
 
-  	//ratio of averages currently, consider moving to mean ratio between each X-i and Y-i
+  	/**
+  	 * calculates ratio of the mean response times for user and contact, contact/user
+  	 * if the user is liked, then it will be over 1 - if the user likes more, it will be under 1
+  	 * 
+  	 * @param address
+  	 * @param fromDate
+  	 * @param untilDate
+  	 * @return
+  	 */
   	public static double responseRatio (String address, long fromDate, long untilDate) {
   		//calls
   		double[] times = Algorithms.responseTime(address, fromDate, untilDate);
@@ -150,9 +173,10 @@ public class Algorithms {
   	}
   	
   	
-  	/* Will perform separate queries, doesn't call other algos, friendscore
-  	 * This is a score that will represent their interest in you, less so 
-  	 * your overall relationship
+  	/** Will perform separate queries, doesn't call other algos, friendscore
+  	 *  This is a score that will represent their interest in you, less so 
+  	 *  your overall relationship
+  	 *  @param address
   	 */
   	public static double relationshipScore (String address) {
   		DataHandler db = DataHandler.get();
@@ -412,5 +436,59 @@ public class Algorithms {
  		for (long l : totalData) Debug.log("stuff after clean: " + l);
   		return totalData;
    	}
+  	
+  	/**
+  	 * utility method for calculating a split value that is mean + 1 standard deviation
+  	 * @param list
+  	 * @return
+  	 */
+  	public static double calcInitialSplit (LinkedList<Long> list) {
+  		double mean = 0;
+  		double stdDev = 0;
+  		double totalN = list.size();
+ 		for (int i = 0; i < totalN; i++) mean += list.get(i);
+ 		mean = mean/totalN;
+ 		for (int i=0;i<totalN;i++) {
+ 			stdDev += (list.get(i) - mean)*(list.get(i) - mean);	
+ 		}
+ 		stdDev = Math.sqrt(stdDev);
+ 		return mean + stdDev;
+  	}
+  	
+  	/**
+  	 * utility method that turns a linked list of longs into two clusters of 
+  	 * PVectors based on an initial split value. returns an array of Vectors of
+  	 * PVectors for use in the Bregman Soft Clustering algo.
+  	 * @param list
+  	 * @return
+  	 */
+  	public static Vector<PVector>[] toPVectors (LinkedList<Long> list) {
+  		double split = calcInitialSplit(list);
+  		
+  		//divide list based on split
+  		ArrayList<Double> under = new ArrayList<Double>(), over = new ArrayList<Double>();
+  		for (long l : list) {
+  			if (l > split) over.add((double)l);
+  			else under.add((double)l);
+  		}
+  		Vector<PVector> unders = new Vector<PVector>();
+  		Vector<PVector> overs = new Vector<PVector>();
+  		
+  		//adds a new PVector for each value, then makes the PVector contain that value
+  		for (int i = 0;i < under.size(); i++) {
+  			unders.add(new PVector(1));
+  			unders.get(i).array[0] = under.get(i);
+  		}
+  		for (int i = 0;i < over.size(); i++) {
+  			overs.add(new PVector(1));
+  			overs.get(i).array[0] = over.get(i);
+  		}
+  		
+  		Vector<PVector>[] result = (Vector<PVector>[]) new Vector[2];
+  		result[0] = unders;
+  		result[1] = overs;
+  		return result;
+  		
+  	}
   	
 }
