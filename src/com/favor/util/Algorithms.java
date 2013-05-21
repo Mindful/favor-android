@@ -461,7 +461,8 @@ public class Algorithms {
  			stdDev += (list.get(i) - mean)*(list.get(i) - mean);	
  		}
  		stdDev = Math.sqrt(stdDev);
- 		return mean + stdDev;
+ 		Debug.log("mean plus standard dev   " + ((mean + stdDev)/1000));
+ 		return (mean + stdDev)/100;
   	}
   	
   	/**
@@ -485,17 +486,19 @@ public class Algorithms {
   		
   		//adds a new PVector for each value, then makes the PVector contain that value
   		for (int i = 0;i < under.size(); i++) {
-  			unders.add(new PVector(1));
+  			unders.add(i, new PVector(1));
   			unders.get(i).array[0] = under.get(i);
   		}
   		for (int i = 0;i < over.size(); i++) {
-  			overs.add(new PVector(1));
+  			overs.add(i, new PVector(1));
   			overs.get(i).array[0] = over.get(i);
   		}
   		
   		Vector<PVector>[] result = (Vector<PVector>[]) new Vector[2];
   		result[0] = unders;
   		result[1] = overs;
+  		Debug.log("0    " + result[0].toString());
+  		Debug.log("1    " + result[1].toString());
   		return result;
   		
   	}
