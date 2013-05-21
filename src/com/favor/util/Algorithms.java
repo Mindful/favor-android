@@ -1,11 +1,15 @@
 package com.favor.util;
 
+import jMEF.BregmanSoftClustering;
+import jMEF.MixtureModel;
+import jMEF.PVector;
+import jMEF.UnivariateGaussian;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Vector;
 
-import jMEF.*;
 
 public class Algorithms {
 	
@@ -82,13 +86,10 @@ public class Algorithms {
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
  	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
- 		long sendTotal = 0;
+ 		long sentTotal = 0;
  		long receiveTotal = 0;
  		double [] averages = {0, 0};
- 		
- 		// creates lists of longs
- 		LinkedList<Long> sentTimes = new LinkedList<Long>();
- 		LinkedList<Long> recTimes = new LinkedList<Long>();
+ 	
  		textMessage temp, prev = null;
  		long time;
  		
@@ -131,28 +132,36 @@ public class Algorithms {
  			//current selection is now the previous selection, lets get a new current selection
  			prev = temp;
  		}
- 		//runs finite mixture on the check lists
- 		//sentTimes = Algorithms.finiteMixture(checkSentTimes);
- 		//recTimes = Algorithms.finiteMixture(checkRecTimes);
  		
- 		//count how many in the upper cluster
+ 		//calculate initial clusters
+ 		Vector<PVector>[] sentClusters = toPVectors(checkSentTimes);
+ 		Vector<PVector>[] recClusters = toPVectors(checkRecTimes);
+ 		PVector[] sentPoints = toPoints(checkSentTimes);
+ 		for (PVector v : sentPoints) Debug.log("uncleaned sent points --" + v.array[0]);
+ 		PVector[] recPoints = toPoints(checkRecTimes);
+ 		for (PVector v : recPoints) Debug.log("uncleaned rec points --" + v.array[0]);
+ 		MixtureModel sentTimes;
+ 		sentTimes = BregmanSoftClustering.initialize(sentClusters, new UnivariateGaussian());
+ 		MixtureModel recTimes;
+ 		recTimes = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
+ 		sentTimes = BregmanSoftClustering.run(sentPoints, sentTimes);
+ 		recTimes = BregmanSoftClustering.run(recPoints, recTimes);
  		
- 		
- 		
- 		
- 		
- 		
- 		
- 		Debug.log("sentTimes"+sentTimes.size()+"tempSent"+tempSentCount);
- 		Debug.log("recTimes"+recTimes.size()+"tempRec"+tempRecCount);
- 		//total the response times
- 		for (long l : sentTimes) sendTotal += l;
- 		for (long l : recTimes) receiveTotal += l;
- 		
+ 		//calculating totals from the returned values
+ 		for (int i = 0;i< sentTimes.param.length; i++) {
+ 			sentPoints[i] = (PVector) sentTimes.param[i];
+ 			sentTotal += sentPoints[i].array[0];
+ 			Debug.log("cleaned points --" + sentPoints[i].array[0]);
+ 		}
+ 		for (int i = 0;i < recTimes.param.length; i++) {
+ 			recPoints[i] = (PVector) recTimes.param[i];
+ 			receiveTotal += recPoints[i].array[0];
+ 			Debug.log("cleaned points --" + recPoints[i].array[0]);
+ 		}
  
  		//set the array equal to the averages
- 		averages[0] = sendTotal/(float)(1000*sentTimes.size());
- 		averages[1] = receiveTotal/(float)(1000*recTimes.size());
+ 		averages[0] = sentTotal/(float)(1000*sentPoints.length);
+ 		averages[1] = receiveTotal/(float)(1000*recPoints.length);
  		return averages;
  	}
 
@@ -489,6 +498,20 @@ public class Algorithms {
   		result[1] = overs;
   		return result;
   		
+  	}
+  	/**
+  	 * Utility method turns a linked list into a list of points for use in
+  	 * Bregman soft clustering, returns an array of PVectors.
+  	 * @param list
+  	 * @return
+  	 */
+  	public static PVector[] toPoints (LinkedList<Long> list) {
+  		PVector[] points = new PVector[list.size()];
+  		for (int i = 0;i < points.length;i++) {
+  			points[i] = new PVector(1);
+  			points[i].array[0] = (double) list.get(i);	
+  		}
+  		return points;
   	}
   	
 }
