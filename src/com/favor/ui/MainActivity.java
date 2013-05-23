@@ -63,7 +63,9 @@ public class MainActivity extends ListActivity {
 						((TextView) view).getText(), Toast.LENGTH_SHORT).show();
 			    }
 			}
+			
 		});
+		//listView.setOnItemClickListener(new OnItemClickListener() {)
  
 	}
  
