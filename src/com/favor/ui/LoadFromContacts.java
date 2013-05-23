@@ -50,8 +50,7 @@ public class LoadFromContacts extends Activity {
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
 		Debug.remakeDB();
-		//Debug.testData("3607087506");
-		//Debug.queryTest("3607087506");
+	
 		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
