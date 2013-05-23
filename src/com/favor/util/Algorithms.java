@@ -334,6 +334,7 @@ public class Algorithms {
   		double responseAvg = 0;
   		double score = 0;
   		double numResponse = 0;
+  		double receiveTotal = 0.0;
   		LinkedList<Long> recTimes = new LinkedList<Long>();
   		for (textMessage t: convo) {
   			if (t.received()) {
@@ -360,7 +361,36 @@ public class Algorithms {
  			}
  			prev = temp;
  		}
-  		
+  	//calculate initial clusters
+
+ 		Vector<PVector>[] recClusters = toPVectors(recTimes);
+ 		PVector[] recPoints = toPoints(recTimes);
+ 		for (PVector v : recPoints) Debug.log("uncleaned rec points --" + v.array[0]);
+ 		
+ 		//Making mixture models
+ 		
+ 		MixtureModel recTimesMM;
+ 		recTimesMM = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
+ 		recTimesMM = BregmanSoftClustering.run(recPoints, recTimesMM);
+ 		
+ 		Debug.log(recTimes.toString());
+ 		
+ 		//retrieving parameter ranges
+
+ 		PVector temp = (PVector) recTimesMM.param[0];
+ 		double recMax = temp.array[1];
+ 		if (recMax > 28800000 && temp.array[0] < 28800000) recMax = 28800000.0;
+ 		Debug.log("recMax   " + recMax);
+ 		LinkedList<Double> cleanSent = new LinkedList<Double>();
+ 		LinkedList<Double> cleanRec = new LinkedList<Double>();
+ 		
+ 		//calculating totals from the returned values
+ 		for (int i = 0;i < recPoints.length; i++) {
+ 			if(recPoints[i].array[0] <= recMax) {
+ 				receiveTotal += recPoints[i].array[0];
+ 				cleanRec.add(recPoints[i].array[0]);
+ 			}	
+ 		}
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
   		return score;
