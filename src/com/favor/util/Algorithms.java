@@ -140,6 +140,8 @@ public class Algorithms {
  		for (PVector v : sentPoints) Debug.log("uncleaned sent points --" + v.array[0]);
  		PVector[] recPoints = toPoints(checkRecTimes);
  		for (PVector v : recPoints) Debug.log("uncleaned rec points --" + v.array[0]);
+ 		
+ 		//Making mixture models
  		MixtureModel sentTimes;
  		sentTimes = BregmanSoftClustering.initialize(sentClusters, new UnivariateGaussian());
  		MixtureModel recTimes;
@@ -148,6 +150,8 @@ public class Algorithms {
  		recTimes = BregmanSoftClustering.run(recPoints, recTimes);
  		Debug.log(sentTimes.toString());
  		Debug.log(recTimes.toString());
+ 		
+ 		//retrieving parameter ranges
  		PVector temp1 = (PVector) sentTimes.param[0];
  		PVector temp2 = (PVector) recTimes.param[0];
  		double sentMax = temp1.array[1];
@@ -173,7 +177,8 @@ public class Algorithms {
  		}
  		Debug.log("Cleaned sent ---- " + cleanSent.toString());
  		Debug.log("Cleaned Rec ---- " + cleanRec.toString());
- 		//set the array equal to the averages
+ 		
+ 		//set the array equal to the averages (which are in seconds not milliseconds)
  		averages[0] = sentTotal/(float)(1000*sentPoints.length);
  		averages[1] = receiveTotal/(float)(1000*recPoints.length);
  		return averages;
@@ -260,10 +265,51 @@ public class Algorithms {
  		}
   		double avgSent = 0;
   		double avgRec = 0;
-  		for (long l : sentTimes) avgSent += l;
-  		for (long l : recTimes) avgRec += l;
-  		avgSent /= (double) sentTimes.size();
-  		avgRec /= (double) recTimes.size();
+  	//calculate initial clusters
+ 		Vector<PVector>[] sentClusters = toPVectors(sentTimes);
+ 		Vector<PVector>[] recClusters = toPVectors(recTimes);
+ 		PVector[] sentPoints = toPoints(sentTimes);
+ 		for (PVector v : sentPoints) Debug.log("uncleaned sent points --" + v.array[0]);
+ 		PVector[] recPoints = toPoints(recTimes);
+ 		for (PVector v : recPoints) Debug.log("uncleaned rec points --" + v.array[0]);
+ 		
+ 		//Making mixture models
+ 		MixtureModel sentTimesMM;
+ 		sentTimesMM = BregmanSoftClustering.initialize(sentClusters, new UnivariateGaussian());
+ 		MixtureModel recTimesMM;
+ 		recTimesMM = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
+ 		sentTimesMM = BregmanSoftClustering.run(sentPoints, sentTimesMM);
+ 		recTimesMM = BregmanSoftClustering.run(recPoints, recTimesMM);
+ 		Debug.log(sentTimes.toString());
+ 		Debug.log(recTimes.toString());
+ 		
+ 		//retrieving parameter ranges
+ 		PVector temp1 = (PVector) sentTimesMM.param[0];
+ 		PVector temp2 = (PVector) recTimesMM.param[0];
+ 		double sentMax = temp1.array[1];
+ 		if (sentMax > 28800000 && temp1.array[0] < 28800000) sentMax = 28800000.0;
+ 		Debug.log("sentMax   " + sentMax);
+ 		double recMax = temp2.array[1];
+ 		if (recMax > 28800000 && temp2.array[0] < 28800000) recMax = 28800000.0;
+ 		Debug.log("recMax   " + recMax);
+ 		LinkedList<Double> cleanSent = new LinkedList<Double>();
+ 		LinkedList<Double> cleanRec = new LinkedList<Double>();
+ 		//calculating totals from the returned values
+ 		for (int i = 0;i< sentPoints.length; i++) {
+ 			if (sentPoints[i].array[0] <= sentMax) {
+ 				avgSent += sentPoints[i].array[0];
+ 				cleanSent.add(sentPoints[i].array[0]);
+ 			}	
+ 		}
+ 		for (int i = 0;i < recPoints.length; i++) {
+ 			if(recPoints[i].array[0] <= recMax) {
+ 				avgRec += recPoints[i].array[0];
+ 				cleanRec.add(recPoints[i].array[0]);
+ 			}	
+ 		}
+  		
+  		avgSent /= (double) cleanSent.size();
+  		avgRec /= (double) cleanRec.size();
   		responseRatio = avgRec/avgSent;
   		double score = 100;
   		score = (CHAR_WEIGHT * charRatio) + (COUNT_WEIGHT * countRatio) + (MEDIA_WEIGHT * mediaRatio) + (RESPONSE_WEIGHT * responseRatio);
@@ -273,8 +319,9 @@ public class Algorithms {
   	
   	
   	
-  	/* relationship score
+  	/** relationship score
   	 * uses same weights as friend score - considering diff ways of executing this.
+  	 * 
   	 */
   	
   	public static double friendScore (String address) {
@@ -313,6 +360,7 @@ public class Algorithms {
  			}
  			prev = temp;
  		}
+  		
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
   		return score;
