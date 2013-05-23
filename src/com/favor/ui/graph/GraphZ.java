@@ -13,6 +13,7 @@ import android.webkit.WebView;
 
 
 import com.favor.util.Algorithms;
+import com.favor.util.Debug;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 
@@ -47,7 +48,7 @@ public class GraphZ implements Graph {
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
 			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
 			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));
-
+			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);
 			is.close();

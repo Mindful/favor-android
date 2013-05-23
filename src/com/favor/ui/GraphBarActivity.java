@@ -17,6 +17,7 @@ import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
 import com.favor.ui.graph.GraphZ;
+import com.favor.util.Debug;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.R;
@@ -29,16 +30,20 @@ public class GraphBarActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_graph_bar);
-
+		
 		cachedGraphs = new Graph[2];
 
 		showBar(GraphZ.class);
+		showBar(GraphZ.class);
+		
 		setupActionBar();
 	}
 
 	private void showBar(Class<? extends Graph> clazz) {
 		WebView webView = (WebView) findViewById(R.id.webView1);
 		webView.clearView();
+		webView.getSettings();
+		webView.setBackgroundColor(0x808080);
 
 		ContactArrayAdapter aa = ContactArrayAdapter.getSingleton();
 		List<Contact> contacts = new ArrayList<Contact>();
