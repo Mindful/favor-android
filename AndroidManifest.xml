@@ -34,6 +34,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.favor.ui.MainActivity" />
         </activity>
+        <activity android:name=".ui.LoadFromContacts"></activity>
     </application>
 
 </manifest>

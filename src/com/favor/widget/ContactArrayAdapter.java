@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.favor.ui.LoadFromContacts;
 import com.favor.ui.MainActivity;
 import com.favor.R;
 
@@ -88,7 +89,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 					else
 						selected--;
 
-					MenuItem graphItem = ((MainActivity) context)
+					MenuItem graphItem = ((LoadFromContacts) context)
 							.getGraphItem();
 					graphItem.setEnabled(isAtleastOneSelected());
 

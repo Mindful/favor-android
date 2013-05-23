@@ -111,13 +111,13 @@ public final class PVector extends Parameter{
 	 * Computes the outer product (matrix) between the current vector \f$ v \f$ with himself.
 	 * @return \f$ v . v^\top \f$ 
 	 */
-	public PMatrix OuterProduct(){
+	/*public PMatrix OuterProduct(){
 		PMatrix result = new PMatrix(this.dim);
 		for(int i=0; i<this.dim; i++)
 			for(int j=0; j<this.dim; j++)
 				result.array[i][j] = array[i]*array[j];	
 		return result;	
-	}
+	}*/
 
 	
 	/**
