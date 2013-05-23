@@ -1,5 +1,8 @@
 package com.favor.ui;
 import com.favor.R;
+import com.favor.util.DataHandler;
+import com.favor.util.Debug;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -39,6 +42,12 @@ public class MainActivity extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		DataHandler db = DataHandler.initialize(this);
+		db.update();
+		//Debug.remakeDB();
+		//Debug.testData("3607087506");
+		//Debug.queryTest("3607087506");
+		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
  
 		// no more this
 		// setContentView(R.layout.list_fruit);

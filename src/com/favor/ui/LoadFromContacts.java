@@ -46,13 +46,6 @@ public class LoadFromContacts extends Activity {
 		ViewAnimator va = (ViewAnimator) findViewById(R.id.viewAnimator1);
 		va.setInAnimation(inFromLeftAnimation());
 		va.setOutAnimation(outToRightAnimation());
-
-		DataHandler db = DataHandler.initialize(this);
-		db.update();
-		Debug.remakeDB();
-		//Debug.testData("3607087506");
-		//Debug.queryTest("3607087506");
-		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
