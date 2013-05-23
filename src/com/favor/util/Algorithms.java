@@ -82,13 +82,13 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static double[] responseTime (String address, long fromDate, long untilDate) {
+  public static long[] responseTime (String address, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
  	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
  		double sentTotal = 0;
  		double receiveTotal = 0;
- 		double [] averages = {0, 0};
+ 		long [] averages = {0, 0};
  	
  		textMessage temp, prev = null;
  		long time;
@@ -179,8 +179,8 @@ public class Algorithms {
  		Debug.log("Cleaned Rec ---- " + cleanRec.toString());
  		
  		//set the array equal to the averages (which are in seconds not milliseconds)
- 		averages[0] = sentTotal/(float)(1000*sentPoints.length);
- 		averages[1] = receiveTotal/(float)(1000*recPoints.length);
+ 		averages[0] = (long) (sentTotal/(float)(1000*sentPoints.length));
+ 		averages[1] = (long) (receiveTotal/(float)(1000*recPoints.length));
  		return averages;
  	}
 
@@ -193,10 +193,11 @@ public class Algorithms {
   	 * @param untilDate
   	 * @return
   	 */
-  	public static double responseRatio (String address, long fromDate, long untilDate) {
+  	public static long responseRatio (String address, long fromDate, long untilDate) {
   		//calls
-  		double[] times = Algorithms.responseTime(address, fromDate, untilDate);
-  		double ratio = times[1]/times[0];
+  		long[] times = Algorithms.responseTime(address, fromDate, untilDate);
+  		float temp = (float)times[1]/(float)times[0];
+  		long ratio = (long) temp;
   		return ratio;
   	}
   	
