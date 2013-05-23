@@ -16,7 +16,7 @@ import com.favor.util.Algorithms;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 
-public class GraphLine implements Graph {
+public class ResponseRatioGraph implements Graph {
 
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -26,7 +26,7 @@ public class GraphLine implements Graph {
 		webSettings.setJavaScriptEnabled(true);
 
 		try {
-			InputStream is = assetManager.open("graph/line.html");
+			InputStream is = assetManager.open("graph/bar.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
 
@@ -36,17 +36,15 @@ public class GraphLine implements Graph {
 			String[] labels = new String[size];
 			long[] red = new long[size];
 			long[] blue = new long[size];
-
 			for (int i = 0; i < contacts.size(); i++) {
 				Contact c = contacts.get(i);
 				String address = c.getAddress();
 				labels[i] = contacts.get(i).getName();
-				long[] results = Algorithms.charCount(address, -1, -1);
-				red[i] = results[1];
-				blue[i] = results[0];
+				long results = Algorithms.responseRatio(address, -1, -1); //problem here
+				blue[i] = results;
 			}
-
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
+		
 			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
 			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));
 
@@ -58,5 +56,4 @@ public class GraphLine implements Graph {
 			Log.e("Failed", "Could not load '" + e.getMessage() + "'!");
 		}
 	}
-
 }

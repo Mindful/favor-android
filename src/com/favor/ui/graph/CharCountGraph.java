@@ -17,7 +17,7 @@ import com.favor.util.Debug;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 
-public class GraphZ implements Graph {
+public class CharCountGraph implements Graph {
 
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
