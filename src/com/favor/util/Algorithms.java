@@ -86,8 +86,8 @@ public class Algorithms {
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
  	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
- 		long sentTotal = 0;
- 		long receiveTotal = 0;
+ 		double sentTotal = 0;
+ 		double receiveTotal = 0;
  		double [] averages = {0, 0};
  	
  		textMessage temp, prev = null;
@@ -146,19 +146,33 @@ public class Algorithms {
  		recTimes = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
  		sentTimes = BregmanSoftClustering.run(sentPoints, sentTimes);
  		recTimes = BregmanSoftClustering.run(recPoints, recTimes);
- 		
+ 		Debug.log(sentTimes.toString());
+ 		Debug.log(recTimes.toString());
+ 		PVector temp1 = (PVector) sentTimes.param[0];
+ 		PVector temp2 = (PVector) recTimes.param[0];
+ 		double sentMax = temp1.array[1];
+ 		if (sentMax > 28800000 && temp1.array[0] < 28800000) sentMax = 28800000.0;
+ 		Debug.log("sentMax   " + sentMax);
+ 		double recMax = temp2.array[1];
+ 		if (recMax > 28800000 && temp2.array[0] < 28800000) recMax = 28800000.0;
+ 		Debug.log("recMax   " + recMax);
+ 		LinkedList<Double> cleanSent = new LinkedList<Double>();
+ 		LinkedList<Double> cleanRec = new LinkedList<Double>();
  		//calculating totals from the returned values
- 		for (int i = 0;i< sentTimes.param.length; i++) {
- 			sentPoints[i] = (PVector) sentTimes.param[i];
- 			sentTotal += sentPoints[i].array[0];
- 			Debug.log("cleaned points --" + sentPoints[i].array[0]);
+ 		for (int i = 0;i< sentPoints.length; i++) {
+ 			if (sentPoints[i].array[0] <= sentMax) {
+ 				sentTotal += sentPoints[i].array[0];
+ 				cleanSent.add(sentPoints[i].array[0]);
+ 			}	
  		}
- 		for (int i = 0;i < recTimes.param.length; i++) {
- 			recPoints[i] = (PVector) recTimes.param[i];
- 			receiveTotal += recPoints[i].array[0];
- 			Debug.log("cleaned points --" + recPoints[i].array[0]);
+ 		for (int i = 0;i < recPoints.length; i++) {
+ 			if(recPoints[i].array[0] <= recMax) {
+ 				receiveTotal += recPoints[i].array[0];
+ 				cleanRec.add(recPoints[i].array[0]);
+ 			}	
  		}
- 
+ 		Debug.log("Cleaned sent ---- " + cleanSent.toString());
+ 		Debug.log("Cleaned Rec ---- " + cleanRec.toString());
  		//set the array equal to the averages
  		averages[0] = sentTotal/(float)(1000*sentPoints.length);
  		averages[1] = receiveTotal/(float)(1000*recPoints.length);
@@ -304,147 +318,6 @@ public class Algorithms {
   		return score;
   	}
   	
-  	// gaussian mixtures
-  	public static LinkedList<Long> finiteMixture (LinkedList<Long> totalData) {
-  		LinkedList<Long> A = new LinkedList<Long>();
-  		LinkedList<Long> B = new LinkedList<Long>();
-  		LinkedList<Long> temp = totalData;
-  		LinkedList<Long> check = new LinkedList<Long>();
-  		for (long l : totalData) Debug.log("stuff in the data at first: " + l);
-  		
-
-	
-  		//Standard Deviation of the total dataset
-  		double mean = 0;
-  		double stdDev = 0;
-  		double totalN = totalData.size();
- 		for (int i = 0; i < totalN; i++) mean += temp.get(i);
- 		mean = mean/totalN;
- 		Debug.log("The initial mean = " + mean);
- 		for (int i=0;i<totalN;i++) {
- 			check.add(temp.get(i));
- 			stdDev += (temp.get(i) - mean)*(temp.get(i) - mean);	
- 			Debug.log("seeing if std dev adds = " + stdDev);
- 		}
- 		Debug.log("Initial stdDev = " + stdDev);
- 		stdDev = Math.sqrt(stdDev);
- 		Debug.log("totalN " + totalN);
- 		Debug.log("" + 1/totalN);
- 		Debug.log("  " +(1/totalN)*stdDev);
- 		stdDev = (Math.sqrt((1/(totalN))*stdDev));
- 		Debug.log("stdDev = " + stdDev);
- 		while (totalData.peekLast() != null) {
- 			if (totalData.peek() > mean+stdDev) B.add(totalData.poll());
- 			else A.add(totalData.poll());
- 		}
- 		double aN = A.size();
-  		double bN = B.size();
-  		Debug.log("A size: " + aN + " B size: " + bN);
- 		
- 		double aMean = 0;
- 		for (long l : A) aMean += l;
- 		aMean = aMean/aN;
-  		double bMean = 0;
-  		for (long l : B) bMean += l;
-  		bMean = bMean/bN;
-  		double aVar = 0;
-  		double bVar = 0;
-  		for (long l : A) aVar += (l - aMean)*(l - aMean);
-		for (long l : B) bVar += (l - bMean)*(l - bMean);
-  		aVar = aVar/aN;
-  		bVar = bVar/bN;
-  		Debug.log("Initial A and B means" + aMean + "//" + bMean);
-  		Debug.log("Initial A and B vars" + aVar + "//" + bVar);
- 		double likelihood = 0;
- 		double margin = 1;
- 		int counter = 0;
- 		double [] pAs = new double[(int)totalN];
- 		double [] pBs = new double[(int)totalN];
- 		double [] pAsTemp = new double[(int)totalN];
- 		double [] pBsTemp = new double[(int)totalN];
- 		double sumOfAWeights = 0;
- 		double sumOfBWeights = 0;
- 		
- 		
- 		//Calculating mixture
- 		while (counter < 30 || margin > 0.000000001) {
- 		
- 			//Calculates un-normalized probabilities (weights) for each point
- 			double pA = aN/totalN;
- 			double pB = bN/totalN;
- 			Debug.log("A prob: " + pA + " B prob: " + pB);
- 			double otherTermA = (1/Math.sqrt(2*Math.PI*Math.sqrt(aVar)));
- 			double otherTermB = (1/Math.sqrt(2*Math.PI*Math.sqrt(bVar)));
- 			Debug.log("otherTerms: " + otherTermA + " // " + otherTermB);
- 			
- 			for (int i =0;i<totalN;i++) {
- 				Debug.log("Checking to see if zero in exponent" + Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar)));
- 				pAsTemp[i] = (otherTermA*Math.exp(((check.get(i)-aMean)*(check.get(i)-aMean))/(2*aVar)))*pA;
- 				Debug.log("pAs before normalize ["+i+"] - " + pAsTemp[i]);
- 				pBsTemp[i] = (otherTermB*Math.exp(((check.get(i)-bMean)*(check.get(i)-bMean))/(2*bVar)))*pB;
- 				Debug.log("pBs before normalize ["+i+"] - " + pBsTemp[i]);
- 			}
- 			
- 			//Normalizes and sums weights
- 			for (int i=0;i<totalN;i++) {
- 				pAs[i] = pAsTemp[i]/(pAsTemp[i] + pBsTemp[i]);
- 				Debug.log("pAs after normalize ["+i+"] - " + pAs[i]);
- 				pBs[i] = pBsTemp[i]/(pAsTemp[i] + pBsTemp[i]);
- 				Debug.log("pBs after normalize ["+i+"] - " + pBs[i]);
- 				sumOfAWeights += pAs[i];
- 				sumOfBWeights += pBs[i];		
- 			}
- 			Debug.log("Sum of A and B weights = " + sumOfAWeights + "//" + sumOfBWeights);
- 			//new means
- 			for (int i=0;i<totalN;i++) {
- 				aMean += pAs[i]*check.get(i);
- 				bMean += pBs[i]*check.get(i);
- 			}
- 			aMean = aMean/sumOfAWeights;
- 			Debug.log("new a mean = " + aMean);
- 			bMean = bMean/sumOfBWeights;
- 			Debug.log("new b mean = " + bMean);
- 		
- 			//new vars
- 			for (int i=0;i<totalN;i++) {
- 				aVar += pAs[i]*((check.get(i) - aMean)*(check.get(i) - aMean));
- 				bVar += pBs[i]*((check.get(i) - bMean)*(check.get(i) - bMean));
- 			}
- 			aVar = aVar/sumOfAWeights;
- 			bVar = bVar/sumOfBWeights;
- 			Debug.log("new a var = " + aVar);
- 			Debug.log("new b var = " + bVar);
- 			
- 			
- 			//set new aN and bN
- 			aN = 0;
- 			bN = 0;
- 			for (int i=0;i<totalN;i++) {
- 				if (pAs[i] > 0.5) aN++;
- 				else bN++;
- 			}
- 			Debug.log("new number of a's and b's" + aN + "//" + bN);
- 			
- 			//likelihood
- 			for (int i=0;i<check.size();i++) {
- 				likelihood += Math.log(((aN/totalN)*pAs[i]) + (bN/totalN)*pBs[i]);
- 			}
- 			Debug.log("likelihood = " + likelihood);
- 			//check if first time through the loop, otherwise find the diff between this calc and the last.
- 			if (counter == 0) margin = likelihood;
- 			else margin = Math.abs(likelihood - margin);
- 			Debug.log("margin = " + margin);
- 			//loop counter
- 			counter++;
- 			break;
- 		
- 		}
- 		for (int i=0;i<totalN;i++) if (check.contains(pAs[i])) check.remove(pAs[i]);
- 		while (check.peekLast() != null)
- 			totalData.remove(check.poll());
- 		for (long l : totalData) Debug.log("stuff after clean: " + l);
-  		return totalData;
-   	}
   	
   	/**
   	 * utility method for calculating a split value that is mean + 1 standard deviation
@@ -462,7 +335,7 @@ public class Algorithms {
  		}
  		stdDev = Math.sqrt(stdDev);
  		Debug.log("mean plus standard dev   " + ((mean + stdDev)/1000));
- 		return (mean + stdDev)/100;
+ 		return (mean + stdDev)/1000;
   	}
   	
   	/**
