@@ -16,7 +16,7 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
-import com.favor.ui.graph.GraphZ;
+import com.favor.ui.graph.CharCountGraph;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.R;
@@ -32,7 +32,7 @@ public class GraphBarActivity extends Activity {
 
 		cachedGraphs = new Graph[2];
 
-		showBar(GraphZ.class);
+		showBar(CharCountGraph.class);
 		setupActionBar();
 	}
 
@@ -95,7 +95,8 @@ public class GraphBarActivity extends Activity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.action_switch_graph:
-			final String items[] = { "Bar", "Line","Z" };
+			final String items[] = { "Response Time", "Response Ratio", "Character Count", 
+					"Character Ratio", "Friend Score", "Relationship Score" };
 
 			AlertDialog.Builder ab = new AlertDialog.Builder(this);
 			ab.setTitle("Dialog Title")
