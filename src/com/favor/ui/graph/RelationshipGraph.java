@@ -40,8 +40,9 @@ public class RelationshipGraph implements Graph {
 				Contact c = contacts.get(i);
 				String address = c.getAddress();
 				labels[i] = contacts.get(i).getName();
-				long results = (long) Algorithms.relationshipScore(address); //problem here
-				blue[i] = results;
+				long [] results =  Algorithms.relationshipScore(address); //problem here
+				red[i] = results[0];
+				blue[i] = results[1];
 			}
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
 		

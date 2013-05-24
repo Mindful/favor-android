@@ -207,7 +207,7 @@ public class Algorithms {
   	 *  your overall relationship
   	 *  @param address
   	 */
-  	public static double relationshipScore (String address) {
+  	public static long[] relationshipScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
@@ -311,16 +311,16 @@ public class Algorithms {
   		
   		avgSent /= (double) cleanSent.size();
   		avgRec /= (double) cleanRec.size();
-  		responseRatio = avgRec/avgSent;
-  		double score = 100;
-  		score = (CHAR_WEIGHT * charRatio) + (COUNT_WEIGHT * countRatio) + (MEDIA_WEIGHT * mediaRatio) + (RESPONSE_WEIGHT * responseRatio);
+  		long [] score = {0,0};
+  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
+  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
   		
   		return score;
   	}
   	
   	
   	
-  	/** relationship score
+  	/**friend score
   	 * uses same weights as friend score - considering diff ways of executing this.
   	 * 
   	 */
