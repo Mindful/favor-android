@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimeZone;
 
+import com.favor.ui.GraphBarActivity;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -310,7 +312,10 @@ public class DataHandler extends SQLiteOpenHelper{
 	 */
 	public void update()
 	{
-		lastFetch = prefs.getLong("lastFetch", 0); //mandatory. not sure how this wasn't here before
+		//This clears the previous contacts list in GraphBarActivity so it's recalculated with new data
+		GraphBarActivity.prevContacts = null;
+		//----------------------------------
+		lastFetch = prefs.getLong("lastFetch", 0);
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
 		try{

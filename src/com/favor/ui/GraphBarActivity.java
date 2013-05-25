@@ -24,11 +24,11 @@ import com.favor.R;
 
 public class GraphBarActivity extends Activity {
 
-	public static List<Contact> prevContacts; //TODO: this has to be cleared by DataHandler.update()
+	public static List<Contact> prevContacts;
 	private static Graph graph;
-	private static final String items[] = { "Response Time", "Response Ratio", "Character Count", 
-			"Character Ratio", "Friend Score", "Relationship Score" }; //DO NOT REORDER. EVER. DO NOT.
-	private static int currentItem = 3;
+	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};
+	//DO NOT REORDER THE ITEMS[] ARRAY - PLACEMENTS CORRESPOND TO A SWITCH STATEMENT
+	private static int currentItem = 1; //TODO: should default to 0 once Friend Score works
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +65,6 @@ public class GraphBarActivity extends Activity {
 	
 	private void setGraph(List<Contact> contacts)
 	{
-		//TODO: if list length ==1, special case, add self - BEFOREHAND, SO THEY COMPARE EQUAL
 		if (graph == null || !contacts.equals(prevContacts))
 		{
 			prevContacts = contacts;
@@ -80,50 +79,49 @@ public class GraphBarActivity extends Activity {
 	
 	private Object query(List<Contact> contacts)
 	{
-		long fromDate = -1; //this is here so that we can eventually specify date
+		long fromDate = -1; //TODO: this is here so that we can eventually specify date
 		long untilDate = -1;
 		//switch based on currentItem
-		/*	private static final String items[] = { "Response Time", "Response Ratio", "Character Count", 
-			"Character Ratio", "Friend Score", "Relationship Score" }; //DO NOT REORDER. EVER. DO NOT.*/
+		/*	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};*/
 		switch (currentItem)
 		{
 		case 0:
-			long[][] responseTimes = new long[contacts.size()][];
-			for (int i = 0; i < contacts.size(); i++)
+			if (contacts.size() == 1)
 			{
-				responseTimes[i] = Algorithms.responseTime(contacts.get(i).getAddress(), fromDate, untilDate);
+				long[][] relationshipScore = new long[1][]; //Seems pointless, has to be [1][x] for Doughnut
+				relationshipScore[0] = Algorithms.relationshipScore(contacts.get(0).getAddress());
+				return (Object) relationshipScore;
 			}
-			return (Object) responseTimes;
+			else
+			{
+				long[] friendScores = new long[contacts.size()];
+				for (int i = 0; i < contacts.size(); i++)
+				{
+					friendScores[i] = Algorithms.friendScore(contacts.get(i).getAddress());
+				}
+				return (Object) friendScores; 
+			}
 		case 1:
-			long[] responseRatios = new long[contacts.size()];
-			for (int i = 0; i < contacts.size(); i++)
-			{
-				responseRatios[i] = Algorithms.responseRatio(contacts.get(i).getAddress(), fromDate, untilDate);
-			}
-			return (Object) responseRatios;
-		case 2:
 			long[][] characterCounts = new long[contacts.size()][];
 			for (int i = 0; i < contacts.size(); i++)
 			{
 				characterCounts[i] = Algorithms.charCount(contacts.get(i).getAddress(), fromDate, untilDate);
 			}
 			return (Object) characterCounts;
+		case 2:
+			long[][] messageCounts = new long[contacts.size()][];
+			for (int i = 0; i < contacts.size(); i ++)
+			{
+				messageCounts[i] = Algorithms.messageCount(contacts.get(i).getAddress(), fromDate, untilDate);
+			}
+			return (Object) messageCounts;
 		case 3:
-			long[] characterRatios = new long[contacts.size()];
+			long[][] responseTimes = new long[contacts.size()][];
 			for (int i = 0; i < contacts.size(); i++)
 			{
-				characterRatios[i] = Algorithms.charRatio(contacts.get(i).getAddress(), fromDate, untilDate);
+				responseTimes[i] = Algorithms.responseTime(contacts.get(i).getAddress(), fromDate, untilDate);
 			}
-			return (Object) characterRatios;
-		case 4:
-			long[] friendScores = new long[contacts.size()];
-			for (int i = 0; i < contacts.size(); i++)
-			{
-				friendScores[i] = Algorithms.friendScore(contacts.get(i).getAddress());
-			}
-			return (Object) friendScores;
-		case 5:
-			throw new RuntimeException("not implemented yet."); //TODO: GET DOUGHNUT-FRIENDLY RELATIONSHIP SCORE FROM REBAR
+			return (Object) responseTimes;
 		default:
 			throw new RuntimeException("Invalid selection for query");
 		}
@@ -154,7 +152,6 @@ public class GraphBarActivity extends Activity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.action_switch_graph:
-			//TODO: THE DEFAULT SELECTION HERE SHOULD BE CHARACTER COUNT
 			AlertDialog.Builder ab = new AlertDialog.Builder(this);
 			ab.setTitle("Select Metric")
 					.setSingleChoiceItems(items, selected,

@@ -21,6 +21,28 @@ public class Algorithms {
   private static final double MEDIA_WEIGHT = 0.15;
   private static final double RESPONSE_WEIGHT = 0.25;
   
+  
+  public static long[] messageCount(String address, long fromDate, long untilDate)
+  {
+	  DataHandler db = DataHandler.get();
+	  long [] values = {0,0};
+	  
+	  //Have to grab a random field. Character count seems as good as any
+	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
+	  
+	  values[0] = sent.size();
+	  values[1] = rec.size();
+	  return values;  
+  }
+  
+  public static double messageRatio (String address, long fromDate, long untilDate) {
+	  long [] values= messageCount(address, fromDate, untilDate);
+	  double ratio = (values[1]/(double)values[0]);
+	  return ratio;
+  }
+  
   /**
    * Calculates the total characters sent and received for a contact and period of time,
    * returns an array of longs with sent characters in the 0th index and received
@@ -61,7 +83,7 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static long charRatio (String address, long fromDate, long untilDate) {
+  public static double charRatio (String address, long fromDate, long untilDate) {
 	  
 	  //calls character count
 	  long [] values= charCount(address, fromDate, untilDate);
@@ -69,8 +91,8 @@ public class Algorithms {
 	  Debug.log(values[0] + "");
 	  
 	  //some kewl casting here jk
-	  double ratio = 100*(values[1]/(double)values[0]);
-	  return (long)ratio;
+	  double ratio = (values[1]/(double)values[0]);
+	  return ratio;
   }
 
   /**
@@ -193,11 +215,11 @@ public class Algorithms {
   	 * @param untilDate
   	 * @return
   	 */
-  	public static long responseRatio (String address, long fromDate, long untilDate) {
+  	public static double responseRatio (String address, long fromDate, long untilDate) {
   		//calls
   		long[] times = Algorithms.responseTime(address, fromDate, untilDate);
-  		double ratio = 100*(times[1]/(double)times[0]);
-  		return (long)ratio;
+  		double ratio = (times[1]/(double)times[0]);
+  		return ratio;
   	}
   	
   	
@@ -206,7 +228,7 @@ public class Algorithms {
   	 *  your overall relationship
   	 *  @param address
   	 */
-  	public static double relationshipScore (String address) {
+  	public static long[] relationshipScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
@@ -310,9 +332,9 @@ public class Algorithms {
   		
   		avgSent /= (double) cleanSent.size();
   		avgRec /= (double) cleanRec.size();
-  		responseRatio = avgRec/avgSent;
-  		double score = 100;
-  		score = (CHAR_WEIGHT * charRatio) + (COUNT_WEIGHT * countRatio) + (MEDIA_WEIGHT * mediaRatio) + (RESPONSE_WEIGHT * responseRatio);
+  		long [] score = {0,0};
+  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
+  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
   		
   		return score;
   	}

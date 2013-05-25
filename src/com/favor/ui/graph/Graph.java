@@ -21,13 +21,20 @@ public abstract class Graph {
 		if (data instanceof long[])
 		{
 			array = (long[])data;
-			if(array.length == 2) {type = types.doughnut; Debug.log("doughnut");}
-			else {type = types.singleBar; Debug.log("singleBar");}
+			type = types.singleBar; 
+			Debug.log("singleBar");
 		}
 		else if (data instanceof long[][])
 		{
 			nestedArray = (long[][])data;
-			if(nestedArray[0].length == 2) {type = types.doubleBar; Debug.log("doubleBar");}
+			if(nestedArray[0].length != 2) throw new RuntimeException("Nested graph arrays must be[x][2]");
+			if (nestedArray.length == 1) 
+			{
+				array = nestedArray[0]; 
+				type = types.doughnut; 
+				Debug.log("doughnut");
+			}
+			else {type = types.doubleBar; Debug.log("doubleBar");}
 		}
 		if (type == null) throw new RuntimeException("Unknown Type");
 		//different constuctors take different things; pass depending on what data is
