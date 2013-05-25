@@ -325,7 +325,7 @@ public class Algorithms {
   	 * 
   	 */
   	
-  	public static double friendScore (String address) {
+  	public static long friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
@@ -394,7 +394,7 @@ public class Algorithms {
  		}
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
-  		return score;
+  		return (long)score;
   	}
   	
   	

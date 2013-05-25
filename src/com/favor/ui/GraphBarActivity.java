@@ -16,7 +16,7 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
-import com.favor.ui.graph.CharCountGraph;
+import com.favor.util.Algorithms;
 import com.favor.util.Debug;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
@@ -24,53 +24,111 @@ import com.favor.R;
 
 public class GraphBarActivity extends Activity {
 
-	private Graph[] cachedGraphs;
+	public static List<Contact> prevContacts; //TODO: this has to be cleared by DataHandler.update()
+	private static Graph graph;
+	private static final String items[] = { "Response Time", "Response Ratio", "Character Count", 
+			"Character Ratio", "Friend Score", "Relationship Score" }; //DO NOT REORDER. EVER. DO NOT.
+	private static int currentItem = 3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_graph_bar);
 		
-		cachedGraphs = new Graph[2];
 
-		showBar(CharCountGraph.class);
-		showBar(CharCountGraph.class);
+		showGraph();
+		showGraph();
 		setupActionBar();
 	}
 
-	private void showBar(Class<? extends Graph> clazz) {
+	private void showGraph() {
 		WebView webView = (WebView) findViewById(R.id.webView1);
 		webView.clearView();
 		webView.getSettings();
 		webView.setBackgroundColor(0x808080);
 
 		ContactArrayAdapter aa = ContactArrayAdapter.getSingleton();
+		List<Contact> allContacts = aa.getContacts();
 		List<Contact> contacts = new ArrayList<Contact>();
-
-		for (Contact c : aa.getContacts()) {
-			if (c.isSelected()) {
+		for (Contact c : allContacts) 
+		{
+			if (c.isSelected()) 
+			{
 				contacts.add(c);
 			}
 		}
 
-		for (Graph g : cachedGraphs) {
-			if (g != null && g.getClass().equals(clazz)) {
-				g.showBar(this, webView, contacts);
-				return;
+		
+		//new graph code
+		//calc new data if we have to, else use old graph and just show it
+		setGraph(contacts);
+		graph.show(this, webView);
+
+	}
+	
+	private void setGraph(List<Contact> contacts)
+	{
+		//TODO: if list length ==1, special case, add self - BEFOREHAND, SO THEY COMPARE EQUAL
+		if (graph == null || !contacts.equals(prevContacts))
+		{
+			prevContacts = contacts;
+			List<String> names = new ArrayList<String>(contacts.size());
+			for (Contact c: contacts)
+			{
+				names.add(c.getName());
 			}
+			graph = Graph.newGraph(names, query(contacts));
 		}
-
-		try {
-			Graph graph = clazz.newInstance();
-
-			for (int i = 0; i < cachedGraphs.length; i++) {
-				if (cachedGraphs[i] == null)
-					cachedGraphs[i] = graph;
+	}
+	
+	private Object query(List<Contact> contacts)
+	{
+		long fromDate = -1; //this is here so that we can eventually specify date
+		long untilDate = -1;
+		//switch based on currentItem
+		/*	private static final String items[] = { "Response Time", "Response Ratio", "Character Count", 
+			"Character Ratio", "Friend Score", "Relationship Score" }; //DO NOT REORDER. EVER. DO NOT.*/
+		switch (currentItem)
+		{
+		case 0:
+			long[][] responseTimes = new long[contacts.size()][];
+			for (int i = 0; i < contacts.size(); i++)
+			{
+				responseTimes[i] = Algorithms.responseTime(contacts.get(i).getAddress(), fromDate, untilDate);
 			}
-
-			graph.showBar(this, webView, contacts);
-		} catch (Exception e) {
-
+			return (Object) responseTimes;
+		case 1:
+			long[] responseRatios = new long[contacts.size()];
+			for (int i = 0; i < contacts.size(); i++)
+			{
+				responseRatios[i] = Algorithms.responseRatio(contacts.get(i).getAddress(), fromDate, untilDate);
+			}
+			return (Object) responseRatios;
+		case 2:
+			long[][] characterCounts = new long[contacts.size()][];
+			for (int i = 0; i < contacts.size(); i++)
+			{
+				characterCounts[i] = Algorithms.charCount(contacts.get(i).getAddress(), fromDate, untilDate);
+			}
+			return (Object) characterCounts;
+		case 3:
+			long[] characterRatios = new long[contacts.size()];
+			for (int i = 0; i < contacts.size(); i++)
+			{
+				characterRatios[i] = Algorithms.charRatio(contacts.get(i).getAddress(), fromDate, untilDate);
+			}
+			return (Object) characterRatios;
+		case 4:
+			long[] friendScores = new long[contacts.size()];
+			for (int i = 0; i < contacts.size(); i++)
+			{
+				friendScores[i] = Algorithms.friendScore(contacts.get(i).getAddress());
+			}
+			return (Object) friendScores;
+		case 5:
+			throw new RuntimeException("not implemented yet."); //TODO: GET DOUGHNUT-FRIENDLY RELATIONSHIP SCORE FROM REBAR
+		default:
+			throw new RuntimeException("Invalid selection for query");
 		}
 	}
 
@@ -99,9 +157,7 @@ public class GraphBarActivity extends Activity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.action_switch_graph:
-			final String items[] = { "Response Time", "Response Ratio", "Character Count", 
-					"Character Ratio", "Friend Score", "Relationship Score" };
-
+			//TODO: THE DEFAULT SELECTION HERE SHOULD BE CHARACTER COUNT
 			AlertDialog.Builder ab = new AlertDialog.Builder(this);
 			ab.setTitle("Dialog Title")
 					.setSingleChoiceItems(items, selected,
@@ -118,16 +174,13 @@ public class GraphBarActivity extends Activity {
 					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								@SuppressWarnings("unchecked")
-								public void onClick(DialogInterface d,
-										int choice) {
-									if (selected != -1) {
-										try {
-											Class<? extends Graph> clazz = (Class<? extends Graph>) Class
-													.forName("com.favor.ui.graph.Graph"
-															+ items[selected]);
-											showBar(clazz);
-										} catch (ClassNotFoundException e) {
-										}
+								public void onClick(DialogInterface d, int choice) 
+								{
+									if (selected != -1) 
+									{
+										prevContacts = null; //so that we regenerate a new graph
+										currentItem = selected;
+										showGraph();
 									}
 								}
 							})

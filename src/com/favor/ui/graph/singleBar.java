@@ -13,14 +13,22 @@ import android.webkit.WebView;
 
 
 import com.favor.util.Algorithms;
+import com.favor.util.Debug;
 import com.favor.util.Misc;
 import com.favor.widget.Contact;
 
-public class ResponseRatioGraph implements Graph {
+public class singleBar extends Graph {
+	
+	private long[] numbers;
+	public singleBar(List<String> names, long[] numbers)
+	{
+		super(names);
+		this.numbers = numbers;
+	}
 
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
-	public void showBar(Context context, WebView webView, List<Contact> contacts) {
+	public void show(Context context, WebView webView) {
 		WebSettings webSettings = webView.getSettings();
 		AssetManager assetManager = context.getAssets();
 		webSettings.setJavaScriptEnabled(true);
@@ -32,22 +40,17 @@ public class ResponseRatioGraph implements Graph {
 
 			String html = new String(buffer);
 
-			int size = contacts.size();
+			int size = names.size();
 			String[] labels = new String[size];
 			long[] red = new long[size];
-			long[] blue = new long[size];
-			for (int i = 0; i < contacts.size(); i++) {
-				Contact c = contacts.get(i);
-				String address = c.getAddress();
-				labels[i] = contacts.get(i).getName();
-				long results = Algorithms.responseRatio(address, -1, -1); //problem here
-				blue[i] = results;
+			//only redbar
+			for (int i = 0; i < names.size(); i++) {
+				labels[i] = names.get(i);
+				red[i] = numbers[i];
 			}
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-		
 			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
-			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));
-
+			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);
 			is.close();
@@ -56,4 +59,5 @@ public class ResponseRatioGraph implements Graph {
 			Log.e("Failed", "Could not load '" + e.getMessage() + "'!");
 		}
 	}
+
 }
