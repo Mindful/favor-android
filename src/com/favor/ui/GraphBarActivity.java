@@ -156,7 +156,7 @@ public class GraphBarActivity extends Activity {
 		case R.id.action_switch_graph:
 			//TODO: THE DEFAULT SELECTION HERE SHOULD BE CHARACTER COUNT
 			AlertDialog.Builder ab = new AlertDialog.Builder(this);
-			ab.setTitle("Dialog Title")
+			ab.setTitle("Select Metric")
 					.setSingleChoiceItems(items, selected,
 							new OnClickListener() {
 
