@@ -34,7 +34,7 @@ public class singleBar extends Graph {
 		webSettings.setJavaScriptEnabled(true);
 
 		try {
-			InputStream is = assetManager.open("graph/bar.html");
+			InputStream is = assetManager.open("graph/singleBar.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
 
@@ -42,14 +42,14 @@ public class singleBar extends Graph {
 
 			int size = names.size();
 			String[] labels = new String[size];
-			long[] red = new long[size];
+			long[] contact = new long[size];
 			//only redbar
 			for (int i = 0; i < names.size(); i++) {
 				labels[i] = names.get(i);
-				red[i] = numbers[i];
+				contact[i] = numbers[i];
 			}
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
+			html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
 			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);

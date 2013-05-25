@@ -34,7 +34,7 @@ public class doubleBar extends Graph {
 		webSettings.setJavaScriptEnabled(true);
 
 		try {
-			InputStream is = assetManager.open("graph/bar.html");
+			InputStream is = assetManager.open("graph/doubleBar.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
 
@@ -42,17 +42,17 @@ public class doubleBar extends Graph {
 
 			int size = names.size();
 			String[] labels = new String[size];
-			long[] red = new long[size];
-			long[] blue = new long[size];
+			long[] contact = new long[size];
+			long[] self = new long[size];
 			for (int i = 0; i < names.size(); i++) 
 			{
 				labels[i] = names.get(i);
-				red[i] = numbers[i][1]; //them
-				blue[i] = numbers[i][0]; //you
+				contact[i] = numbers[i][1]; //them
+				self[i] = numbers[i][0]; //you
 			}
 			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-			html = html.replaceAll("%REDBAR", Misc.longToJSON(red));
-			html = html.replaceAll("%BLUEBAR", Misc.longToJSON(blue));
+			html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
+			html = html.replaceAll("%SELF", Misc.longToJSON(self));
 			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);

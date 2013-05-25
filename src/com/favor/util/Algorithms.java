@@ -61,7 +61,7 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static long charRatio (String address, long fromDate, long untilDate) {
+  public static double charRatio (String address, long fromDate, long untilDate) {
 	  
 	  //calls character count
 	  long [] values= charCount(address, fromDate, untilDate);
@@ -69,7 +69,7 @@ public class Algorithms {
 	  Debug.log(values[0] + "");
 	  
 	  //some kewl casting here jk
-	  long ratio = (long) (values[1]/(float)values[0]);
+	  double ratio = (values[1]/(float)values[0]);
 	  return ratio;
   }
 
@@ -193,11 +193,11 @@ public class Algorithms {
   	 * @param untilDate
   	 * @return
   	 */
-  	public static long responseRatio (String address, long fromDate, long untilDate) {
+  	public static double responseRatio (String address, long fromDate, long untilDate) {
   		//calls
   		long[] times = Algorithms.responseTime(address, fromDate, untilDate);
   		float temp = (float)times[1]/(float)times[0];
-  		long ratio = (long) temp;
+  		double ratio = temp;
   		return ratio;
   	}
   	
