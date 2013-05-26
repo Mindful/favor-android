@@ -6,7 +6,6 @@ import android.content.Context;
 import android.webkit.WebView;
 
 import com.favor.util.Debug;
-import com.favor.widget.Contact;
 
 public abstract class Graph {
 	

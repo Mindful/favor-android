@@ -12,11 +12,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 
-import com.favor.util.Algorithms;
-import com.favor.util.Debug;
-import com.favor.util.Misc;
-import com.favor.widget.Contact;
-
 public class doughnut extends Graph {
 	
 	private long[] numbers;
@@ -42,7 +37,6 @@ public class doughnut extends Graph {
 			String html = new String(buffer);
 			html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
 			html = html.replaceAll("%SELF", Long.toString(numbers[0]));
-			Debug.log(html);
 			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
 					null, "UTF-8", null);

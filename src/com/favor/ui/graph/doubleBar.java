@@ -11,11 +11,7 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-
-import com.favor.util.Algorithms;
-import com.favor.util.Debug;
 import com.favor.util.Misc;
-import com.favor.widget.Contact;
 
 public class doubleBar extends Graph {
 	

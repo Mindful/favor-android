@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,10 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ViewAnimator;
 
-import com.favor.util.Algorithms;
-import com.favor.util.DataHandler;
-import com.favor.util.Debug;
-import com.favor.util.Misc;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.ContactArrayAdapter.ContactViewHolder;

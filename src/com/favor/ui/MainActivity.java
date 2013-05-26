@@ -1,7 +1,6 @@
 package com.favor.ui;
 import com.favor.R;
 import com.favor.util.DataHandler;
-import com.favor.util.Debug;
 
 import android.app.ListActivity;
 import android.content.Intent;

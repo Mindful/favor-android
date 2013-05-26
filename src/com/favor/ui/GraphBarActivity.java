@@ -17,7 +17,6 @@ import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
 import com.favor.util.Algorithms;
-import com.favor.util.Debug;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.R;
@@ -28,8 +27,8 @@ public class GraphBarActivity extends Activity {
 	private static Graph graph;
 	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};
 	//DO NOT REORDER THE ITEMS[] ARRAY - PLACEMENTS CORRESPOND TO A SWITCH STATEMENT
-	private static int currentItem = 1; //TODO: should default to 0 once Friend Score works
-
+	private static int currentItem = 1; 
+	//TODO: should default to 0 once Friend Score works, and should be saved in preferences
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -167,7 +166,6 @@ public class GraphBarActivity extends Activity {
 							})
 					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
-								@SuppressWarnings("unchecked")
 								public void onClick(DialogInterface d, int choice) 
 								{
 									if (selected != -1) 
