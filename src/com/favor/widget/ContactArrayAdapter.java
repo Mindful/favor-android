@@ -16,7 +16,6 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.favor.ui.LoadFromContacts;
-import com.favor.ui.MainActivity;
 import com.favor.R;
 
 @SuppressWarnings("serial")
