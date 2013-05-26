@@ -317,8 +317,8 @@ public class Algorithms {
   		avgSent = (avgSent - minimum)/(maximum - minimum);
   		avgRec = (avgRec - minimum)/(maximum - minimum);
   		long [] score = {0,0};
-  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
-  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
+  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * (1/avgRec)));
+  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * (1/avgSent)));
   		
   		return score;
   	}
@@ -405,7 +405,7 @@ public class Algorithms {
  		responseAvg = responseAvg/cleanRec.size();
  		responseAvg = (responseAvg - minimum)/(maximum - minimum);
   		responseAvg = responseAvg/numResponse;
-  		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
+  		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * (1/responseAvg));
   		return score;
   	}
   	
