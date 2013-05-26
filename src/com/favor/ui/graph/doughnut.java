@@ -40,8 +40,8 @@ public class doughnut extends Graph {
 			is.read(buffer, 0, buffer.length);
 
 			String html = new String(buffer);
-			html = html.replaceAll("%CONTACT", Long.toString(numbers[0]));
-			html = html.replaceAll("%SELF", Long.toString(numbers[1]));
+			html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
+			html = html.replaceAll("%SELF", Long.toString(numbers[0]));
 			Debug.log(html);
 			webView.clearView();
 			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
