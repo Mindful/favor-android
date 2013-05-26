@@ -248,15 +248,18 @@ public class Algorithms {
   		LinkedList<Long> recTimes = new LinkedList<Long>();
   		textMessage prev = null;
   		long time = 0;
+  		long minimum = Long.MAX_VALUE;
+  		long maximum = Long.MIN_VALUE;
   		while(convo.peekLast()!=null)
  		{
  		    textMessage temp = convo.pollLast(); //removes from queue
  			if (prev!= null)
  			{
  				time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
+ 				if (time < minimum) minimum = time;
+ 				if (time > maximum) maximum = time;
  				if (temp.received()) sentTimes.add(time); //our response time
- 				else recTimes.add(time);
- 				
+ 				else recTimes.add(time);	
  			}
  			while(convo.peekLast() != null && convo.peekLast().received() == temp.received()) //short circuits
  			{
@@ -308,9 +311,9 @@ public class Algorithms {
  				cleanRec.add(recPoints[i].array[0]);
  			}	
  		}
-  		
-  		avgSent /= (double) cleanSent.size();
-  		avgRec /= (double) cleanRec.size();
+  		if (maximum == minimum) minimum = Long.MIN_VALUE;
+  		avgSent = (avgSent - minimum)/(maximum - minimum);
+  		avgRec = (avgRec - minimum)/(maximum - minimum);
   		long [] score = {0,0};
   		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
   		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
@@ -345,12 +348,16 @@ public class Algorithms {
   			}
   		}
   		textMessage prev = null;
+  		long maximum = Long.MIN_VALUE;
+  		long minimum = Long.MAX_VALUE;
   		while(convo.peekLast()!=null)
  		{
  		    textMessage temp = convo.pollLast(); //removes from queue
  			if (prev!= null)
  			{
  				long time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
+ 				if (time > maximum) maximum = time;
+ 				if (time < minimum) minimum = time;
  				if (!temp.received()) {
  					responseAvg += time;
  					numResponse++;
@@ -392,6 +399,8 @@ public class Algorithms {
  				cleanRec.add(recPoints[i].array[0]);
  			}	
  		}
+ 		if (maximum == minimum) minimum = 0;
+ 		responseAvg = (responseAvg - minimum)/(maximum - minimum);
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
   		return score;
