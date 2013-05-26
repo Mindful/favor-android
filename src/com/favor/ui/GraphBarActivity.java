@@ -71,7 +71,7 @@ public class GraphBarActivity extends Activity {
 			List<String> names = new ArrayList<String>(contacts.size());
 			for (Contact c: contacts)
 			{
-				names.add(c.getName()); //<br> = html linebreak
+				names.add(c.getName());
 			}
 			graph = Graph.newGraph(names, query(contacts));
 		}
