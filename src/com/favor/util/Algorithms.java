@@ -312,6 +312,8 @@ public class Algorithms {
  			}	
  		}
   		if (maximum == minimum) minimum = Long.MIN_VALUE;
+  		avgSent = avgSent/cleanSent.size();
+  		avgRec = avgRec/cleanRec.size();
   		avgSent = (avgSent - minimum)/(maximum - minimum);
   		avgRec = (avgRec - minimum)/(maximum - minimum);
   		long [] score = {0,0};
@@ -400,6 +402,7 @@ public class Algorithms {
  			}	
  		}
  		if (maximum == minimum) minimum = 0;
+ 		responseAvg = responseAvg/cleanRec.size();
  		responseAvg = (responseAvg - minimum)/(maximum - minimum);
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
