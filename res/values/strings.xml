@@ -3,12 +3,11 @@
 
     <string name="app_name">Favor</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
     <string name="loading_contacts">Loading contacts ...</string>
     <string name="search_name">Name ...</string>
     <string name="graph">Graph</string>
     <string name="select_all">Select All</string>
-    <string name="title_activity_graph_bar">Bar Graph</string>
     <string name="switch_graph">Switch Graph</string>
+    <string name="by_contact">By Contact</string>
 
 </resources>

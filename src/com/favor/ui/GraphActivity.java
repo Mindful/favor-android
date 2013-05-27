@@ -21,7 +21,7 @@ import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.R;
 
-public class GraphBarActivity extends Activity {
+public class GraphActivity extends Activity {
 
 	public static List<Contact> prevContacts;
 	private static Graph graph;
@@ -59,7 +59,7 @@ public class GraphBarActivity extends Activity {
 		//calc new data if we have to, else use old graph and just show it
 		setGraph(contacts);
 		graph.show(this, webView);
-
+		setTitle(items[currentItem]);
 	}
 	
 	private void setGraph(List<Contact> contacts)

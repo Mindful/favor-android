@@ -42,8 +42,6 @@ public class LoadFromContacts extends Activity {
 		va.setInAnimation(inFromLeftAnimation());
 		va.setOutAnimation(outToRightAnimation());
 
-	
-		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
 		ListView view = (ListView) findViewById(R.id.contactList);
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -76,7 +74,7 @@ public class LoadFromContacts extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.graph:
-			Intent intent = new Intent(this, GraphBarActivity.class);
+			Intent intent = new Intent(this, GraphActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
 			
