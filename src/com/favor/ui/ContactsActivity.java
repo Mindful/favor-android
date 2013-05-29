@@ -4,15 +4,18 @@ import java.util.ArrayList;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.favor.util.Debug;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.OptionsMenu;
@@ -46,7 +49,7 @@ public class ContactsActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		//setContentView(R.layout.load_contacts);
 
-		contactArrayAdapter = new ContactArrayAdapter(this, R.layout.contact, contactsList);
+		contactArrayAdapter = new ContactArrayAdapter(this, R.layout.entry_contact, contactsList);
 		contactArrayAdapter.sort();
 
 		//ViewAnimator va = (ViewAnimator) findViewById(R.id.viewAnimator1);
@@ -71,14 +74,27 @@ public class ContactsActivity extends ListActivity {
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
 	}
 
-	public boolean onCreateOptionsMenu(Menu menu) 
-	{
-		return OptionsMenu.onCreateOptionsMenu(this, menu);
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		Debug.log("pre thing");
+		graphItem = menu.findItem(R.id.graph);
+		return true;
 	}
-	
-	public boolean onOptionsItemSelected(MenuItem item) 
-	{
-		return OptionsMenu.onOptionsItemSelected(item);
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Debug.log("thing");
+		switch (item.getItemId()) {
+		case R.id.graph:
+			Intent intent = new Intent(this, GraphActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+
+			break;
+		}
+		return true;
 	}
 
 	public MenuItem getGraphItem() {

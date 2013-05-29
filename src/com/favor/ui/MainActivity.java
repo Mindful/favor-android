@@ -34,7 +34,7 @@ public class MainActivity extends ListActivity {
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
  
-		setListAdapter(new ArrayAdapter<String>(this, R.layout.activity_main,MENU_ITEMS));
+		setListAdapter(new ArrayAdapter<String>(this, R.layout.entry_main,MENU_ITEMS));
  
 		ListView listView = getListView();
 		listView.setTextFilterEnabled(true);

@@ -143,7 +143,7 @@ public class GraphActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.graph_bar, menu);
+		getMenuInflater().inflate(R.menu.graph_menu, menu);
 		return true;
 	}
 
