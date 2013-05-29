@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -25,7 +26,7 @@ import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.ContactArrayAdapter.ContactViewHolder;
 import com.favor.R;
 
-public class LoadFromContacts extends Activity {
+public class LoadFromContacts extends ListActivity {
 
 	private ContactArrayAdapter contactArrayAdapter;
 	private MenuItem graphItem;
@@ -33,16 +34,16 @@ public class LoadFromContacts extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.load_contacts);
+		//setContentView(R.layout.load_contacts);
 
 		contactArrayAdapter = new ContactArrayAdapter(this,
 				R.layout.contact_list, new ArrayList<Contact>());
 
-		ViewAnimator va = (ViewAnimator) findViewById(R.id.viewAnimator1);
-		va.setInAnimation(inFromLeftAnimation());
-		va.setOutAnimation(outToRightAnimation());
+		//ViewAnimator va = (ViewAnimator) findViewById(R.id.viewAnimator1);
+		//va.setInAnimation(inFromLeftAnimation());
+		//va.setOutAnimation(outToRightAnimation());
 
-		ListView view = (ListView) findViewById(R.id.contactList);
+		ListView view = getListView();
 		view.setAdapter(contactArrayAdapter);
 		view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
@@ -56,9 +57,22 @@ public class LoadFromContacts extends Activity {
 			}
 		});
 
-		new PopulateContactListTask().execute();
+		//new PopulateContactListTask().execute();
+		//optimize me
+		Cursor phones = getContentResolver().query(
+				ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+				null, null, null);
+
+		while (phones.moveToNext()) {
+			String name = phones
+					.getString(phones
+							.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+			String number = phones
+					.getString(phones
+							.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+			contactArrayAdapter.add(new Contact(name, number));
+		}
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
-		//Debug.algotest(); //this shit breaks SO MUCH SHIT. Don't commit code that breaks things, please
 	}
 
 	@Override

@@ -18,7 +18,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends ListActivity {
  
-	static final String[] FRUITS = new String[] { "List By Contacts", "List By Groups", "List All" };
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "List By Groups", "List All" };
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.layout.menu, menu);
@@ -51,7 +51,7 @@ public class MainActivity extends ListActivity {
 		// no more this
 		// setContentView(R.layout.list_fruit);
  
-		setListAdapter(new ArrayAdapter<String>(this, R.layout.list_fruit,FRUITS));
+		setListAdapter(new ArrayAdapter<String>(this, R.layout.main,MENU_ITEMS));
  
 		ListView listView = getListView();
 		listView.setTextFilterEnabled(true);

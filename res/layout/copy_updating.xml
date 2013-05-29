@@ -9,7 +9,7 @@
     tools:context=".MainActivity" >
 
     <ViewAnimator
-        android:id="@+id/viewAnimator1"
+        android:id="@+id/updating"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
