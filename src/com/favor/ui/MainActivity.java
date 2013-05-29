@@ -7,7 +7,6 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -34,13 +33,6 @@ public class MainActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
-		//Debug.remakeDB();
-		//Debug.testData("3607087506");
-		//Debug.queryTest("3607087506");
-		//Debug.writeDatabase(this); //with indices, this takes a LONG (minute+) time
- 
-		// no more this
-		// setContentView(R.layout.list_fruit);
  
 		setListAdapter(new ArrayAdapter<String>(this, R.layout.main,MENU_ITEMS));
  
@@ -55,7 +47,7 @@ public class MainActivity extends ListActivity {
 			    if(str=="List By Contacts"){
 			    	//Intent myIntent = new Intent(getBaseContext(), LoadFromContacts.class);
 					//startActivity(myIntent);
-					startActivity(new Intent(getBaseContext(), LoadFromContacts.class));
+					startActivity(new Intent(getBaseContext(), ContactsActivity.class));
 			    }
 			}
 			

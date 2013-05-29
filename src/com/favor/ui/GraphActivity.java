@@ -23,11 +23,16 @@ import com.favor.R;
 
 public class GraphActivity extends Activity {
 
-	public static List<Contact> prevContacts;
+	private static List<Contact> prevContacts;
 	private static Graph graph;
 	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};
 	//DO NOT REORDER THE ITEMS[] ARRAY - PLACEMENTS CORRESPOND TO A SWITCH STATEMENT
 	private static int currentItem = 1; 
+	
+	public static void clearPrevContacts()
+	{
+		prevContacts = null;
+	}
 	//TODO: should default to 0 once Friend Score works, and should be saved in preferences
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

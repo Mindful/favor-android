@@ -35,7 +35,7 @@
         </activity>
         <activity 
             android:label="@string/by_contact"
-            android:name=".ui.LoadFromContacts">
+            android:name="com.favor.ui.ContactsActivity">
         </activity>
     </application>
 
