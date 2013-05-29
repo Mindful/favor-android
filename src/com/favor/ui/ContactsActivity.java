@@ -47,6 +47,7 @@ public class ContactsActivity extends ListActivity {
 		//setContentView(R.layout.load_contacts);
 
 		contactArrayAdapter = new ContactArrayAdapter(this, R.layout.contact, contactsList);
+		contactArrayAdapter.sort();
 
 		//ViewAnimator va = (ViewAnimator) findViewById(R.id.viewAnimator1);
 		//va.setInAnimation(inFromLeftAnimation());

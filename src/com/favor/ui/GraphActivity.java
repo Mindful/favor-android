@@ -43,7 +43,7 @@ public class GraphActivity extends Activity {
 	}
 
 	private void showGraph() {
-		WebView webView = (WebView) findViewById(R.id.webView1);
+		WebView webView = (WebView) findViewById(R.id.web_view);
 		webView.clearView();
 		webView.getSettings();
 		webView.setBackgroundColor(0x808080);
