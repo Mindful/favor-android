@@ -71,7 +71,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 
 		if (convertView == null) {
 			convertView = inflater.inflate(viewResourceId, null);
-			checkBox = (CheckBox) convertView.findViewById(R.id.checkBox1);
+			checkBox = (CheckBox) convertView.findViewById(R.id.check_box);
 			name = (TextView) convertView.findViewById(R.id.contact_name);
 			address = (TextView) convertView.findViewById(R.id.contact_address);
 

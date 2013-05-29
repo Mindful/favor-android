@@ -1,6 +1,7 @@
 package com.favor.ui;
 import com.favor.R;
 import com.favor.util.DataHandler;
+import com.favor.widget.OptionsMenu;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -13,30 +14,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends ListActivity {
  
 	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "List By Groups", "List All" };
-	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.layout.menu, menu);
-	    return true;
+	
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
+		return OptionsMenu.onCreateOptionsMenu(this, menu);
 	}
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-	    case R.id.about:
-	   // startActivity(new Intent(this, About.class));
-	    return true;
-	    case R.id.help:
-	   // startActivity(new Intent(this, Help.class));
-	    return true;
-	    default:
-	    return super.onOptionsItemSelected(item);
-	}
-		//return true;
-	    //respond to menu item selection
+	
+	public boolean onOptionsItemSelected(MenuItem item) 
+	{
+		return OptionsMenu.onOptionsItemSelected(item);
 	}
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,16 +50,12 @@ public class MainActivity extends ListActivity {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-			    // When clicked, show a toast with the TextView text
 			    
 			    String str = ((TextView) view).getText().toString();
 			    if(str=="List By Contacts"){
 			    	//Intent myIntent = new Intent(getBaseContext(), LoadFromContacts.class);
 					//startActivity(myIntent);
 					startActivity(new Intent(getBaseContext(), LoadFromContacts.class));
-
-			    Toast.makeText(getApplicationContext(),
-						((TextView) view).getText(), Toast.LENGTH_SHORT).show();
 			    }
 			}
 			
