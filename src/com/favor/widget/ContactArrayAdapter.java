@@ -42,6 +42,8 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		selected = 0;
 		for (Contact c : contacts){if (c.isSelected()) selected++;}
 		//TODO: recalculate number of selected things. this doesn't work
+		//which I think is because isSelected is set on check, and gets reset even if the checkbox
+		//does not
 		inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		selected = 0;
