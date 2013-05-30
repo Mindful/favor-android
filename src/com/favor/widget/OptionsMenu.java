@@ -11,7 +11,7 @@ public class OptionsMenu
 {
 	public static boolean onCreateOptionsMenu(Activity act, Menu menu) {
 	    MenuInflater inflater = act.getMenuInflater();
-	    inflater.inflate(R.layout.options_menu, menu);
+	    inflater.inflate(R.menu.options_menu, menu);
 	    return true;
 	}
 

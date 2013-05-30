@@ -74,27 +74,25 @@ public class ContactsActivity extends ListActivity {
 		ContactArrayAdapter.setSingleton(contactArrayAdapter);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main, menu);
-		Debug.log("pre thing");
+		inflater.inflate(R.menu.graph_button, menu);
 		graphItem = menu.findItem(R.id.graph);
-		return true;
+		return OptionsMenu.onCreateOptionsMenu(this, menu);
 	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		Debug.log("thing");
-		switch (item.getItemId()) {
-		case R.id.graph:
+	
+	public boolean onOptionsItemSelected(MenuItem item) 
+	{
+		if (item.getItemId()==R.id.graph)
+		{			
 			Intent intent = new Intent(this, GraphActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
-
-			break;
+			return true;
 		}
-		return true;
+		else return OptionsMenu.onOptionsItemSelected(item);
 	}
 
 	public MenuItem getGraphItem() {
