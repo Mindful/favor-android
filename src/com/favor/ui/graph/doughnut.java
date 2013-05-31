@@ -4,47 +4,42 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import android.annotation.SuppressLint;
+import com.favor.util.Misc;
+
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.util.Log;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 
 
 public class doughnut extends Graph {
 	
-	private long[] numbers;
-	public doughnut(List<String> names, long[] numbers)
+	private final long[] numbers;
+	public doughnut(List<String> names, long[] numbers, Context context)
 	{
-		super(names);
+		super(names, context);
 		this.numbers = numbers;
 	}
-
-	@SuppressLint("SetJavaScriptEnabled")
-	@Override
-	public void show(Context context, WebView webView) {
-		if (this.numbers.length != 2) throw new RuntimeException("Doughnut graphs must be 2 numbers only");
-		WebSettings webSettings = webView.getSettings();
+	
+	protected final String htmlBase(Context context)
+	{
+		String html;
 		AssetManager assetManager = context.getAssets();
-		webSettings.setJavaScriptEnabled(true);
-
-		try {
+		try
+		{
 			InputStream is = assetManager.open("graph/doughnut.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
-
-			String html = new String(buffer);
-			html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
-			html = html.replaceAll("%SELF", Long.toString(numbers[0]));
-			webView.clearView();
-			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
-					null, "UTF-8", null);
+			html = new String(buffer);
 			is.close();
-
-		} catch (IOException e) {
-			Log.e("Failed", "Could not load '" + e.getMessage() + "'!");
 		}
+		catch (IOException e) 
+		{
+			Misc.logError("HTML load failure: " + e.getMessage());
+			return "Load Error!";
+		}
+		html.replaceAll("%CONTACT", Long.toString(numbers[1]));
+		html.replaceAll("%SELF", Long.toString(numbers[0]));
+		return html;
+			
 	}
 
 }

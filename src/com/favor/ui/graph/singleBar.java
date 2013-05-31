@@ -4,12 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.util.Log;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 
 import com.favor.util.Misc;
 
@@ -28,47 +24,42 @@ public class singleBar extends Graph {
 			stepWidth = ceiling/10f;
 		}
 	}
-	public singleBar(List<String> names, long[] numbers)
+	public singleBar(List<String> names, long[] numbers, Context context)
 	{
-		super(names);
+		super(names, context);
 		this.numbers = numbers;
 	}
-
-	@SuppressLint("SetJavaScriptEnabled")
-	@Override
-	public void show(Context context, WebView webView) {
-		WebSettings webSettings = webView.getSettings();
+	
+	protected final String htmlBase(Context context)
+	{
+		String html;
 		AssetManager assetManager = context.getAssets();
-		webSettings.setJavaScriptEnabled(true);
-
-		try {
-			InputStream is = assetManager.open("graph/singleBar.html");
+		try
+		{
+			InputStream is = assetManager.open("graph/doubleBar.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
-
-			String html = new String(buffer);
-
-			int size = names.size();
-			String[] labels = new String[size];
-			long[] contact = new long[size];
-			//only redbar
-			for (int i = 0; i < names.size(); i++) {
-				labels[i] = names.get(i);
-				contact[i] = numbers[i];
-				compare(contact[i]);
-			}
-			html = html.replaceAll("%CEILING", Long.toString(ceiling));
-			html = html.replaceAll("%STEPWIDTH", Float.toString(stepWidth));
-			html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-			html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
-			webView.clearView();
-			webView.loadDataWithBaseURL("file:///android_asset/graph/", html,
-					null, "UTF-8", null);
+			html = new String(buffer);
 			is.close();
-
-		} catch (IOException e) {
-			Log.e("Failed", "Could not load '" + e.getMessage() + "'!");
 		}
+		catch (IOException e) 
+		{
+			Misc.logError("HTML load failure: " + e.getMessage());
+			return "Load Error!";
+		}
+		int size = names.size();
+		String[] labels = new String[size];
+		long[] contact = new long[size];
+		for (int i = 0; i < names.size(); i++) {
+			labels[i] = names.get(i);
+			contact[i] = numbers[i];
+			compare(contact[i]);
+		}
+		html = html.replaceAll("%CEILING", Long.toString(ceiling));
+		html = html.replaceAll("%STEPWIDTH", Float.toString(stepWidth));
+		html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
+		html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
+		return html;
 	}
 
 }

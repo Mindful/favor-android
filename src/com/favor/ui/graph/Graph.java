@@ -4,40 +4,47 @@ import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 
 import com.favor.util.Debug;
+import com.favor.widget.GraphView;
 
 public abstract class Graph {
 	
 	public static enum types {singleBar, doubleBar, doughnut}
-	public abstract void show();
 	
-	protected WebView webView;
-	protected final String htmlBase;
+	protected GraphView graphView;
+	//protected final String htmlBase;
+	protected String htmlBase;
+	protected final List<String> names;
 	
-	protected String htmlWithDimensions(WebView webView)
+	protected String htmlWithDimensions(GraphView g)
 	{
 		//TODO: dimensions calculations based on porportions - calculate the multiplier and then split
 		//it in half, apply half to the scale and half to the pixel size
-		int w = webView.getWidth();
-		int h = webView.getHeight();
+		int w = g.getWidth();
+		int h = g.getHeight();
 		Debug.log("W:"+w+" H:"+h);
 		return htmlBase;
+		//TODO: this should eventually generate wider-than-screen graphs if names.length>X
+		//X should probably be a setting, actually
+	}
+	
+	public void show() 
+	{
+		graphView.clearView();
+		graphView.loadDataWithBaseURL("file:///android_asset/graph/", htmlWithDimensions(graphView), null, "UTF-8", null);
 	}
 	
 	protected abstract String htmlBase(Context context);
 	
 	@SuppressLint("SetJavaScriptEnabled")
-	public void updateView(WebView webView)
+	public void updateView(GraphView g)
 	{
-		this.webView = webView;
-		WebSettings webSettings = this.webView.getSettings();
-		webSettings.setJavaScriptEnabled(true);
+		if (this.graphView == g) Debug.log("Redundant webView update.");
+		this.graphView = g;
 	}
 	
-	public static Graph newGraph(List<String> names, Object data)
+	public static Graph newGraph(List<String> names, Object data, Context context)
 	{
 		long[] array = null;
 		long[][] nestedArray = null;
@@ -65,11 +72,11 @@ public abstract class Graph {
 		switch (type)
 		{
 			case singleBar:
-				return (Graph)new singleBar(names, array);
+				return (Graph)new singleBar(names, array, context);
 			case doubleBar:
-				return (Graph)new doubleBar(names, nestedArray);
+				return (Graph)new doubleBar(names, nestedArray, context);
 			case doughnut:
-				return (Graph)new doughnut(names, array);
+				return (Graph)new doughnut(names, array, context);
 			default:
 				throw new RuntimeException("Unknown Type");
 				
@@ -81,9 +88,9 @@ public abstract class Graph {
 	
 	public Graph(List<String> names, Context context)
 	{
+		//TODO: the problem is here - we're trying to build the htmlbase before numbers are set
 		this.names = names;
-		this.htmlBase = htmlBase(context);
+		//this.htmlBase = htmlBase(context);
 	}
 	
-	protected List<String> names;
 }

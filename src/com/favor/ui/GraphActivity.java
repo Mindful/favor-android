@@ -3,6 +3,7 @@ package com.favor.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,12 +14,12 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.WebView;
 
 import com.favor.ui.graph.Graph;
 import com.favor.util.Algorithms;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
+import com.favor.widget.GraphView;
 import com.favor.R;
 
 public class GraphActivity extends Activity {
@@ -28,6 +29,8 @@ public class GraphActivity extends Activity {
 	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};
 	//DO NOT REORDER THE ITEMS[] ARRAY - PLACEMENTS CORRESPOND TO A SWITCH STATEMENT
 	private static int currentItem = 1; 
+	
+	public static Graph getGraph(){ return graph;}
 	
 	public static void clearPrevContacts()
 	{
@@ -42,11 +45,11 @@ public class GraphActivity extends Activity {
 		setupActionBar();
 	}
 
+	@SuppressLint("SetJavaScriptEnabled")
 	private void showGraph() {
-		WebView webView = (WebView) findViewById(R.id.web_view);
-		webView.clearView();
-		webView.getSettings();
-		webView.setBackgroundColor(0x808080);
+		GraphView view = (GraphView) findViewById(R.id.graph_view);
+		view.clearView();
+		//webView.getSettings();
 
 		ContactArrayAdapter aa = ContactArrayAdapter.getSingleton();
 		List<Contact> allContacts = aa.getContacts();
@@ -62,8 +65,9 @@ public class GraphActivity extends Activity {
 		
 		//new graph code
 		//calc new data if we have to, else use old graph and just show it
+		//TODO: update webview goes here, basically
 		setGraph(contacts);
-		graph.show(this, webView);
+		graph.show();
 		setTitle(items[currentItem]);
 	}
 	
@@ -78,8 +82,9 @@ public class GraphActivity extends Activity {
 			{
 				names.add(c.getName());
 			}
-			graph = Graph.newGraph(names, query(contacts));
+			graph = Graph.newGraph(names, query(contacts), this);
 		}
+		graph.updateView((GraphView) findViewById(R.id.graph_view));
 	}
 	
 	private Object query(List<Contact> contacts)
