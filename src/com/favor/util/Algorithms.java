@@ -239,9 +239,15 @@ public class Algorithms {
   			}
   			
   		}
-  		charRatio = recChar/sentChar;
-  		countRatio = recCount/sentCount;
-  		mediaRatio = recMedia/sentMedia;
+  		
+  		if (sentChar == 0) charRatio = 0;
+  		else charRatio = recChar/sentChar;
+  		
+  		if (sentCount == 0) countRatio = 0;
+  		else countRatio = recCount/sentCount;
+  		
+  		if (sentMedia == 0) mediaRatio = 0;
+  		else mediaRatio = recMedia/sentMedia;
   		
   		//response time calc
   		LinkedList<Long> sentTimes = new LinkedList<Long>();
@@ -271,52 +277,71 @@ public class Algorithms {
   		double avgRec = 0;
   	//calculate initial clusters
  		Vector<PVector>[] sentClusters = toPVectors(sentTimes);
+ 		
  		Vector<PVector>[] recClusters = toPVectors(recTimes);
  		PVector[] sentPoints = toPoints(sentTimes);
  		for (PVector v : sentPoints) Debug.log("uncleaned sent points --" + v.array[0]);
  		PVector[] recPoints = toPoints(recTimes);
  		for (PVector v : recPoints) Debug.log("uncleaned rec points --" + v.array[0]);
  		
+ 		double sentMax = 0;
+ 		double recMax = 0;
+ 		LinkedList<Double> cleanSent = new LinkedList<Double>();
+ 		LinkedList<Double> cleanRec = new LinkedList<Double>();
+ 		Debug.log("Send clusters length?   " + sentClusters.length);
+ 		
  		//Making mixture models
- 		MixtureModel sentTimesMM;
- 		sentTimesMM = BregmanSoftClustering.initialize(sentClusters, new UnivariateGaussian());
- 		MixtureModel recTimesMM;
- 		recTimesMM = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
- 		sentTimesMM = BregmanSoftClustering.run(sentPoints, sentTimesMM);
- 		recTimesMM = BregmanSoftClustering.run(recPoints, recTimesMM);
+ 		if (sentClusters[0] != null) {
+ 			MixtureModel sentTimesMM;
+ 			
+ 			sentTimesMM = BregmanSoftClustering.initialize(sentClusters, new UnivariateGaussian());
+ 			sentTimesMM = BregmanSoftClustering.run(sentPoints, sentTimesMM);
+ 			
+ 			PVector temp1 = (PVector) sentTimesMM.param[0];
+ 			sentMax = temp1.array[1];
+ 			if (sentMax > 28800000 && temp1.array[0] < 28800000) sentMax = 28800000.0;
+ 			for (int i = 0;i< sentPoints.length; i++) {
+ 				if (sentPoints[i].array[0] <= sentMax) {
+ 					avgSent += sentPoints[i].array[0];
+ 					cleanSent.add(sentPoints[i].array[0]);
+ 				}	
+ 			}
+ 		}
+ 		if (recClusters[0] != null) {
+ 			MixtureModel recTimesMM;
+ 			recTimesMM = BregmanSoftClustering.initialize(recClusters, new UnivariateGaussian());
+ 			recTimesMM = BregmanSoftClustering.run(recPoints, recTimesMM);
+ 			PVector temp2 = (PVector) recTimesMM.param[0];
+ 			recMax = temp2.array[1];
+ 			if (recMax > 28800000 && temp2.array[0] < 28800000) recMax = 28800000.0;
+ 			for (int i = 0;i < recPoints.length; i++) {
+ 	 			if(recPoints[i].array[0] <= recMax) {
+ 	 				avgRec += recPoints[i].array[0];
+ 	 				cleanRec.add(recPoints[i].array[0]);
+ 	 			}	
+ 	 		}
+ 		}
  		Debug.log(sentTimes.toString());
  		Debug.log(recTimes.toString());
  		
  		//retrieving parameter ranges
- 		PVector temp1 = (PVector) sentTimesMM.param[0];
- 		PVector temp2 = (PVector) recTimesMM.param[0];
- 		double sentMax = temp1.array[1];
- 		if (sentMax > 28800000 && temp1.array[0] < 28800000) sentMax = 28800000.0;
+ 		
  		Debug.log("sentMax   " + sentMax);
- 		double recMax = temp2.array[1];
- 		if (recMax > 28800000 && temp2.array[0] < 28800000) recMax = 28800000.0;
  		Debug.log("recMax   " + recMax);
- 		LinkedList<Double> cleanSent = new LinkedList<Double>();
- 		LinkedList<Double> cleanRec = new LinkedList<Double>();
+ 		
+ 		
  		//calculating totals from the returned values
- 		for (int i = 0;i< sentPoints.length; i++) {
- 			if (sentPoints[i].array[0] <= sentMax) {
- 				avgSent += sentPoints[i].array[0];
- 				cleanSent.add(sentPoints[i].array[0]);
- 			}	
- 		}
- 		for (int i = 0;i < recPoints.length; i++) {
- 			if(recPoints[i].array[0] <= recMax) {
- 				avgRec += recPoints[i].array[0];
- 				cleanRec.add(recPoints[i].array[0]);
- 			}	
- 		}
+ 		
+ 		
   		if (maximum == minimum) minimum = Long.MIN_VALUE;
-  		avgSent = avgSent/cleanSent.size();
-  		avgRec = avgRec/cleanRec.size();
+  		
+  		if (cleanSent.size() != 0) avgSent = avgSent/cleanSent.size();
+  		if (cleanRec.size() != 0) avgRec = avgRec/cleanRec.size();
+  		
   		avgSent = (avgSent - minimum)/(maximum - minimum);
   		avgRec = (avgRec - minimum)/(maximum - minimum);
   		long [] score = {0,0};
+  		
   		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * (1/avgRec)));
   		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * (1/avgSent)));
   		
@@ -459,10 +484,12 @@ public class Algorithms {
   		}
   		
   		Vector<PVector>[] result = (Vector<PVector>[]) new Vector[2];
+  		if (unders.size() != 0){
   		result[0] = unders;
   		result[1] = overs;
-  		Debug.log("0    " + result[0].toString());
-  		Debug.log("1    " + result[1].toString());
+  		} else {
+  			result[0] = null;
+  		}
   		return result;
   		
   	}
