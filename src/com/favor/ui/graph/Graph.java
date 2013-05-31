@@ -2,7 +2,9 @@ package com.favor.ui.graph;
 
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.favor.util.Debug;
@@ -10,7 +12,30 @@ import com.favor.util.Debug;
 public abstract class Graph {
 	
 	public static enum types {singleBar, doubleBar, doughnut}
-	public abstract void show(Context context, WebView webView);
+	public abstract void show();
+	
+	protected WebView webView;
+	protected final String htmlBase;
+	
+	protected String htmlWithDimensions(WebView webView)
+	{
+		//TODO: dimensions calculations based on porportions - calculate the multiplier and then split
+		//it in half, apply half to the scale and half to the pixel size
+		int w = webView.getWidth();
+		int h = webView.getHeight();
+		Debug.log("W:"+w+" H:"+h);
+		return htmlBase;
+	}
+	
+	protected abstract String htmlBase(Context context);
+	
+	@SuppressLint("SetJavaScriptEnabled")
+	public void updateView(WebView webView)
+	{
+		this.webView = webView;
+		WebSettings webSettings = this.webView.getSettings();
+		webSettings.setJavaScriptEnabled(true);
+	}
 	
 	public static Graph newGraph(List<String> names, Object data)
 	{
@@ -54,9 +79,10 @@ public abstract class Graph {
 	}
 	
 	
-	public Graph(List<String> names)
+	public Graph(List<String> names, Context context)
 	{
 		this.names = names;
+		this.htmlBase = htmlBase(context);
 	}
 	
 	protected List<String> names;

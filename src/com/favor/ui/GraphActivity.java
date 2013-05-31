@@ -69,6 +69,7 @@ public class GraphActivity extends Activity {
 	
 	private void setGraph(List<Contact> contacts)
 	{
+		//TODO: either way, update view context
 		if (graph == null || !contacts.equals(prevContacts))
 		{
 			prevContacts = contacts;
