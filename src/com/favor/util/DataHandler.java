@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimeZone;
 
+import com.favor.ui.ContactsActivity;
+import com.favor.ui.GraphActivity;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -310,7 +313,12 @@ public class DataHandler extends SQLiteOpenHelper{
 	 */
 	public void update()
 	{
-		lastFetch = prefs.getLong("lastFetch", 0); //mandatory. not sure how this wasn't here before
+		//---------------------------------
+		//This is where we clean/update other held data
+		GraphActivity.clearPrevContacts();
+		ContactsActivity.refreshContacts(context);
+		//----------------------------------
+		lastFetch = prefs.getLong("lastFetch", 0);
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
 		try{
@@ -580,6 +588,10 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		//-1 for no date, empty string for no address. Obviously, table is mandatory.
 		//Automatically sorted by date.
+		
+		//TODO: test this with and make sure it's compatible with null/no addresses
+		//we need it to be able to pull every single contact's info from the database without
+		//comparing to every contact's name
 		
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (addresses.length < 2) throw new dataException("multiQuery should not be used with less than 2 addresses.");

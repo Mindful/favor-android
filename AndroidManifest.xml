@@ -27,14 +27,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.favor.ui.GraphBarActivity"
-            android:label="@string/title_activity_graph_bar"
+            android:name="com.favor.ui.GraphActivity"
+            android:hardwareAccelerated="true"
             android:parentActivityName="com.favor.ui.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.favor.ui.MainActivity" />
         </activity>
-        <activity android:name=".ui.LoadFromContacts"></activity>
+        <activity 
+            android:label="@string/by_contact"
+            android:name="com.favor.ui.ContactsActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -21,6 +21,28 @@ public class Algorithms {
   private static final double MEDIA_WEIGHT = 0.15;
   private static final double RESPONSE_WEIGHT = 0.25;
   
+  
+  public static long[] messageCount(String address, long fromDate, long untilDate)
+  {
+	  DataHandler db = DataHandler.get();
+	  long [] values = {0,0};
+	  
+	  //Have to grab a random field. Character count seems as good as any
+	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
+	  
+	  values[0] = sent.size();
+	  values[1] = rec.size();
+	  return values;  
+  }
+  
+  public static double messageRatio (String address, long fromDate, long untilDate) {
+	  long [] values= messageCount(address, fromDate, untilDate);
+	  double ratio = (values[1]/(double)values[0]);
+	  return ratio;
+  }
+  
   /**
    * Calculates the total characters sent and received for a contact and period of time,
    * returns an array of longs with sent characters in the 0th index and received
@@ -61,7 +83,7 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static long charRatio (String address, long fromDate, long untilDate) {
+  public static double charRatio (String address, long fromDate, long untilDate) {
 	  
 	  //calls character count
 	  long [] values= charCount(address, fromDate, untilDate);
@@ -69,7 +91,7 @@ public class Algorithms {
 	  Debug.log(values[0] + "");
 	  
 	  //some kewl casting here jk
-	  long ratio = (long) (values[1]/(float)values[0]);
+	  double ratio = (values[1]/(double)values[0]);
 	  return ratio;
   }
 
@@ -193,11 +215,10 @@ public class Algorithms {
   	 * @param untilDate
   	 * @return
   	 */
-  	public static long responseRatio (String address, long fromDate, long untilDate) {
+  	public static double responseRatio (String address, long fromDate, long untilDate) {
   		//calls
   		long[] times = Algorithms.responseTime(address, fromDate, untilDate);
-  		float temp = (float)times[1]/(float)times[0];
-  		long ratio = (long) temp;
+  		double ratio = (times[1]/(double)times[0]);
   		return ratio;
   	}
   	
@@ -338,12 +359,20 @@ public class Algorithms {
   		if (cleanSent.size() != 0) avgSent = avgSent/cleanSent.size();
   		if (cleanRec.size() != 0) avgRec = avgRec/cleanRec.size();
   		
+<<<<<<< HEAD
   		avgSent = (avgSent - minimum)/(maximum - minimum);
   		avgRec = (avgRec - minimum)/(maximum - minimum);
   		long [] score = {0,0};
   		
   		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * (1/avgRec)));
   		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * (1/avgSent)));
+=======
+  		avgSent /= (double) cleanSent.size();
+  		avgRec /= (double) cleanRec.size();
+  		long [] score = {0,0};
+  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
+  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
+>>>>>>> ed88a51263d84e0d3fac3c5fbc9505e5e7dda4d7
   		
   		return score;
   	}
@@ -355,7 +384,7 @@ public class Algorithms {
   	 * 
   	 */
   	
-  	public static double friendScore (String address) {
+  	public static long friendScore (String address) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
@@ -430,8 +459,13 @@ public class Algorithms {
  		responseAvg = responseAvg/cleanRec.size();
  		responseAvg = (responseAvg - minimum)/(maximum - minimum);
   		responseAvg = responseAvg/numResponse;
+<<<<<<< HEAD
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * (1/responseAvg));
   		return score;
+=======
+  		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
+  		return (long)score;
+>>>>>>> ed88a51263d84e0d3fac3c5fbc9505e5e7dda4d7
   	}
   	
   	

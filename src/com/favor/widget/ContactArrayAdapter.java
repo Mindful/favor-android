@@ -15,8 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.favor.ui.LoadFromContacts;
-import com.favor.ui.MainActivity;
+import com.favor.ui.ContactsActivity;
+import com.favor.util.Debug;
 import com.favor.R;
 
 @SuppressWarnings("serial")
@@ -24,7 +24,8 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		Serializable {
 
 	private static ContactArrayAdapter singleton;
-
+	//TODO: make this a true singleton and preserve the contact array? it falling out of scope is
+	//likely what's causing our problems. Also, for our purposes, this could definitely be a singleton
 	private final Context context;
 	private final int viewResourceId;
 	private final ArrayList<Contact> contacts;
@@ -38,7 +39,11 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		this.context = context;
 		this.viewResourceId = viewResourceId;
 		this.contacts = contacts;
-
+		selected = 0;
+		for (Contact c : contacts){if (c.isSelected()) selected++;}
+		//TODO: recalculate number of selected things. this doesn't work
+		//which I think is because isSelected is set on check, and gets reset even if the checkbox
+		//does not
 		inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		selected = 0;
@@ -72,7 +77,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 
 		if (convertView == null) {
 			convertView = inflater.inflate(viewResourceId, null);
-			checkBox = (CheckBox) convertView.findViewById(R.id.checkBox1);
+			checkBox = (CheckBox) convertView.findViewById(R.id.check_box);
 			name = (TextView) convertView.findViewById(R.id.contact_name);
 			address = (TextView) convertView.findViewById(R.id.contact_address);
 
@@ -89,12 +94,12 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 					else
 						selected--;
 
-					MenuItem graphItem = ((LoadFromContacts) context)
+					MenuItem graphItem = ((ContactsActivity) context)
 							.getGraphItem();
 					graphItem.setEnabled(isAtleastOneSelected());
 
 					String text = context.getString(R.string.graph);
-
+					Debug.log("Selected: "+selected); //TODO: this is reset on phone turns
 					if (selected > 0)
 						text += " (" + selected + ")";
 

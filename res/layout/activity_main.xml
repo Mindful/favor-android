@@ -9,7 +9,7 @@
     tools:context=".MainActivity" >
 
     <ViewAnimator
-        android:id="@+id/viewAnimator1"
+        android:id="@+id/view_animator"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
@@ -19,15 +19,15 @@
             android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/textView1"
+                android:id="@+id/text_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="25dp"
-                android:text="@string/loading_contacts"
+                android:text="@string/updating_database"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <ProgressBar
-                android:id="@+id/progressBar1"
+                android:id="@+id/progress_bar"
                 style="?android:attr/progressBarStyleLarge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
