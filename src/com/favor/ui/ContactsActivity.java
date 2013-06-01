@@ -1,16 +1,21 @@
 package com.favor.ui;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuInflater;
+
 import java.util.ArrayList;
 
-import android.app.ListActivity;
+//import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+//import android.view.Menu;
+//import android.view.MenuInflater;
+//import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -21,7 +26,7 @@ import com.favor.widget.OptionsMenu;
 import com.favor.widget.ContactArrayAdapter.ContactViewHolder;
 import com.favor.R;
 
-public class ContactsActivity extends ListActivity {
+public class ContactsActivity extends SherlockListActivity {
 
 	private ContactArrayAdapter contactArrayAdapter;
 	private MenuItem graphItem;
@@ -76,7 +81,7 @@ public class ContactsActivity extends ListActivity {
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
-		MenuInflater inflater = getMenuInflater();
+		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.graph_button, menu);
 		graphItem = menu.findItem(R.id.graph);
 		return OptionsMenu.onCreateOptionsMenu(this, menu);

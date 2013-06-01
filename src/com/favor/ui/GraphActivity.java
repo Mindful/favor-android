@@ -1,19 +1,24 @@
 package com.favor.ui;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+//import com.actionbarsherlock.view.MenuInflater;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
+//import android.annotation.TargetApi;
+//import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.os.Build;
+//import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.view.Menu;
-import android.view.MenuItem;
+//import android.view.Menu;
+//import android.view.MenuItem;
 
 import com.favor.ui.graph.Graph;
 import com.favor.util.Algorithms;
@@ -22,7 +27,7 @@ import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.GraphView;
 import com.favor.R;
 
-public class GraphActivity extends Activity {
+public class GraphActivity extends SherlockActivity {
 
 	private static List<Contact> prevContacts;
 	private static Graph graph;
@@ -42,7 +47,7 @@ public class GraphActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_graph);
 		showGraph();
-		setupActionBar();
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -138,19 +143,10 @@ public class GraphActivity extends Activity {
 		}
 	}
 
-	/**
-	 * Set up the {@link android.app.ActionBar}, if the API is available.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			getActionBar().setDisplayHomeAsUpEnabled(true);
-		}
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.graph_menu, menu);
+		getSupportMenuInflater().inflate(R.menu.graph_menu, menu);
 		return true;
 	}
 

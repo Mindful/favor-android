@@ -1,5 +1,9 @@
 package com.favor.widget;
 
+//import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+//import com.actionbarsherlock.view.MenuInflater;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,7 +12,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
+//import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -16,7 +20,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.favor.ui.ContactsActivity;
-import com.favor.util.Debug;
+//import com.favor.util.Debug;
 import com.favor.R;
 
 @SuppressWarnings("serial")

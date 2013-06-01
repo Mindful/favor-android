@@ -1,16 +1,21 @@
 package com.favor.widget;
 
-import android.app.Activity;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuInflater;
+
+//import android.app.Activity;
+//import android.view.Menu;
+//import android.view.MenuInflater;
+//import android.view.MenuItem;
 
 import com.favor.R;
 
 public class OptionsMenu 
 {
-	public static boolean onCreateOptionsMenu(Activity act, Menu menu) {
-	    MenuInflater inflater = act.getMenuInflater();
+	public static boolean onCreateOptionsMenu(SherlockListActivity act, Menu menu) {
+	    MenuInflater inflater = act.getSupportMenuInflater();
 	    inflater.inflate(R.menu.options_menu, menu);
 	    return true;
 	}

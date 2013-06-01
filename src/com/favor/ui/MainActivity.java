@@ -1,13 +1,18 @@
 package com.favor.ui;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+//import com.actionbarsherlock.view.MenuInflater;
+
 import com.favor.R;
 import com.favor.util.DataHandler;
 import com.favor.widget.OptionsMenu;
 
-import android.app.ListActivity;
+//import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+//import android.view.Menu;
+//import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,7 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
  
-public class MainActivity extends ListActivity {
+public class MainActivity extends SherlockListActivity {
  
 	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "List By Groups", "List All" };
 	
