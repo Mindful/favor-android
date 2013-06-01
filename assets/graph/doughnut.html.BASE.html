@@ -4,10 +4,14 @@
 	<head>
 		<title>Doughnut Chart</title>
 		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
-		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
+		<meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
+		<style>
+			canvas{
+			}
+		</style>
 	</head>
-	<body style="margin:0px; padding:0px;">
-		<canvas id="canvas" height="%HEIGHT" width="%WIDTH" style="padding-top:%PADDING"></canvas>
+	<body>
+		<canvas id="canvas"></canvas>
 
 
 	<script>
@@ -25,7 +29,7 @@
 ]
 
 	var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Doughnut(doughnutChartData);
-
+	
 	</script>
 
 
@@ -38,3 +42,4 @@
 
 	</body>
 </html>
+

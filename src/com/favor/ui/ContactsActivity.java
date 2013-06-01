@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.favor.util.Debug;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.OptionsMenu;

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<body bgcolor="#0a0a0a">
+	<head>
+		<title>1Bar Chart</title>
+		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
+		<meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
+		<style>
+			canvas{
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas" height="450" width="600"></canvas>
+
+
+	<script>
+
+		var barChartData = {
+			labels : %LABELS,
+			datasets : [
+				{
+					fillColor : "rgba(220,220,220,0.5)",
+					strokeColor : "rgba(220,220,220,1)",
+					data : %REDBAR
+				},
+			]
+			
+		}
+
+	var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData);
+	
+	</script>
+
+
+
+
+
+
+
+
+
+	</body>
+</html>
