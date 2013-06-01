@@ -12,8 +12,10 @@ import android.annotation.SuppressLint;
 //import android.annotation.TargetApi;
 //import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.SharedPreferences;
 //import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -22,6 +24,7 @@ import android.support.v4.app.NavUtils;
 
 import com.favor.ui.graph.Graph;
 import com.favor.util.Algorithms;
+import com.favor.util.DataHandler;
 import com.favor.widget.Contact;
 import com.favor.widget.ContactArrayAdapter;
 import com.favor.widget.GraphView;
@@ -33,7 +36,9 @@ public class GraphActivity extends SherlockActivity {
 	private static Graph graph;
 	private static final String items[] = {"Friend Score", "Character Count", "Message Count", "Response Time"};
 	//DO NOT REORDER THE ITEMS[] ARRAY - PLACEMENTS CORRESPOND TO A SWITCH STATEMENT
-	private static int currentItem = 1; 
+	private static int currentItem = 0; 
+	
+	private final String SAVED_METRIC = "metric";
 	
 	public static Graph getGraph(){ return graph;}
 	
@@ -41,10 +46,11 @@ public class GraphActivity extends SherlockActivity {
 	{
 		prevContacts = null;
 	}
-	//TODO: should default to 0 once Friend Score works, and should be saved in preferences
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		currentItem = getSharedPreferences(DataHandler.PREFS_NAME, Context.MODE_PRIVATE).getInt(SAVED_METRIC, 0);
 		setContentView(R.layout.activity_graph);
 		showGraph();
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -68,18 +74,13 @@ public class GraphActivity extends SherlockActivity {
 		}
 
 		
-		//new graph code
-		//calc new data if we have to, else use old graph and just show it
-		//TODO: update webview goes here, basically
 		setGraph(contacts);
-		graph.show(); //Redundant draw seems to be the only way to stop initial jitter
-		//view.clearView();
+		graph.show();
 		setTitle(items[currentItem]);
 	}
 	
 	private void setGraph(List<Contact> contacts)
 	{
-		//TODO: either way, update view context
 		if (graph == null || !contacts.equals(prevContacts))
 		{
 			prevContacts = contacts;
@@ -150,7 +151,6 @@ public class GraphActivity extends SherlockActivity {
 		return true;
 	}
 
-	static int selected = 0;
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -161,14 +161,14 @@ public class GraphActivity extends SherlockActivity {
 		case R.id.action_switch_graph:
 			AlertDialog.Builder ab = new AlertDialog.Builder(this);
 			ab.setTitle("Select Metric")
-					.setSingleChoiceItems(items, selected,
+					.setSingleChoiceItems(items, currentItem,
 							new OnClickListener() {
 
 								@Override
 								public void onClick(DialogInterface dialog,
 										int which) {
-									if (which != selected)
-										selected = which;
+									if (which != currentItem)
+										currentItem = which;
 								}
 
 							})
@@ -176,10 +176,12 @@ public class GraphActivity extends SherlockActivity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface d, int choice) 
 								{
-									if (selected != -1) 
+									if (currentItem != -1) 
 									{
+										SharedPreferences.Editor edit = getSharedPreferences(DataHandler.PREFS_NAME, Context.MODE_PRIVATE).edit();
+										edit.putInt(SAVED_METRIC, currentItem);
+										edit.apply();
 										prevContacts = null; //so that we regenerate a new graph
-										currentItem = selected;
 										showGraph();
 									}
 								}

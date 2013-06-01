@@ -5,7 +5,6 @@ import java.util.List;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.favor.util.Debug;
 import com.favor.widget.GraphView;
 
 public abstract class Graph {
@@ -41,13 +40,13 @@ public abstract class Graph {
 		int startWidth = (int)(aspectRatio*baseHeight);
 		int startHeight = baseHeight;
 		
-		Debug.log("view w:"+g.getWidth()+" view h:"+g.getHeight());
-		Debug.log("Start w:"+startWidth+" Start h:"+startHeight);
+		//Debug.log("view w:"+g.getWidth()+" view h:"+g.getHeight());
+		//Debug.log("Start w:"+startWidth+" Start h:"+startHeight);
 		
 		float widthRatio = (g.getWidth()/baseScale)/(float)startWidth;
 		float heightRatio = (g.getHeight()/baseScale)/(float)startHeight;
 		
-		Debug.log("WRatio:"+widthRatio+" HRatio:"+heightRatio);
+		//Debug.log("WRatio:"+widthRatio+" HRatio:"+heightRatio);
 		
 		String html = htmlBase;
 		
@@ -74,7 +73,6 @@ public abstract class Graph {
 		{
 			html = html.replaceAll("%PADDING", "5%");
 			finalHeight = (int) (finalHeight*0.95);
-			Debug.log("padding");
 		}
 		else 
 		{
@@ -101,7 +99,6 @@ public abstract class Graph {
 	@SuppressLint("SetJavaScriptEnabled")
 	public void updateView(GraphView g)
 	{
-		if (this.graphView == g) Debug.log("Redundant webView update.");
 		this.graphView = g;
 	}
 	

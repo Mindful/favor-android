@@ -201,7 +201,7 @@ public class DataHandler extends SQLiteOpenHelper{
     	KEY_DATE+" INTEGER,"+KEY_ADDRESS+" TEXT,"+KEY_CHARCOUNT+" INTEGER,"+KEY_MEDIA+" INTEGER)");
     	
     	//Indices
-    	if (prefs.getBoolean("index", true))
+    	if (prefs.getBoolean(SAVED_INDEX, true))
     	{
     		db.execSQL("CREATE INDEX i_"+TABLE_SENT+" ON "+TABLE_SENT+" ("+KEY_ADDRESS+","+KEY_DATE+")");
         	db.execSQL("CREATE INDEX i_"+TABLE_RECEIVED+" ON "+TABLE_RECEIVED+" ("+KEY_ADDRESS+","+KEY_DATE+")");
@@ -210,7 +210,7 @@ public class DataHandler extends SQLiteOpenHelper{
     	//Data table
     	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" INTEGER,"+KEY_DATE+
     	" INTEGER,"+KEY_COUNT+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+KEY_TYPE+"))");
-		edit.putLong("lastFetch", 0);
+		edit.putLong(SAVED_FETCH, 0);
 		edit.apply();
     }
     
@@ -227,7 +227,7 @@ public class DataHandler extends SQLiteOpenHelper{
     
     
 	//Static aspects
-	private static String PREFS_NAME = "dataPrefs.db";
+	public static String PREFS_NAME = "dataPrefs.db";
 	private static DataHandler singleton;
 	/**
 	 * Initializes and returns the singleton DataHandler instance. If a DataHandler is already running,
@@ -257,13 +257,22 @@ public class DataHandler extends SQLiteOpenHelper{
 	private static final String[] SMS_PROJECTION={"_id", "date", "address", "body"};
 	private static final String[] MMS_PROJECTION={"_id", "date"}; 
 	
+	private static final String SAVED_FETCH = "lastFetch";
+	private static final String SAVED_INDEX = "index";
+	
+	
 	
 	//Instance aspects
 	
-	private Context context;
+	private final Context context;
 	private long lastFetch;
-	SharedPreferences prefs;
-	SharedPreferences.Editor edit;
+	private final SharedPreferences prefs;
+	private final SharedPreferences.Editor edit;
+	
+	/**
+	 * Utility method that provides easy access to the global application context.
+	 */
+	public Context context(){return context;}
 	
 	private DataHandler(Activity mainActivity)
 	{
@@ -271,7 +280,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		context = mainActivity.getApplicationContext();
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		edit = prefs.edit();
-		lastFetch = prefs.getLong("lastFetch", 0);
+		lastFetch = prefs.getLong(SAVED_FETCH, 0);
 	}
 	
 	/**
@@ -280,7 +289,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	
 	public boolean indexingEnabled()
 	{
-		return prefs.getBoolean("index", true);
+		return prefs.getBoolean(SAVED_INDEX, true);
 	}
 	
 	/**
@@ -318,7 +327,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		GraphActivity.clearPrevContacts();
 		ContactsActivity.refreshContacts(context);
 		//----------------------------------
-		lastFetch = prefs.getLong("lastFetch", 0);
+		lastFetch = prefs.getLong(SAVED_FETCH, 0);
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
 		try{
@@ -355,7 +364,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		db.close();
 		Date d = new Date();
-		edit.putLong("lastFetch", d.getTime());
+		edit.putLong(SAVED_FETCH, d.getTime());
 		edit.apply();
 	}
 	
@@ -384,7 +393,7 @@ public class DataHandler extends SQLiteOpenHelper{
 				   }
 				   else 
 				   {
-					   Debug.log(data); //we have pure data
+					   Misc.logError("Unknown message data:"+data); //we have pure data
 				   }
 			   }
 			   else media = 1;
@@ -433,7 +442,7 @@ public class DataHandler extends SQLiteOpenHelper{
 				   }
 				   else 
 				   {
-					   Debug.log(data); //we have pure data
+					   Misc.logError("Unknown message data:"+data); //we have pure data
 				   }
 			   }
 			   else media = 1;

@@ -37,6 +37,8 @@ public class ContactsActivity extends SherlockListActivity {
 	{
 		//TODO: Eventually this (and the contacts class, together) should be able to fuse multiple
 		//numbers into one contact, so that we can do contact-based queries
+		//also, eventually, DataHandler should hold the contacts list - so it can come from somewhere
+		//that makes sense, and we can use it internally for contact-to-number resolution
 		Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
 		new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER},
 		null, null, null);
