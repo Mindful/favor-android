@@ -24,6 +24,8 @@ public abstract class Graph {
 	protected String htmlWithDimensions(GraphView g)
 	{
 		//TODO: if names > saved maximum, multiply width * 1+((names.length-max)/max)
+		//this should eventually generate wider-than-screen graphs if names.length>X
+		//X should probably be a setting, actually
 		//TODO: 99% sure the problem is arising from 0-values
 		if (g.getWidth()==0 && g.getHeight()==0)
 		{
@@ -86,8 +88,6 @@ public abstract class Graph {
 		
 		
 		return html;
-		//TODO: this should eventually generate wider-than-screen graphs if names.length>X
-		//X should probably be a setting, actually
 	}
 	
 	public void show() 
@@ -145,11 +145,9 @@ public abstract class Graph {
 	}
 	
 	
-	public Graph(List<String> names, Context context)
+	public Graph(List<String> names)
 	{
-		//TODO: the problem is here - we're trying to build the htmlbase before numbers are set
 		this.names = names;
-		//this.htmlBase = htmlBase(context);
 	}
 	
 }

@@ -4,14 +4,10 @@
 	<head>
 		<title>Bar Chart</title>
 		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
-		<meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
-		<style>
-			canvas{
-			}
-		</style>
+		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
 	</head>
-	<body>
-		<canvas id="canvas"></canvas>
+	<body style="margin:0px; padding:0px;">
+		<canvas id="canvas" height="%HEIGHT" width="%WIDTH" style="padding-top:%PADDING"></canvas>
 
 
 	<script>

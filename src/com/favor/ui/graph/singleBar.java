@@ -26,8 +26,9 @@ public class singleBar extends Graph {
 	}
 	public singleBar(List<String> names, long[] numbers, Context context)
 	{
-		super(names, context);
+		super(names);
 		this.numbers = numbers;
+		this.htmlBase = htmlBase(context);
 	}
 	
 	protected final String htmlBase(Context context)
@@ -36,7 +37,7 @@ public class singleBar extends Graph {
 		AssetManager assetManager = context.getAssets();
 		try
 		{
-			InputStream is = assetManager.open("graph/doubleBar.html");
+			InputStream is = assetManager.open("graph/singleBar.html");
 			byte[] buffer = new byte[is.available()];
 			is.read(buffer, 0, buffer.length);
 			html = new String(buffer);

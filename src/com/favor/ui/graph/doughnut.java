@@ -15,8 +15,9 @@ public class doughnut extends Graph {
 	private final long[] numbers;
 	public doughnut(List<String> names, long[] numbers, Context context)
 	{
-		super(names, context);
+		super(names);
 		this.numbers = numbers;
+		this.htmlBase = htmlBase(context);
 	}
 	
 	protected final String htmlBase(Context context)
@@ -36,8 +37,8 @@ public class doughnut extends Graph {
 			Misc.logError("HTML load failure: " + e.getMessage());
 			return "Load Error!";
 		}
-		html.replaceAll("%CONTACT", Long.toString(numbers[1]));
-		html.replaceAll("%SELF", Long.toString(numbers[0]));
+		html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
+		html = html.replaceAll("%SELF", Long.toString(numbers[0]));
 		return html;
 			
 	}

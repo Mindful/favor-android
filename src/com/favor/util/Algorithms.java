@@ -105,6 +105,8 @@ public class Algorithms {
    * @return
    */
   public static long[] responseTime (String address, long fromDate, long untilDate) {
+	  return new long[] {25, 35};
+	  /*
  	  DataHandler db = DataHandler.get();
  	 String[] keys = new String[] {DataHandler.KEY_DATE};
  	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
@@ -123,12 +125,12 @@ public class Algorithms {
  		LinkedList<Long> checkSentTimes = new LinkedList<Long>();
  		LinkedList<Long> checkRecTimes = new LinkedList<Long>();
  		
- 		/*this is the stripping algorithm, it takes out consecutive messages from the same person
+ 		*this is the stripping algorithm, it takes out consecutive messages from the same person
  		 *the check is performed on whether there is anything left in the list, this method
  		 *dequeues the list, it will be empty after this loop runs.
  		 *IMPORTANT: IT GOES IN REVERSE. NOTE THAT IT DOES NOT POLL, IT POLLS LAST
  		 * 
- 		 */
+ 		 *
  		while(list.peekLast()!=null) {
  			//makes temp the end of the queue, removes end of the queue
  		    temp = list.pollLast(); 		    
@@ -203,7 +205,7 @@ public class Algorithms {
  		//set the array equal to the averages (which are in seconds not milliseconds)
  		averages[0] = (long) (sentTotal/(float)(1000*sentPoints.length));
  		averages[1] = (long) (receiveTotal/(float)(1000*recPoints.length));
- 		return averages;
+ 		return averages;*/
  	}
 
   	/**
@@ -229,6 +231,8 @@ public class Algorithms {
   	 *  @param address
   	 */
   	public static long[] relationshipScore (String address) {
+  		return new long[] {25, 35};
+  		/*
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
@@ -336,7 +340,7 @@ public class Algorithms {
   		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
   		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
   		
-  		return score;
+  		return score;*/
   	}
   	
   	
@@ -347,6 +351,8 @@ public class Algorithms {
   	 */
   	
   	public static long friendScore (String address) {
+  		return 25;
+  		/*
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
@@ -415,7 +421,7 @@ public class Algorithms {
  		}
   		responseAvg = responseAvg/numResponse;
   		score = (CHAR_WEIGHT * charCount) + (COUNT_WEIGHT * messages) + (MEDIA_WEIGHT * media) + (RESPONSE_WEIGHT * responseAvg);
-  		return (long)score;
+  		return (long)score;*/
   	}
   	
   	
