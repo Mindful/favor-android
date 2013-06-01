@@ -53,6 +53,7 @@ public class ContactsActivity extends SherlockListActivity {
 		super.onCreate(savedInstanceState);
 		//setContentView(R.layout.load_contacts);
 
+		//ContactArrayAdapter.resetCount();
 		contactArrayAdapter = new ContactArrayAdapter(this, R.layout.entry_contact, contactsList);
 		contactArrayAdapter.sort();
 
@@ -84,6 +85,7 @@ public class ContactsActivity extends SherlockListActivity {
 		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.graph_button, menu);
 		graphItem = menu.findItem(R.id.graph);
+		graphItem.setEnabled(contactArrayAdapter.computeSelected());
 		return OptionsMenu.onCreateOptionsMenu(this, menu);
 	}
 	

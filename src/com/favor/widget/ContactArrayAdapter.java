@@ -20,7 +20,6 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.favor.ui.ContactsActivity;
-//import com.favor.util.Debug;
 import com.favor.R;
 
 @SuppressWarnings("serial")
@@ -28,28 +27,24 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		Serializable {
 
 	private static ContactArrayAdapter singleton;
-	//TODO: make this a true singleton and preserve the contact array? it falling out of scope is
-	//likely what's causing our problems. Also, for our purposes, this could definitely be a singleton
 	private final Context context;
 	private final int viewResourceId;
 	private final ArrayList<Contact> contacts;
 	private final LayoutInflater inflater;
 
 	private int selected;
+	
+	public final String buttonText;
+	
 
 	public ContactArrayAdapter(Context context, int viewResourceId,
 			ArrayList<Contact> contacts) {
 		super(context, viewResourceId, contacts);
+		buttonText = context.getString(R.string.graph);
 		this.context = context;
 		this.viewResourceId = viewResourceId;
 		this.contacts = contacts;
-		selected = 0;
-		for (Contact c : contacts){if (c.isSelected()) selected++;}
-		//TODO: recalculate number of selected things. this doesn't work
-		//which I think is because isSelected is set on check, and gets reset even if the checkbox
-		//does not
-		inflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		selected = 0;
 	}
 
@@ -64,11 +59,18 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		});
 	}
 
-	public boolean isAtleastOneSelected() {
+	public boolean computeSelected() {
+		boolean oneSelected = false;
+		selected = 0;
 		for (Contact c : contacts)
 			if (c.isSelected())
-				return true;
-		return false;
+			{
+				oneSelected = true;
+				selected++;
+			}
+		MenuItem graphItem = ((ContactsActivity) context).getGraphItem();
+		graphItem.setTitle(buttonText + " (" + selected + ")");
+		return oneSelected;
 	}
 
 	@Override
@@ -93,26 +95,12 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 					Contact contact = (Contact) cb.getTag();
 					contact.setSelected(cb.isChecked());
 
-					if (cb.isChecked())
-						selected++;
-					else
-						selected--;
-
-					MenuItem graphItem = ((ContactsActivity) context)
-							.getGraphItem();
-					graphItem.setEnabled(isAtleastOneSelected());
-
-					String text = context.getString(R.string.graph);
-					//Debug.log("Selected: "+selected); //TODO: this is reset on phone turns
-					if (selected > 0)
-						text += " (" + selected + ")";
-
-					graphItem.setTitle(text);
+					MenuItem graphItem = ((ContactsActivity) context).getGraphItem();
+					graphItem.setEnabled(computeSelected());
 				}
 			});
 		} else {
-			ContactViewHolder viewHolder = (ContactViewHolder) convertView
-					.getTag();
+			ContactViewHolder viewHolder = (ContactViewHolder) convertView.getTag();
 			checkBox = viewHolder.getCheckBox();
 			name = viewHolder.getName();
 			address = viewHolder.getAddress();
@@ -128,6 +116,11 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 
 	public List<Contact> getContacts() {
 		return contacts;
+	}
+	
+	public int getSelected()
+	{
+		return selected;
 	}
 
 	public static class ContactViewHolder {
@@ -152,6 +145,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		public TextView getAddress() {
 			return address;
 		}
+		
 
 	}
 
