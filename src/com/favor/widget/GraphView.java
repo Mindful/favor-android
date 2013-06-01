@@ -40,7 +40,8 @@ public class GraphView extends WebView {
 		WebSettings webSettings = getSettings();
 		webSettings.setJavaScriptEnabled(true);
 		setBackgroundColor(0x808080);
-		setClickable(false); //TODO: does this do anything?
+		setClickable(false); //Not sure this does anything, but it certainly doesn't hurt
+		setVerticalScrollBarEnabled(false);
 	}
 
 

@@ -67,7 +67,8 @@ public class GraphActivity extends Activity {
 		//calc new data if we have to, else use old graph and just show it
 		//TODO: update webview goes here, basically
 		setGraph(contacts);
-		graph.show();
+		graph.show(); //Redundant draw seems to be the only way to stop initial jitter
+		//view.clearView();
 		setTitle(items[currentItem]);
 	}
 	

@@ -29,7 +29,7 @@ public class doubleBar extends Graph {
 	{
 		super(names, context);
 		this.numbers = numbers;
-		this.htmlBase = htmlBase(context);
+		this.htmlBase = htmlBase(context); //TODO: figure the ordering out here, this is just a workaround
 	}
 	
 	protected final String htmlBase(Context context)

@@ -99,7 +99,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 					graphItem.setEnabled(isAtleastOneSelected());
 
 					String text = context.getString(R.string.graph);
-					Debug.log("Selected: "+selected); //TODO: this is reset on phone turns
+					//Debug.log("Selected: "+selected); //TODO: this is reset on phone turns
 					if (selected > 0)
 						text += " (" + selected + ")";
 
