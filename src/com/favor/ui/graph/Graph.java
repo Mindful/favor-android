@@ -82,22 +82,9 @@ public abstract class Graph {
 		
 		html = html.replaceAll("%HEIGHT", Integer.toString(finalHeight));
 		html = html.replaceAll("%WIDTH", Integer.toString(finalWidth));
-		html = html.replaceAll("%SCALE", Float.toString(baseScale));
+		html = html.replaceAll("%SCALE", Float.toString(finalScale));
 		
 		
-		
-		//we should zoom as much as we can by finding which of the elements will break out of its 
-		//bounds first, which is a function of their size compared to the view size
-		
-		//TODO: dimensions calculations based on porportions - calculate the multiplier and then split
-		//it in half (ish) so it's distributed over the pixel width and zoom evently
-		//the actual mathematical operation I'm looking for here is sqrt, since we end up multiplying
-		//it in twice - so it's sqrt of the porportion times the pixels and the zoom
-		
-		//note using the zoom instead of the pixel size only works with phones that have the same 
-		//aspect ratio, although I can probably get away with just computing an average change for
-		//phones with _similar_ aspect ratios
-		//Debug.log("W:"+w+" H:"+h);
 		return html;
 		//TODO: this should eventually generate wider-than-screen graphs if names.length>X
 		//X should probably be a setting, actually
