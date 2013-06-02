@@ -219,35 +219,18 @@ public class Algorithms {
   		double responseRatio = 0;
   		
   		for (textMessage t : convo) {
-  			if (t.received()) { 
-  				recChar += t.charCount(); 
-  				recCount++;	
-  				if (t.multimedia()) recMedia++;
-  			}
-  			else {
+  			if (!t.received()) { 		
   				sentChar += t.charCount();
   				sentCount++;
   				if (t.multimedia()) sentMedia++;
   			}
-  			
   		}
-  		
-  		if (sentChar == 0) charRatio = 0;
-  		else charRatio = recChar/sentChar;
-  		
-  		if (sentCount == 0) countRatio = 0;
-  		else countRatio = recCount/sentCount;
-  		
-  		if (sentMedia == 0) mediaRatio = 0;
-  		else mediaRatio = recMedia/sentMedia;
-  		
+  		sentChar /=sentCount;
+  			
   		//response time calc
   		LinkedList<Long> sentTimes = new LinkedList<Long>();
-  		LinkedList<Long> recTimes = new LinkedList<Long>();
   		textMessage prev = null;
   		long time = 0;
-  		long minimum = Long.MAX_VALUE;
-  		long maximum = Long.MIN_VALUE;
   		while(convo.peekLast()!=null)
  		{
  		    textMessage temp = convo.pollLast(); //removes from queue
@@ -255,7 +238,6 @@ public class Algorithms {
  			{
  				time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
  				if (temp.received() && time < 172800000l) sentTimes.add(time); //our response time
- 				else if (time < 172800000l) recTimes.add(time);	
  			}
  			while(convo.peekLast() != null && convo.peekLast().received() == temp.received()) //short circuits
  			{
@@ -264,18 +246,15 @@ public class Algorithms {
  			prev = temp;
  		}
   		double avgSent = density(sentTimes);
-  		double avgRec = density(recTimes);
-  	
- 		
-  		if (maximum == minimum) minimum = Long.MIN_VALUE;
   		
-  		avgSent = (avgSent - minimum)/(maximum - minimum);
-  		avgRec = (avgRec - minimum)/(maximum - minimum);
+  		avgSent = avgSent/3456l;
+  
   		long [] score = {0,0};
   		
-  		score[1] = (long) ((CHAR_WEIGHT * recChar) + (COUNT_WEIGHT * recCount) + (MEDIA_WEIGHT * recMedia) + (RESPONSE_WEIGHT * avgRec));
-  		score[0] = (long) ((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) + (RESPONSE_WEIGHT * avgSent));
-  		
+  		score[0] = (long)(10*((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) - (RESPONSE_WEIGHT * avgSent)));
+  		Debug.log("My score : : : : " + score[0]);
+  		score[1] = friendScore(address);
+  		Debug.log("Their score : : : : " + score[1]);
   		return score;
   	}
   	
@@ -300,11 +279,9 @@ public class Algorithms {
   		LinkedList<Long> recTimes = new LinkedList<Long>();
   		
   		for (textMessage t: convo) {
-  			if (t.received()) {
   				messages++;
   				charCount += t.charCount();
   				if (t.multimedia()) media++;
-  			}
   		}
   		
   		textMessage prev = null;
