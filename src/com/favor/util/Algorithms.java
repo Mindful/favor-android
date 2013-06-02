@@ -158,7 +158,7 @@ public class Algorithms {
  			prev = temp;
  		}
  		
- 		//calculate initial clusters
+ 		/*//calculate initial clusters
  		Vector<PVector>[] sentClusters = toPVectors(checkSentTimes);
  		Vector<PVector>[] recClusters = toPVectors(checkRecTimes);
  		PVector[] sentPoints = toPoints(checkSentTimes);
@@ -211,10 +211,10 @@ public class Algorithms {
  		if (maximum == minimum) minimum = Long.MIN_VALUE;
   		
   		if (cleanSent.size() != 0) avgSent = avgSent/cleanSent.size();
-  		if (cleanRec.size() != 0) avgRec = avgRec/cleanRec.size();
+  		if (cleanRec.size() != 0) avgRec = avgRec/cleanRec.size();*/
   		
-  		avgSent = (avgSent - minimum)/(maximum - minimum);
-  		avgRec = (avgRec - minimum)/(maximum - minimum);
+  		avgSent = density(checkSentTimes);
+  		avgRec = density(checkRecTimes);
  		
  		return averages;
  	}
@@ -550,21 +550,34 @@ public class Algorithms {
   	/**
   	 * Density calculation method
   	 */
-  	private static double density (List<Long> list) {
+  	private static long density (List<Long> list) {
   		double average = 0.0;
-  		
+  		double meanDensity = 0.0;
   		//15 minutes as a long
   	
   		ArrayList<densityPoint> points = new ArrayList<densityPoint>(list.size());
+  		
   		for (int j = 0; j < list.size(); j++) {
   			int i = 0;
   			for(int k = 0; k < list.size(); k++)
   				if (Math.abs(list.get(j) - list.get(k)) <= DISTANCE_VALUE && list.get(j) != list.get(k)) i++;
   			points.set(j, new densityPoint(list.get(j), i));
+  			meanDensity += points.get(j).density;
   		}
-  		return average;
-  	}
-  	
+  		meanDensity /= points.size();
+  		Debug.log("Points uncleaned : " + points.toString());
+  		Debug.log("Mean density : " + meanDensity);
+  		
+  		for (densityPoint d : points) 
+  			if (d.density < meanDensity) list.remove(d.value);
+  		Debug.log("Points cleaned : " + points.toString());
+  		
+  		for (long l : list)
+  			average += l;
+  		average /= list.size();
+  		
+  		return (long)average;
+  	}  	
   	
 }
 
