@@ -2,10 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GraphBarActivity" >
+    tools:context=".GraphActivity" >
 
-    <WebView
-        android:id="@+id/webView1"
+    <com.favor.widget.GraphView
+        android:id="@+id/graph_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"

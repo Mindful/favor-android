@@ -1,36 +1,40 @@
 <!doctype html>
 <html>
-
-<body bgcolor="#888888">
+<body bgcolor="#808080">
 	<head>
 		<title>Doughnut Chart</title>
 		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
-		<meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
-		<style>
-			canvas{
-			}
-		</style>
+		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
 	</head>
-	<body>
-		<canvas id="canvas" height="350" width="350"></canvas>
+	<body style="margin:0px; padding:0px;">
+		<canvas id="canvas" height="%HEIGHT" width="%WIDTH" style="padding-top:%PADDING"></canvas>
 
 
 	<script>
 
-		var doughnutData = [
-				{
-					value: parseInt(%REDBAR),
-					color:"#F7464A"
-				},
-				{
-					value : parseInt(%BLUEBAR),
-					color : "#46BFBD"
-				},
+		var doughnutChartData = [
+	{
+		value: %CONTACT,
+		color:"rgba(220,220,220,0.75)"
+	},
+	{
+		value : %SELF,
+		color : "rgba(151,187,205,0.75)"
+	}
 
-			];
+]
 
-	var myDoughnut = new Chart(document.getElementById("canvas").getContext("2d")).Doughnut(doughnutData);
+	var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Doughnut(doughnutChartData);
 
 	</script>
+
+
+
+
+
+
+
+
+
 	</body>
 </html>
