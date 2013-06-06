@@ -77,6 +77,7 @@ public class Algorithms {
 	  for (textMessage t : rec) {
 		  values[1] += t.charCount();
 	  }
+	  //TODO: check for 0s before performing division; return empty/zero 
 	  values[0] /= sent.size();
 	  values[1] /= rec.size();
 	  return values;  

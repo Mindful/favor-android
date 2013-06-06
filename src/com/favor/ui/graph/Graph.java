@@ -1,5 +1,6 @@
 package com.favor.ui.graph;
 
+import java.util.HashMap;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -16,6 +17,45 @@ public abstract class Graph {
 	//protected final String htmlBase;
 	protected String htmlBase;
 	protected final List<String> names;
+	
+	private HashMap<Character, String> replaceKey = new HashMap<Character, String>();
+	
+	
+	/**
+	 * Mark a string to replace the occurence of %<c> where c is the provided character.
+	 * Note that graph internals use capital characters, so there is no gaurantee of a proper
+	 * replace unless lowercase characters are used.
+	 */
+	protected void setReplace(char c, String s)
+	{
+		replaceKey.put(c, s);
+	}
+	
+	/**
+	 * Perform all set replacements on the target string and clear the replacement list.
+	 */
+	
+	protected String replace(String target)
+	{
+		StringBuilder result = new StringBuilder(target.length());
+		String rep;
+		for (int i = 0; i < target.length(); i++)
+		{
+			if (target.charAt(i) == '%')
+			{
+				rep = replaceKey.get(target.charAt(i+1));
+				if (rep != null)
+				{
+					i++;
+					result.append(rep);
+				}
+				else result.append(target.charAt(i));
+			}
+			else result.append(target.charAt(i));
+		}
+		replaceKey = new HashMap<Character, String>();
+		return result.toString();
+	}
 	
 	//old height was 500
 	//old width was 340
@@ -76,27 +116,25 @@ public abstract class Graph {
 			canvasHeight = (int) (finalHeight*0.93);
 			tableHeight = (int) (finalHeight*0.03);
 			cellWidth = finalWidth/7;
-			html = html.replaceAll("%PADDING", "2%");
+			setReplace('P', "2%");
 		}
 		else 
 		{
 			canvasHeight = (int) (finalHeight*0.89);
 			tableHeight = (int) (finalHeight*0.04);
 			cellWidth = finalWidth/10;
-			html = html.replaceAll("%PADDING", "1%");
+			setReplace('P', "1%");
 		}
 		tableLeft = (int)((finalWidth - cellWidth*5)/2);
-		
-		html = html.replaceAll("%C_HEIGHT", canvasHeight+"px");
-		html = html.replaceAll("%HEIGHT", Integer.toString(finalHeight)+"px");
-		html = html.replaceAll("%WIDTH", Integer.toString(finalWidth)+"px");
-		html = html.replaceAll("%SCALE", Float.toString(finalScale));
-		html = html.replaceAll("%T_HEIGHT", tableHeight+"px");		
-		html = html.replaceAll("%T_WIDTH", cellWidth+"px");
-		html = html.replaceAll("%T_LEFT", tableLeft+"px");
-		Debug.log(html);
-		
-		
+		setReplace('C', canvasHeight+"px");
+		setReplace('W', finalWidth+"px");
+		setReplace('S', Float.toString(finalScale));
+		setReplace('T', tableHeight+"px");
+		setReplace('B', cellWidth+"px");
+		setReplace('L', tableLeft+"px");
+		html = replace(html);
+		//Debug.log(html);
+
 		return html;
 	}
 	

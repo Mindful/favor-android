@@ -37,9 +37,11 @@ public class doughnut extends Graph {
 			Misc.logError("HTML load failure: " + e.getMessage());
 			return "Load Error!";
 		}
-		html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
-		html = html.replaceAll("%SELF", Long.toString(numbers[0]));
-		html = html.replaceAll("%CON_NAME", names.get(0));
+		setReplace('c', Long.toString(numbers[1]));
+		setReplace('s', Long.toString(numbers[0]));
+		setReplace('n', names.get(0));
+		html = replace(html);
+
 		return html;
 			
 	}

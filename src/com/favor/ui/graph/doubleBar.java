@@ -61,11 +61,13 @@ public class doubleBar extends Graph {
 			self[i] = numbers[i][0]; //you
 			compare(self[i]);
 		}
-		html = html.replaceAll("%CEILING", Long.toString(ceiling));
-		html = html.replaceAll("%STEPWIDTH", Float.toString(stepWidth));
-		html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-		html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
-		html = html.replaceAll("%SELF", Misc.longToJSON(self));
+		setReplace('t', Long.toString(ceiling));
+		setReplace('p', Float.toString(stepWidth));
+		setReplace('l', Misc.stringToJSON(labels));
+		setReplace('c', Misc.longToJSON(contact));
+		setReplace('s', Misc.longToJSON(self));
+		html = replace(html);
+
 		return html;
 	}
 

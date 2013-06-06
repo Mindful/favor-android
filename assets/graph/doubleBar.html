@@ -4,7 +4,7 @@
 	<head>
 		<title>Bar Chart</title>
 		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
-		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
+		<meta name = "viewport" content = "initial-scale = %S, target-densitydpi=device-dpi">
 		<style>
 		td.you
 		{
@@ -22,13 +22,13 @@
 		</style>
 	</head>
 	<body style="margin:0px; padding:0px;">
-			<canvas id="canvas" style="padding-top:%PADDING" height="%C_HEIGHT" width="%WIDTH"></canvas>
-			<table style="padding-left:%T_LEFT; padding-top:0px; padding-bottom:0px;">
+			<canvas id="canvas" style="padding-top:%P" height="%C" width="%W"></canvas>
+			<table style="padding-left:%L; padding-top:0px; padding-bottom:0px;">
 			 <tr>
-			  <td class="you" style="height:%T_HEIGHT; width:%T_WIDTH;"></td>
+			  <td class="you" style="height:%T; width:%B;"></td>
 			  <td style="font-size:12px">You</td>
-			  <td style="width:%T_WIDTH"></td>
-			  <td class="them" style="height:%T_HEIGHT; width:%T_WIDTH;"></td>
+			  <td style="width:%B"></td>
+			  <td class="them" style="height:%T; width:%B;"></td>
 			  <td style="font-size:12px">Contact</td>
 			 </tr>
 			</table>
@@ -36,21 +36,21 @@
 
 	<script>
 		var barChartData = {
-		labels : %LABELS,
+		labels : %l,
 		datasets : [{	fillColor : "rgba(220,220,220,0.5)",
 						strokeColor : "rgba(220,220,220,1)",
-						data : %CONTACT	},
+						data : %c	},
 					{	fillColor : "rgba(151,187,205,0.5)",
 						strokeColor : "rgba(151,187,205,1)",
-						data : %SELF	}]
+						data : %s	}]
 		}
 
 		var barChartSettings = {
 			scaleFontColor : "#000",
-			scaleOverride: %CEILING,
+			scaleOverride: %t,
 			scaleStartValue : 0,
 			scaleSteps : 10,
-			scaleStepWidth : %STEPWIDTH
+			scaleStepWidth : %p
 		}
 
 		var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData, barChartSettings);

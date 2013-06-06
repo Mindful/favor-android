@@ -56,10 +56,12 @@ public class singleBar extends Graph {
 			contact[i] = numbers[i];
 			compare(contact[i]);
 		}
-		html = html.replaceAll("%CEILING", Long.toString(ceiling));
-		html = html.replaceAll("%STEPWIDTH", Float.toString(stepWidth));
-		html = html.replaceAll("%LABELS", Misc.stringToJSON(labels));
-		html = html.replaceAll("%CONTACT", Misc.longToJSON(contact));
+		setReplace('t', Long.toString(ceiling));
+		setReplace('p', Float.toString(stepWidth));
+		setReplace('l', Misc.stringToJSON(labels));
+		setReplace('c', Misc.longToJSON(contact));
+		html = replace(html);
+
 		return html;
 	}
 
