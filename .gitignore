@@ -16,3 +16,4 @@ gen/
 local.properties
 
 *comprehensive-log.txt
+*.DS_Store

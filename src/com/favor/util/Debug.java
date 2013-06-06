@@ -159,11 +159,13 @@ public class Debug {
 	  }
 	  fos.flush();
 	  Toast.makeText(act, "DB dump OK", Toast.LENGTH_LONG).show();
+	  log("DB dump OK");
 	}
 	catch(Exception e)
 	{
 	  e.printStackTrace();
 	  Toast.makeText(act, "DB dump ERROR", Toast.LENGTH_LONG).show();
+	  log("DB dump ERROR");
 	}
 	finally
 	{
@@ -173,7 +175,7 @@ public class Debug {
 	    fis.close();
 	  }
 	  catch(IOException ioe)
-	  {}
+	  {log("DB dump IOException:"+ioe.getMessage());}
 	}
 	}
 	public static void algotest () {

@@ -7,22 +7,18 @@
 		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
 	</head>
 	<body style="margin:0px; padding:0px;">
-		<canvas id="canvas" height="%HEIGHT" width="%WIDTH" style="padding-top:%PADDING"></canvas>
+		<div  style="height:%HEIGHT; width:%WIDTH;">
+			<canvas id="canvas" style="padding-top:%PADDING" height="%C_HEIGHT" width="100%"></canvas>
 
 
 	<script>
 
 		var barChartData = {
 			labels : %LABELS,
-			datasets : [
-				{
-					fillColor : "rgba(220,220,220,0.5)",
-					strokeColor : "rgba(220,220,220,1)",
-					data : %CONTACT
-				}
-			]
-			
-		}
+			datasets : [{	fillColor : "rgba(220,220,220,0.5)",
+							strokeColor : "rgba(220,220,220,1)",
+							data : %CONTACT 	}]
+			}
 		
 		var barChartSettings = {
 			scaleFontColor : "#000",
@@ -37,13 +33,7 @@
 	</script>
 
 
-
-
-
-
-
-
-
+		</div>
 	</body>
 </html>
 

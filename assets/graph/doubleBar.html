@@ -5,28 +5,44 @@
 		<title>Bar Chart</title>
 		<script type="text/javascript" src="file:///android_asset/graph/charts.js"></script>
 		<meta name = "viewport" content = "initial-scale = %SCALE, target-densitydpi=device-dpi">
+		<style>
+		td.you
+		{
+		background-color:rgba(151,187,205,0.5);
+		border: 1px solid;
+		border-color:rgba(151,187,205,1);
+		}
+		
+		td.them
+		{
+		background-color:rgba(220,220,220,0.5);
+		border: 1px solid;
+		border-color:rgba(220,220,220,1);
+		}
+		</style>
 	</head>
 	<body style="margin:0px; padding:0px;">
-		<canvas id="canvas" height="%HEIGHT" width="%WIDTH" style="padding-top:%PADDING"></canvas>
+			<canvas id="canvas" style="padding-top:%PADDING" height="%C_HEIGHT" width="%WIDTH"></canvas>
+			<table style="padding-left:%T_LEFT">
+			 <tr>
+			  <td class="you" style="height:%T_HEIGHT; width:%T_WIDTH;"></td>
+			  <td style="font-size:12px">You</td>
+			  <td style="width:%T_WIDTH"></td>
+			  <td class="them" style="height:%T_HEIGHT; width:%T_WIDTH;"></td>
+			  <td style="font-size:12px">Contact</td>
+			 </tr>
+			</table>
 
 
 	<script>
-
 		var barChartData = {
-			labels : %LABELS,
-			datasets : [
-				{
-					fillColor : "rgba(220,220,220,0.5)",
-					strokeColor : "rgba(220,220,220,1)",
-					data : %CONTACT
-				},
-				{
-					fillColor : "rgba(151,187,205,0.5)",
-					strokeColor : "rgba(151,187,205,1)",
-					data : %SELF
-				}
-			]
-
+		labels : %LABELS,
+		datasets : [{	fillColor : "rgba(220,220,220,0.5)",
+						strokeColor : "rgba(220,220,220,1)",
+						data : %CONTACT	},
+					{	fillColor : "rgba(151,187,205,0.5)",
+						strokeColor : "rgba(151,187,205,1)",
+						data : %SELF	}]
 		}
 
 		var barChartSettings = {
@@ -37,17 +53,7 @@
 			scaleStepWidth : %STEPWIDTH
 		}
 
-	var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData, barChartSettings);
-
+		var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData, barChartSettings);
 	</script>
-
-
-
-
-
-
-
-
-
 	</body>
 </html>

@@ -5,6 +5,7 @@ import java.util.List;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
+import com.favor.util.Debug;
 import com.favor.widget.GraphView;
 
 public abstract class Graph {
@@ -68,21 +69,34 @@ public abstract class Graph {
 			finalHeight = (int) (startHeight*heightRatio/sqrtWidthRatio);
 			finalScale = (float) (baseScale * sqrtWidthRatio);
 		}
-		
+		//no fucking with things line
+		int cHeight, tableHeight, cellWidth, tableLeft;
 		if (aspectRatio < 1.0) //take note that these are computed after height ratio
 		{
-			html = html.replaceAll("%PADDING", "5%");
-			finalHeight = (int) (finalHeight*0.95);
+			cHeight = (int) (finalHeight*0.95);
+			tableHeight = (int) (finalHeight*0.05);
+			cellWidth = finalWidth/7;
+			html = html.replaceAll("%PADDING", "2%");
+			//finalHeight = (int) (finalHeight*0.95);
 		}
 		else 
 		{
-			finalHeight = (int) (finalHeight*0.96);
+			//finalHeight = (int) (finalHeight*0.96);
+			cHeight = (int) (finalHeight*0.92);
+			tableHeight = (int) (finalHeight*0.08);
+			cellWidth = finalWidth/10;
 			html = html.replaceAll("%PADDING", "1%");
 		}
+		tableLeft = (int)((finalWidth - cellWidth*5)/2);
 		
-		html = html.replaceAll("%HEIGHT", Integer.toString(finalHeight));
-		html = html.replaceAll("%WIDTH", Integer.toString(finalWidth));
+		html = html.replaceAll("%C_HEIGHT", cHeight+"px");
+		html = html.replaceAll("%HEIGHT", Integer.toString(finalHeight)+"px");
+		html = html.replaceAll("%WIDTH", Integer.toString(finalWidth)+"px");
 		html = html.replaceAll("%SCALE", Float.toString(finalScale));
+		html = html.replaceAll("%T_HEIGHT", tableHeight+"px");		
+		html = html.replaceAll("%T_WIDTH", cellWidth+"px");
+		html = html.replaceAll("%T_LEFT", tableLeft+"px");
+		Debug.log(html);
 		
 		
 		return html;
