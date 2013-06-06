@@ -70,26 +70,24 @@ public abstract class Graph {
 			finalScale = (float) (baseScale * sqrtWidthRatio);
 		}
 		//no fucking with things line
-		int cHeight, tableHeight, cellWidth, tableLeft;
+		int canvasHeight, tableHeight, cellWidth, tableLeft;
 		if (aspectRatio < 1.0) //take note that these are computed after height ratio
 		{
-			cHeight = (int) (finalHeight*0.95);
-			tableHeight = (int) (finalHeight*0.05);
+			canvasHeight = (int) (finalHeight*0.93);
+			tableHeight = (int) (finalHeight*0.03);
 			cellWidth = finalWidth/7;
 			html = html.replaceAll("%PADDING", "2%");
-			//finalHeight = (int) (finalHeight*0.95);
 		}
 		else 
 		{
-			//finalHeight = (int) (finalHeight*0.96);
-			cHeight = (int) (finalHeight*0.92);
-			tableHeight = (int) (finalHeight*0.08);
+			canvasHeight = (int) (finalHeight*0.89);
+			tableHeight = (int) (finalHeight*0.04);
 			cellWidth = finalWidth/10;
 			html = html.replaceAll("%PADDING", "1%");
 		}
 		tableLeft = (int)((finalWidth - cellWidth*5)/2);
 		
-		html = html.replaceAll("%C_HEIGHT", cHeight+"px");
+		html = html.replaceAll("%C_HEIGHT", canvasHeight+"px");
 		html = html.replaceAll("%HEIGHT", Integer.toString(finalHeight)+"px");
 		html = html.replaceAll("%WIDTH", Integer.toString(finalWidth)+"px");
 		html = html.replaceAll("%SCALE", Float.toString(finalScale));

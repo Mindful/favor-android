@@ -39,6 +39,7 @@ public class doughnut extends Graph {
 		}
 		html = html.replaceAll("%CONTACT", Long.toString(numbers[1]));
 		html = html.replaceAll("%SELF", Long.toString(numbers[0]));
+		html = html.replaceAll("%CON_NAME", names.get(0));
 		return html;
 			
 	}
