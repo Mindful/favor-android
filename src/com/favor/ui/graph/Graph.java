@@ -140,7 +140,7 @@ public abstract class Graph {
 	
 	public void show() 
 	{
-		graphView.clearView();
+		//graphView.clearView(); deprecated, apparently?
 		graphView.loadDataWithBaseURL("file:///android_asset/graph/", htmlWithDimensions(graphView), null, "UTF-8", null);
 	}
 	
