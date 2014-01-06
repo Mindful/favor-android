@@ -9,6 +9,7 @@ import java.util.TimeZone;
 
 import com.favor.ui.ContactsActivity;
 import com.favor.ui.GraphActivity;
+import com.favor.widget.Contact;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -18,6 +19,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.util.SparseArray;
 
 
@@ -268,6 +270,8 @@ public class DataHandler extends SQLiteOpenHelper{
 	private long lastFetch;
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
+	private static ArrayList<Contact> contactsList;
+	
 	
 	/**
 	 * Utility method that provides easy access to the global application context.
@@ -315,6 +319,47 @@ public class DataHandler extends SQLiteOpenHelper{
     	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_SENT);
     	db.execSQL("DROP INDEX IF EXISTS i_"+TABLE_RECEIVED);
 	}
+	
+	/**
+	 * Updates our list of contacts by querying the phone's internal contacts representation.
+	 */
+	
+	
+	public static void updateContacts(Context context)
+	{
+		//TODO: Eventually this (and the contacts class, together) should be able to fuse multiple
+		//numbers into one contact, so that we can do contact-based queries
+		//also, eventually, DataHandler should hold the contacts list - so it can come from somewhere
+		//that makes sense, and we can use it internally for contact-to-number resolution
+		
+		
+		//So, multiple addresses from the same contact can go together, that's fine. The important thing here
+		//is that we need some kind of unique identifier to separate out contacts so that if there happen to be
+		//two contacts with identical names, they show up separately in the list
+		
+		//Given that we build this list uniquely every time, I think we can almost certainly get away with
+		//hashing these by their raw contact id, even if it's their name we use to represent them everywhere
+		HashMap<String, ArrayList<String>> contactHash = new HashMap<String, ArrayList<String>>();
+		Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
+		new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, 
+		ContactsContract.CommonDataKinds.Phone.NUMBER,
+		ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID},
+		null, null, null);
+		contactsList = new ArrayList<Contact>(phones.getCount());
+		//This will be slightly larger than it actually needs to be, but is almost certainly better than
+		//starting with a tiny ArrayList
+		while (phones.moveToNext()) 
+		{
+			ArrayList<String> val = contactHash.get(phones.getString(3));
+			if(val!=null){
+				val.add(pho)
+			}
+			contactHash.put(phones.getString(2), value)
+			//name, number
+			contactsList.add(new Contact(phones.getString(0), phones.getString(1)));
+		}
+	}
+	
 	
 	/**
 	 * Updates the application's internal database by pulling all new messages since the last update
