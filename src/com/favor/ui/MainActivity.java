@@ -9,6 +9,7 @@ import com.favor.util.DataHandler;
 import com.favor.util.Debug;
 import com.favor.widget.OptionsMenu;
 
+import android.app.Activity;
 //import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,7 +24,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends SherlockListActivity {
  
-	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "List By Groups", "List All" };
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database" };
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -39,7 +40,7 @@ public class MainActivity extends SherlockListActivity {
 		super.onCreate(savedInstanceState);
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
- 
+		final Activity temp = this; //Only used for database dump toasting
 		setListAdapter(new ArrayAdapter<String>(this, R.layout.entry_main,MENU_ITEMS));
  
 		ListView listView = getListView();
@@ -54,6 +55,9 @@ public class MainActivity extends SherlockListActivity {
 			    	//Intent myIntent = new Intent(getBaseContext(), LoadFromContacts.class);
 					//startActivity(myIntent);
 					startActivity(new Intent(getBaseContext(), ContactsActivity.class));
+			    }
+			    else if (str=="Dump Database"){
+			    	Debug.writeDatabase(temp);
 			    }
 			}
 			

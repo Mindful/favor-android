@@ -1,9 +1,9 @@
 package com.favor.util;
 
-import jMEF.BregmanSoftClustering;
-import jMEF.MixtureModel;
-import jMEF.PVector;
-import jMEF.UnivariateGaussian;
+//import jMEF.BregmanSoftClustering;
+//import jMEF.MixtureModel;
+//import jMEF.PVector;
+//import jMEF.UnivariateGaussian;
 
 import java.util.ArrayList;
 import java.util.Collection;

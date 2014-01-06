@@ -29,7 +29,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 	private static ContactArrayAdapter singleton;
 	private final Context context;
 	private final int viewResourceId;
-	private final ArrayList<Contact> contacts;
+	private final List<Contact> contacts;
 	private final LayoutInflater inflater;
 
 	private int selected;
@@ -38,7 +38,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 	
 
 	public ContactArrayAdapter(Context context, int viewResourceId,
-			ArrayList<Contact> contacts) {
+			List<Contact> contacts) {
 		super(context, viewResourceId, contacts);
 		buttonText = context.getString(R.string.graph);
 		this.context = context;
@@ -46,17 +46,6 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		this.contacts = contacts;
 		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		selected = 0;
-	}
-
-	public void sort() {
-		Collections.sort(contacts, new Comparator<Contact>() {
-
-			@Override
-			public int compare(Contact lhs, Contact rhs) {
-				return lhs.getName().compareTo(rhs.getName());
-			}
-
-		});
 	}
 
 	public boolean computeSelected() {
@@ -109,7 +98,7 @@ public class ContactArrayAdapter extends ArrayAdapter<Contact> implements
 		checkBox.setTag(contact);
 		checkBox.setChecked(contact.isSelected());
 		name.setText(contact.getName());
-		address.setText(contact.getAddress());
+		address.setText(contact.displayAddress());
 
 		return convertView;
 	}

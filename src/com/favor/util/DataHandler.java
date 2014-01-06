@@ -2,12 +2,14 @@ package com.favor.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TimeZone;
 
-import com.favor.ui.ContactsActivity;
 import com.favor.ui.GraphActivity;
 import com.favor.widget.Contact;
 
@@ -78,6 +80,10 @@ class textMessage {
 		return ret;
 	}
 	
+	
+	/**
+	 * Strictly a debug method
+	 */
 	public String toString()
 	{
 		String log = "Address:";
@@ -177,7 +183,13 @@ public class DataHandler extends SQLiteOpenHelper{
 		ret.put(KEY_MEDIA, media);
 		return ret;
 	}
+	
+	/**
+	 * Format the address into something we can use (largely cleans up phone numbers). Boolean "fetch"
+	 * param is true if we're using this for an SQL query and we need symbol escapes.
+	 */
     
+	//TODO: This would be marginally more efficient but less clear if we just used address.contains() && fetch in one conditional
 	private static String formatAddress(String address, boolean fetch)
 	{
 		if (address.contains("@")){ if (fetch) {address = "\"" + address +"\"";}}
@@ -267,16 +279,23 @@ public class DataHandler extends SQLiteOpenHelper{
 	//Instance aspects
 	
 	private final Context context;
-	private long lastFetch;
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
-	private static ArrayList<Contact> contactsList;
+	
+	private long lastFetch;
+	private ArrayList<Contact> contactsList;
 	
 	
 	/**
 	 * Utility method that provides easy access to the global application context.
 	 */
 	public Context context(){return context;}
+	
+	/**
+	 * An unmodifiable list of contacts.
+	 */
+	public List<Contact> contacts(){return Collections.unmodifiableList(contactsList);}
+	//Not the prettiest, but people need not to be able to change it
 	
 	private DataHandler(Activity mainActivity)
 	{
@@ -323,41 +342,45 @@ public class DataHandler extends SQLiteOpenHelper{
 	/**
 	 * Updates our list of contacts by querying the phone's internal contacts representation.
 	 */
-	
-	
-	public static void updateContacts(Context context)
+	public void updateContacts()
 	{
-		//TODO: Eventually this (and the contacts class, together) should be able to fuse multiple
-		//numbers into one contact, so that we can do contact-based queries
-		//also, eventually, DataHandler should hold the contacts list - so it can come from somewhere
-		//that makes sense, and we can use it internally for contact-to-number resolution
-		
-		
-		//So, multiple addresses from the same contact can go together, that's fine. The important thing here
-		//is that we need some kind of unique identifier to separate out contacts so that if there happen to be
-		//two contacts with identical names, they show up separately in the list
-		
-		//Given that we build this list uniquely every time, I think we can almost certainly get away with
-		//hashing these by their raw contact id, even if it's their name we use to represent them everywhere
-		HashMap<String, ArrayList<String>> contactHash = new HashMap<String, ArrayList<String>>();
-		Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
+		Cursor contacts = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
 		new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, 
 		ContactsContract.CommonDataKinds.Phone.NUMBER,
-		ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID},
-		null, null, null);
-		contactsList = new ArrayList<Contact>(phones.getCount());
+		ContactsContract.CommonDataKinds.Phone.CONTACT_ID},
+		null, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID+" ASC");
+		
+		contactsList = new ArrayList<Contact>(contacts.getCount());
 		//This will be slightly larger than it actually needs to be, but is almost certainly better than
 		//starting with a tiny ArrayList
-		while (phones.moveToNext()) 
+		String curId = null, curName = null;
+		ArrayList<String> buffer = new ArrayList<String>();
+		while (contacts.moveToNext()) 
 		{
-			ArrayList<String> val = contactHash.get(phones.getString(3));
-			if(val!=null){
-				val.add(pho)
+			//If using IDs seems overkill, remember that two contacts can have the same name
+			String rowId = contacts.getString(2);
+			if(!rowId.equals(curId))
+			{
+				if (curId!=null)
+				{
+					contactsList.add(new Contact(curName, curId, (String[])buffer.toArray(new String[buffer.size()])));
+					buffer.clear();
+				}
+				curId = rowId;
+				curName = contacts.getString(0);
 			}
-			contactHash.put(phones.getString(2), value)
-			//name, number
-			contactsList.add(new Contact(phones.getString(0), phones.getString(1)));
+			buffer.add(formatAddress(contacts.getString(1), false));
 		}
+		//Have to handle the last contact after the loop terminates
+		if (curId!=null) contactsList.add(new Contact(curName, curId, (String[])buffer.toArray(new String[buffer.size()])));
+		Collections.sort(contactsList, new Comparator<Contact>() {
+
+			@Override
+			public int compare(Contact lhs, Contact rhs) {
+				return lhs.getName().compareTo(rhs.getName());
+			}
+
+		});
 	}
 	
 	
@@ -370,8 +393,10 @@ public class DataHandler extends SQLiteOpenHelper{
 		//---------------------------------
 		//This is where we clean/update other held data
 		GraphActivity.clearPrevContacts();
-		ContactsActivity.refreshContacts(context);
 		//----------------------------------
+		updateContacts();
+		//----------------------------------
+		//Do the actual heavy lifting for texts and such below
 		lastFetch = prefs.getLong(SAVED_FETCH, 0);
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
@@ -590,7 +615,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	private static final String SORT_DIRECTION = "DESC"; //or ASC for most recent message last
 	
 	
-	private ArrayList<textMessage> query(String address, String[] keys, long fromDate, long untilDate, String table)
+	private ArrayList<textMessage> query(Contact contact, String[] keys, long fromDate, long untilDate, String table)
 	{
 		//-1 for no date, empty string for no address. Obviously, table is mandatory.
 		//Automatically sorted by date.
@@ -603,7 +628,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		SQLiteDatabase db = getReadableDatabase();
 		String selection = "";
-		if (!address.equals("")) selection = KEY_ADDRESS+"="+address;
+		if (contact!=null) selection = KEY_ADDRESS+"="+address;
 		
 		if (fromDate > -1)
 		{
@@ -633,7 +658,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		return ret;
 	}
 
-	private HashMap<String, ArrayList<textMessage>> multiQuery(String[] addresses, String[] keys, long fromDate, long untilDate, String table)
+	private HashMap<String, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
 	{
 		//use group by to ensure addresses are together, then interate keeping a coutner and arraylist per address
 		//when we hit the end of an address, we will cursor move back to the beginning of the address and drop all of the address
@@ -749,7 +774,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param fromDate Minimum date
 	 * @param untilDate Maximum date
 	 */
-	public LinkedList<textMessage> queryConversation(String address, String[] keys, long fromDate, long untilDate)
+	public LinkedList<textMessage> queryConversation(Contact contact, String[] keys, long fromDate, long untilDate)
 	{
 		//same sort direction as the other two
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
@@ -820,7 +845,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	public ArrayList<textMessage> queryFromAll(String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query("", keys, fromDate, untilDate, TABLE_RECEIVED);
+		return query(null, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 	
 	/**
@@ -833,7 +858,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	public ArrayList<textMessage> queryToAll(String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query("", keys, fromDate, untilDate, TABLE_SENT);
+		return query(null, keys, fromDate, untilDate, TABLE_SENT);
 	}
 	
 	/**
@@ -844,10 +869,10 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param fromDate Minimum date
 	 * @param untilDate Maximum date
 	 */
-	public ArrayList<textMessage> queryFromAddress(String address, String[] keys, long fromDate, long untilDate)
+	public ArrayList<textMessage> queryFromAddress(Contact contact, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(address, keys, fromDate, untilDate, TABLE_RECEIVED);
+		return query(contact, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 	
 	/**
@@ -859,10 +884,10 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param untilDate Maximum date
 	 */
 	
-	public ArrayList<textMessage> queryToAddress(String address, String[] keys, long fromDate, long untilDate)
+	public ArrayList<textMessage> queryToAddress(Contact contact, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(address, keys, fromDate, untilDate, TABLE_SENT);
+		return query(contact, keys, fromDate, untilDate, TABLE_SENT);
 	}
 	
 	/**
@@ -874,10 +899,10 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param fromDate Minimum date
 	 * @param untilDate Maximum date
 	 */
-	public HashMap<String, ArrayList<textMessage>> queryFromAddresses(String[] addresses, String[] keys, long fromDate, long untilDate)
+	public HashMap<String, ArrayList<textMessage>> queryFromAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(addresses, keys, fromDate, untilDate, TABLE_RECEIVED);
+		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 	
 	/**
@@ -890,10 +915,10 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param untilDate Maximum date
 	 */
 	
-	public HashMap<String, ArrayList<textMessage>> queryToAddresses(String[] addresses, String[] keys, long fromDate, long untilDate)
+	public HashMap<String, ArrayList<textMessage>> queryToAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(addresses, keys, fromDate, untilDate, TABLE_SENT);
+		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_SENT);
 	}
 	
 
