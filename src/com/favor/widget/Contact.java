@@ -32,7 +32,7 @@ public class Contact {
 	}
 	
 	public String[] addresses(){
-		return addresses;
+		return addresses.clone();
 	}
 
 	public boolean isSelected() {

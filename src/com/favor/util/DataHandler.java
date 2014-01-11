@@ -2,6 +2,7 @@ package com.favor.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -63,19 +64,19 @@ class textMessage {
 	
 	private textMessage(){};
 	
-	public static textMessage build(Cursor c, HashMap<String, Integer> cols, int sent)
+	public static textMessage build(Cursor c, int sent)
 	{
 		textMessage ret = new textMessage();
-		int dateCol = cols.get(DataHandler.KEY_DATE), addressCol = cols.get(DataHandler.KEY_ADDRESS),
-		charCountCol = cols.get(DataHandler.KEY_CHARCOUNT), mediaCol = cols.get(DataHandler.KEY_MEDIA);
+		int dateColumn = c.getColumnIndex(DataHandler.KEY_DATE), addressColumn = c.getColumnIndex(DataHandler.KEY_ADDRESS),
+		charCountColumn = c.getColumnIndex(DataHandler.KEY_CHARCOUNT), mediaColumn = c.getColumnIndex(DataHandler.KEY_MEDIA);
 		ret.sent = sent;
-		if (dateCol != -1) ret.date = c.getLong(dateCol);
+		if (dateColumn != -1) ret.date = c.getLong(dateColumn);
 		else ret.date = -1;
-		if (addressCol != -1) ret.address= c.getString(addressCol);
+		if (addressColumn != -1) ret.address= c.getString(addressColumn);
 		else ret.address = null;
-		if (charCountCol != -1) ret.charCount = c.getInt(charCountCol);
+		if (charCountColumn != -1) ret.charCount = c.getInt(charCountColumn);
 		else ret.charCount = -1;
-		if (mediaCol != -1) ret.media = c.getInt(mediaCol);
+		if (mediaColumn != -1) ret.media = c.getInt(mediaColumn);
 		else ret.media = -1;
 		return ret;
 	}
@@ -542,6 +543,34 @@ public class DataHandler extends SQLiteOpenHelper{
 	{
 		if (type <= 0 || type >= 9) throw new dataException("Invalid data type. Please use class constants.");
 	}
+	
+	private String buildSelection(ArrayList<String> addresses, long fromDate, long untilDate){
+		StringBuilder selection = new StringBuilder();
+		if (addresses==null){
+			//Nothing to do with addresses
+		} else if (addresses.size()==1){
+			selection.append(KEY_ADDRESS+"="+addresses.get(0));
+		}
+		else{
+			selection.append("(");
+			for (int i = 0; i < addresses.size(); i++)
+			{
+				selection.append(KEY_ADDRESS+"="+addresses.get(i));
+				if (i < addresses.size()-1) selection.append(" OR ");
+				else selection.append(")");
+			}
+		}
+		if (fromDate > -1){
+			if (selection.length() > 0) selection.append(" AND ");
+			selection.append(KEY_DATE + ">=" + fromDate);
+		}
+		if (untilDate > -1){
+			if (selection.length() > 0) selection.append(" AND ");
+			selection.append(KEY_DATE + "<=" +untilDate);
+		}
+		return selection.toString();
+		
+	}
 	/**
 	 * Loads data about a user. Data types are listed
 	 * as class constants in the form DATA_xxxxx. 
@@ -617,41 +646,24 @@ public class DataHandler extends SQLiteOpenHelper{
 	
 	private ArrayList<textMessage> query(Contact contact, String[] keys, long fromDate, long untilDate, String table)
 	{
-		//-1 for no date, empty string for no address. Obviously, table is mandatory.
+		//-1 for no date, null contact for no addresses. Obviously, table is mandatory.
 		//Automatically sorted by date.
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (keys.length == 0) throw new dataException("must request at least one value.");
-		address = formatAddress(address, true);
 		int sent;
 		if (table == TABLE_SENT) sent = 1;
 		else sent = 0;
 		
 		SQLiteDatabase db = getReadableDatabase();
-		String selection = "";
-		if (contact!=null) selection = KEY_ADDRESS+"="+address;
-		
-		if (fromDate > -1)
-		{
-			if (selection.length() > 0) selection += " AND ";
-			selection += KEY_DATE + ">=" + fromDate;
-		}
-		if (untilDate > -1)
-		{
-			if (selection.length() > 0) selection += " AND ";
-			selection += KEY_DATE + "<=" +untilDate;
-		}
+		ArrayList<String> addresses = null;
+		if(contact!=null) addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
+		String selection = buildSelection(addresses, fromDate, untilDate);
 		
 		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE+" "+SORT_DIRECTION);
-		HashMap<String, Integer> cols = new HashMap<String, Integer>();
-		for (int i = 0; i < KEYS_PUBLIC.length; i++)
-		{
-			cols.put(KEYS_PUBLIC[i], c.getColumnIndex(KEYS_PUBLIC[i]));
-		}
 		ArrayList<textMessage> ret = new ArrayList<textMessage>(c.getCount());
 		while (c.moveToNext())
 		{
-			//ret.add(new textMessage(c.getLong(0), c.getLong(1), c.getString(2), c.getInt(3), c.getInt(4), sent));
-			ret.add(textMessage.build(c, cols, sent));
+			ret.add(textMessage.build(c, sent));
 		}
 		c.close();
 		db.close();
@@ -659,25 +671,13 @@ public class DataHandler extends SQLiteOpenHelper{
 	}
 
 	private HashMap<String, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
-	{
-		//use group by to ensure addresses are together, then interate keeping a coutner and arraylist per address
-		//when we hit the end of an address, we will cursor move back to the beginning of the address and drop all of the address
-		//items into the arraylist, then hash the arraylist and move on to the next address. this makes us only need one hashtable, and only one 
-		//loop, and no hashtable gets. still 2n though
-		
-		//-1 for no date, empty string for no address. Obviously, table is mandatory.
-		//Automatically sorted by date.
-		
-		//TODO: test this with and make sure it's compatible with null/no addresses
-		//we need it to be able to pull every single contact's info from the database without
-		//comparing to every contact's name
-		
+	{		
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
-		if (addresses.length < 2) throw new dataException("multiQuery should not be used with less than 2 addresses.");
+		if (contacts.length < 2) throw new dataException("multiQuery should not be used with less than 2 contacts.");
 		if (keys.length == 0) throw new dataException("must request at least one value.");
 		
 		//Special case; this function needs to retrieve addresses regardless of whether they're
-		//requested or not
+		//requested or not, so we add KEY_ADDRESS to keys if it's not there already
 		boolean addressesRequested = false;
 		for (int i = 0; i < keys.length; i++)
 		{
@@ -694,65 +694,32 @@ public class DataHandler extends SQLiteOpenHelper{
 			keys = temp;
 		}
 		
-		for (int i = 0; i < addresses.length; i++)
+		
+		//Get all addresses, and map all of each contact's numbers to its ArrayList.
+		ArrayList<String> addresses = new ArrayList<String>(contacts.length); //Probably won't be big enough, but closer to desired size
+		HashMap<String, ArrayList<textMessage>> ret = new HashMap<String, ArrayList<textMessage>>();
+		for (int i = 0; i < contacts.length; i++)
 		{
-			addresses[i] = formatAddress(addresses[i], true);
+			String[] contactAddresses = contacts[i].addresses();
+			ArrayList<textMessage> contactMessages = new ArrayList<textMessage>();
+			for (int j = 0; j < contactAddresses.length; j++) {
+				addresses.add(contactAddresses[i]);
+				ret.put(contactAddresses[i], contactMessages);
+			}
 		}
 		
-		int sent;
-		if (table == TABLE_SENT) sent = 1;
-		else sent = 0;
+		int sent = (table == TABLE_SENT) ? 1 : 0;
 		
 		SQLiteDatabase db = getReadableDatabase();
-		HashMap<String, ArrayList<textMessage>> ret = new HashMap<String, ArrayList<textMessage>>();
 		
-		String selection = "(";
-		for (int i = 0; i < addresses.length; i++)
-		{
-			selection += KEY_ADDRESS+"="+addresses[i];
-			if (i < addresses.length-1) selection += " OR ";
-			else selection += ")";
-		}
-		if (fromDate > -1) selection += " AND " + KEY_DATE + ">=" + fromDate;
-		if (untilDate > -1) selection += " AND " + KEY_DATE + "<=" +untilDate;
-		
+		String selection = buildSelection(addresses, fromDate, untilDate);
 		Cursor c = db.query(table, keys, selection, null, null, null, KEY_ADDRESS+", "+KEY_DATE+" "+SORT_DIRECTION);
-		HashMap<String, Integer> cols = new HashMap<String, Integer>();
-		
-		for (int i = 0; i < KEYS_PUBLIC.length; i++)
+
+		int addressColumn = c.getColumnIndex(KEY_ADDRESS);
+
+		while (c.moveToNext())
 		{
-			cols.put(KEYS_PUBLIC[i], c.getColumnIndex(KEYS_PUBLIC[i]));
-		}
-		
-		int addressCol = cols.get(KEY_ADDRESS);
-		//Set up the loop
-		int hi, lo;
-		if (!c.moveToNext()) return ret; //empty hashmap. nothing to return. this also moves us, though
-		
-		String prevAddr = c.getString(addressCol);
-		hi = lo = 0;
-		ArrayList<textMessage> list;
-		while (true)
-		{
-			if (c.moveToNext() && prevAddr.equals(c.getString(addressCol)))//Short circuiting saves us possible exceptions here
-			{
-				hi++; //hi will max out at the last element of the same address
-			}
-			else
-			{
-				c.moveToPosition(lo);
-				list = new ArrayList<textMessage>((hi-lo)+1); //Number of terms we'll have to deal with
-				for(; lo<=hi ;lo++)
-				{
-					//list.add(new textMessage(c.getLong(0), c.getLong(1), c.getString(2), c.getInt(3), c.getInt(4), sent));
-					list.add(textMessage.build(c, cols, sent));
-					c.moveToNext(); //This loop structure leaves the cursor at (hi+1)
-				}
-				ret.put(prevAddr, list);
-				hi = lo = hi+1;
-				if (c.isAfterLast()) break; //end of the loop
-				else prevAddr = c.getString(addressCol);
-			}
+			ret.get(c.getString(addressColumn)).add(textMessage.build(c, sent));
 		}
 		
 
@@ -780,7 +747,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (keys.length == 0) throw new dataException("must request at least one value.");
 		
-		address = formatAddress(address, true);
+		ArrayList<String> addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
 		
 		LinkedList<textMessage> res = new LinkedList<textMessage>();
 		SQLiteDatabase db = getReadableDatabase();
@@ -810,9 +777,7 @@ public class DataHandler extends SQLiteOpenHelper{
 			temp.append(keys[i]+",");
 		}
 		columns = temp.deleteCharAt(temp.length()-1).toString();
-		String selection = " WHERE "+KEY_ADDRESS+"="+address;
-		if (fromDate > -1) selection += " AND " + KEY_DATE + ">=" + fromDate;
-		if (untilDate > -1) selection += " AND " + KEY_DATE + "<=" +untilDate;
+		String selection = buildSelection(addresses, fromDate, untilDate);
 		String sql = 
 				"SELECT "+columns+", 1 as "+GENERATED_KEY_SENT+" FROM "+TABLE_SENT+selection+
 				" UNION "+
@@ -820,16 +785,10 @@ public class DataHandler extends SQLiteOpenHelper{
 				" ORDER BY "+KEY_DATE+" "+SORT_DIRECTION;
 		
 		Cursor c = db.rawQuery(sql, null);
-		HashMap<String, Integer> cols = new HashMap<String, Integer>();
-		for (int i = 0; i < KEYS_PUBLIC.length; i++)
-		{
-			cols.put(KEYS_PUBLIC[i], c.getColumnIndex(KEYS_PUBLIC[i]));
-		}
-		int sentCol = c.getColumnIndex(GENERATED_KEY_SENT);
+		int sentColumn = c.getColumnIndex(GENERATED_KEY_SENT);
 		while (c.moveToNext())
 		{
-			//res.offer(new textMessage(c.getLong(0), c.getLong(1), c.getString(2), c.getInt(3), c.getInt(4), c.getInt(5)));
-			res.offer(textMessage.build(c, cols, c.getInt(sentCol)));
+			res.offer(textMessage.build(c, c.getInt(sentColumn)));
 		}
 		
 		return res;
