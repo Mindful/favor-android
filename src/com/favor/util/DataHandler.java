@@ -158,6 +158,7 @@ public class DataHandler extends SQLiteOpenHelper{
     private static final String TABLE_RECEIVED = "received";
     //Messages table column names
     private static final String KEY_ID = "_id"; //unique integer message id
+    private static final String KEY_CONTACT_ID = "contact_id"; //Contact ID, valid *most of the time
     public static final String KEY_DATE = "date"; //integer date 
     public static final String KEY_ADDRESS = "address"; //address
     public static final String KEY_CHARCOUNT = "chars"; //character count
@@ -170,7 +171,7 @@ public class DataHandler extends SQLiteOpenHelper{
     
     //Data table column names
     //USE KEY_ADDRESS
-    private static final String KEY_TYPE = "type";
+    private static final String KEY_DATA_TYPE = "type";
     //USE KEY_DATE
     private static final String KEY_COUNT = "count";
     
@@ -223,8 +224,8 @@ public class DataHandler extends SQLiteOpenHelper{
     	}
 
     	//Data table
-    	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_ADDRESS+" TEXT,"+KEY_TYPE+" INTEGER,"+KEY_DATE+
-    	" INTEGER,"+KEY_COUNT+" INTEGER,"+"PRIMARY KEY("+KEY_ADDRESS+","+KEY_TYPE+"))");
+    	db.execSQL("CREATE TABLE "+TABLE_DATA+"("+KEY_CONTACT_ID+" TEXT,"+KEY_DATA_TYPE+" INTEGER,"+KEY_DATE+
+    	" INTEGER,"+KEY_COUNT+" INTEGER,"+"PRIMARY KEY("+KEY_CONTACT_ID+","+KEY_DATA_TYPE+"))");
 		edit.putLong(SAVED_FETCH, 0);
 		edit.apply();
     }
@@ -580,12 +581,11 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param type The data type you wish to save. Use class constants (DATA_xxxxx)
 	 * 
 	 */
-	public dataTime getData(String address, int type)
+	public dataTime getData(Contact contact, int type)
 	{
 		validDate(type);
-		address = formatAddress(address, true);
 		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] {KEY_COUNT, KEY_DATE}, KEY_ADDRESS+"="+address+" AND "+KEY_TYPE+"="+type, null, null, null, null);
+		Cursor c = db.query(TABLE_DATA, new String[] {KEY_COUNT, KEY_DATE}, KEY_CONTACT_ID+"="+contact.id()+" AND "+KEY_DATA_TYPE+"="+type, null, null, null, null);
 		if (c.getCount()==0) return new dataTime(-1, -1);
 		else if (c.getCount()>1) throw new dataException("getData producing multiple results.");
 		c.moveToNext();
@@ -600,12 +600,11 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * 
 	 */
 	
-	public SparseArray<dataTime> getAllData(String address)
+	public SparseArray<dataTime> getAllData(Contact contact)
 	{
-		address = formatAddress(address, true);
 		SparseArray<dataTime> ret = new SparseArray<dataTime>();
 		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] {KEY_TYPE, KEY_COUNT, KEY_DATE}, KEY_ADDRESS+"="+address, null, null, null, null);
+		Cursor c = db.query(TABLE_DATA, new String[] {KEY_DATA_TYPE, KEY_COUNT, KEY_DATE}, KEY_CONTACT_ID+"="+contact.id(), null, null, null, null);
 		while (c.moveToNext())
 		{
 			ret.put(c.getInt(0), new dataTime(c.getLong(1), c.getLong(2)));
@@ -622,14 +621,13 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param type The data type you wish to save. Use class constants (DATA_xxxxx)
 	 * 
 	 */
-	public void saveData(String address, int type, long data)
+	public void saveData(Contact contact, int type, long data)
 	{
 		validDate(type);
-		address = formatAddress(address, false);
 		SQLiteDatabase db = getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(KEY_ADDRESS, formatAddress(address, false));
-		values.put(KEY_TYPE, type);
+		values.put(KEY_CONTACT_ID, contact.id());
+		values.put(KEY_DATA_TYPE, type);
 		values.put(KEY_DATE, new Date().getTime());
 		values.put(KEY_COUNT, data);
 		db.insert(TABLE_DATA, null, values);
@@ -670,7 +668,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		return ret;
 	}
 
-	private HashMap<String, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
+	private HashMap<Contact, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
 	{		
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (contacts.length < 2) throw new dataException("multiQuery should not be used with less than 2 contacts.");
@@ -697,14 +695,17 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		//Get all addresses, and map all of each contact's numbers to its ArrayList.
 		ArrayList<String> addresses = new ArrayList<String>(contacts.length); //Probably won't be big enough, but closer to desired size
-		HashMap<String, ArrayList<textMessage>> ret = new HashMap<String, ArrayList<textMessage>>();
+		HashMap<String, ArrayList<textMessage>> lists = new HashMap<String, ArrayList<textMessage>>();
+		HashMap<Contact, ArrayList<textMessage>> ret = new HashMap<Contact, ArrayList<textMessage>>();
 		for (int i = 0; i < contacts.length; i++)
 		{
+			//The same ArrayList is pointed to by both hash tables, but we only use lists internally
 			String[] contactAddresses = contacts[i].addresses();
 			ArrayList<textMessage> contactMessages = new ArrayList<textMessage>();
+			ret.put(contacts[i], contactMessages);
 			for (int j = 0; j < contactAddresses.length; j++) {
 				addresses.add(contactAddresses[i]);
-				ret.put(contactAddresses[i], contactMessages);
+				lists.put(contactAddresses[i], contactMessages);
 			}
 		}
 		
@@ -719,7 +720,7 @@ public class DataHandler extends SQLiteOpenHelper{
 
 		while (c.moveToNext())
 		{
-			ret.get(c.getString(addressColumn)).add(textMessage.build(c, sent));
+			lists.get(c.getString(addressColumn)).add(textMessage.build(c, sent));
 		}
 		
 
@@ -858,7 +859,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param fromDate Minimum date
 	 * @param untilDate Maximum date
 	 */
-	public HashMap<String, ArrayList<textMessage>> queryFromAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
+	public HashMap<Contact, ArrayList<textMessage>> queryFromAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_RECEIVED);
@@ -874,7 +875,7 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * @param untilDate Maximum date
 	 */
 	
-	public HashMap<String, ArrayList<textMessage>> queryToAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
+	public HashMap<Contact, ArrayList<textMessage>> queryToAddresses(Contact[] contacts, String[] keys, long fromDate, long untilDate)
 	{
 		//Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_SENT);

@@ -6,10 +6,10 @@ package com.favor.util;
 //import jMEF.UnivariateGaussian;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
+
+import com.favor.widget.Contact;
 
 
 public class Algorithms {
@@ -25,23 +25,23 @@ public class Algorithms {
   //TODO: constant for upper limit on response times
   
   
-  public static long[] messageCount(String address, long fromDate, long untilDate)
+  public static long[] messageCount(Contact contact, long fromDate, long untilDate)
   {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
 
 	  //Have to grab a random field. Character count seems as good as any
 	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
-	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
+	  ArrayList <textMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
 	  values[0] = sent.size();
 	  values[1] = rec.size();
 	  return values;  
   }
   
-  public static double messageRatio (String address, long fromDate, long untilDate) {
-	  long [] values= messageCount(address, fromDate, untilDate);
+  public static double messageRatio (Contact contact, long fromDate, long untilDate) {
+	  long [] values= messageCount(contact, fromDate, untilDate);
 	  double ratio = (values[1]/(double)values[0]);
 	  return ratio;
   }
@@ -57,7 +57,7 @@ public class Algorithms {
    */
   
   
-  public static long[] charCount (String address, long fromDate, long untilDate) {
+  public static long[] charCount (Contact contact, long fromDate, long untilDate) {
 	  DataHandler db = DataHandler.get();
 	  long [] values = {0,0};
 
@@ -65,8 +65,8 @@ public class Algorithms {
 	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
 
 	  //queries take an address, keys, and dates
-	  ArrayList <textMessage> sent = db.queryToAddress(address, keys, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(address, keys, fromDate, untilDate);
+	  ArrayList <textMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <textMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
 	  //counting sent values, stored at index 0 in the array values
 	  for (textMessage t : sent) {
@@ -90,14 +90,12 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static double charRatio (String address, long fromDate, long untilDate) {
+  public static double charRatio (Contact contact, long fromDate, long untilDate) {
 
-	  //calls character count
-	  long [] values= charCount(address, fromDate, untilDate);
+	  long [] values= charCount(contact, fromDate, untilDate);
 	  Debug.log(values[1] + "");
 	  Debug.log(values[0] + "");
 
-	  //some kewl casting here jk
 	  double ratio = (values[1]/(double)values[0]);
 	  return ratio;
   }
@@ -111,10 +109,10 @@ public class Algorithms {
    * @param untilDate
    * @return
    */
-  public static long[] responseTime (String address, long fromDate, long untilDate) {
+  public static long[] responseTime (Contact contact, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	  String[] keys = new String[] {DataHandler.KEY_DATE};
- 	  LinkedList<textMessage> list = db.queryConversation(address, keys, fromDate, untilDate);
+ 	  LinkedList<textMessage> list = db.queryConversation(contact, keys, fromDate, untilDate);
  	  double avgSent = 0;
  	  double avgRec = 0;
  	  long [] averages = {0, 0};
@@ -188,9 +186,9 @@ public class Algorithms {
   	 * @param untilDate
   	 * @return
   	 */
-  	public static double responseRatio (String address, long fromDate, long untilDate) {
+  	public static double responseRatio (Contact contact, long fromDate, long untilDate) {
   		//calls
-  		long[] times = Algorithms.responseTime(address, fromDate, untilDate);
+  		long[] times = Algorithms.responseTime(contact, fromDate, untilDate);
   		double ratio = (times[1]/(double)times[0]);
   		return ratio;
   	}
@@ -201,24 +199,24 @@ public class Algorithms {
   	 *  your overall relationship
   	 *  @param address
   	 */
-  	public static long[] relationshipScore (String address) {
+  	public static long[] relationshipScore (Contact contact) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
   		//DataHandler.KEYS_PUBLIC accounts for all public keys
   		//I'm assuming you'll use charCount, date, media, and address. If there are any
   		//that you don't use, just build your own array with the keys excluding the one you don't need
-  		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
+  		LinkedList<textMessage> convo = db.queryConversation(contact, keys, -1, -1);
   		long sentChar = 0;
-  		long recChar = 0;
-  		double charRatio = 0;
+//  		long recChar = 0;
+//  		double charRatio = 0;
   		double sentCount = 0;
-  		double recCount = 0;
-  		double countRatio = 0;
+//  		double recCount = 0;
+//  		double countRatio = 0;
   		double sentMedia = 0;
-  		double recMedia = 0;
-  		double mediaRatio = 0;
-  		double responseRatio = 0;
+//  		double recMedia = 0;
+//  		double mediaRatio = 0;
+//  		double responseRatio = 0;
   		
   		for (textMessage t : convo) {
   			if (!t.received()) { 		
@@ -255,7 +253,7 @@ public class Algorithms {
   		
   		score[0] = (long)(10*((CHAR_WEIGHT * sentChar) + (COUNT_WEIGHT * sentCount) + (MEDIA_WEIGHT * sentMedia) - (RESPONSE_WEIGHT * avgSent)));
   		Debug.log("My score : : : : " + score[0]);
-  		score[1] = friendScore(address);
+  		score[1] = friendScore(contact);
   		Debug.log("Their score : : : : " + score[1]);
   		return score;
   	}
@@ -267,17 +265,17 @@ public class Algorithms {
   	 * 
   	 */
   	
-  	public static long friendScore (String address) {
+  	public static long friendScore (Contact contact) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
-  		LinkedList<textMessage> convo = db.queryConversation(address, keys, -1, -1);
+  		LinkedList<textMessage> convo = db.queryConversation(contact, keys, -1, -1);
   		int media = 0;
   		int messages = 0;
   		long charCount = 0;
   		double responseAvg = 0;
   		double score = 0;
-  		long maxChar = Long.MIN_VALUE;
-  		long minChar = Long.MAX_VALUE;
+//  		long maxChar = Long.MIN_VALUE;
+//  		long minChar = Long.MAX_VALUE;
   		LinkedList<Long> recTimes = new LinkedList<Long>();
   		
   		for (textMessage t: convo) {
@@ -381,11 +379,9 @@ class densityPoint {
 	public long value;
 	public int density;
 
-	private densityPoint () {}
-
-	public densityPoint (long l, int i) {
-		value = l;
-		density = i;
+	public densityPoint (long v, int d) {
+		value = v;
+		density = d;
 	}
 
 }

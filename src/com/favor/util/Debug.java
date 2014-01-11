@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.favor.widget.Contact;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -25,37 +27,37 @@ import android.widget.Toast;
 @SuppressLint("NewApi") //suppressing error on L46
 public class Debug {
 	
-	public static void queryTest(String[] addresses, String[] keys)
+	public static void queryTest(Contact[] contacts, String[] keys)
 	{
-		String address = addresses[0];
+		Contact contact = contacts[0];
 		DataHandler db = DataHandler.get();
-		List<textMessage> list = db.queryFromAddress(address, keys, -1, -1);
+		List<textMessage> list = db.queryFromAddress(contact, keys, -1, -1);
 		Debug.log("From");
 		for (textMessage t : list )
 		{
 			Debug.log(""+t);
 		}
-		list = db.queryToAddress(address, keys, -1, -1);
+		list = db.queryToAddress(contact, keys, -1, -1);
 		Debug.log("To");
 		for (textMessage t : list )
 		{
 			Debug.log(""+t);
 		}
-		list = db.queryConversation(address, keys, -1, -1);
+		list = db.queryConversation(contact, keys, -1, -1);
 		Debug.log("Convo");
 		for (textMessage t : list )
 		{
 			Debug.log(""+t);
 		}
 		Debug.log("MultiFrom");
-		HashMap<String, ArrayList<textMessage>> multi = db.queryFromAddresses(addresses, keys, -1, -1);
-		for (Map.Entry<String, ArrayList<textMessage>> entry : multi.entrySet()) {
-		    Debug.log(entry.getKey()+":"+entry.getValue().size());
+		HashMap<Contact, ArrayList<textMessage>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
+		for (Map.Entry<Contact, ArrayList<textMessage>> entry : multi.entrySet()) {
+		    Debug.log(entry.getKey().getName()+":"+entry.getValue().size());
 		}
 		
-		for (int i = 0; i < addresses.length; i++)
+		for (int i = 0; i < contacts.length; i++)
 		{
-			list = multi.get(addresses[i]);
+			list = multi.get(contacts[i]);
 			for (textMessage t : list )
 			{
 				Debug.log(""+t);
@@ -108,7 +110,7 @@ public class Debug {
 		Log.v("Debug Log", message);
 	}
 	
-	public static void testData(String address)
+	public static void testData(Contact contact)
 	{
 		//"3607087506"
 		
@@ -118,14 +120,14 @@ public class Debug {
 		//the math every time
 		DataHandler db = DataHandler.get();
 		
-		long[] chars = Algorithms.charCount(address, -1, -1);
-		db.saveData(address, DataHandler.DATA_RECEIVED_CHARS, chars[1]);
-		db.saveData(address, DataHandler.DATA_SENT_CHARS, chars[0]);
-		SparseArray<dataTime> all = db.getAllData(address);
+		long[] chars = Algorithms.charCount(contact, -1, -1);
+		db.saveData(contact, DataHandler.DATA_RECEIVED_CHARS, chars[1]);
+		db.saveData(contact, DataHandler.DATA_SENT_CHARS, chars[0]);
+		SparseArray<dataTime> all = db.getAllData(contact);
 		log("Received Chars:"+all.get(DataHandler.DATA_RECEIVED_CHARS));
 		log("Sent chars:"+all.get(DataHandler.DATA_SENT_CHARS));
-		db.saveData(address, DataHandler.DATA_SENT_MMS, 250l);
-		log("Test MMS:"+db.getData(address, DataHandler.DATA_SENT_MMS));
+		db.saveData(contact, DataHandler.DATA_SENT_MMS, 250l);
+		log("Test MMS:"+db.getData(contact, DataHandler.DATA_SENT_MMS));
 		//Algorithms.responseTime(address, -1, -1);
 	}
 	
@@ -180,6 +182,6 @@ public class Debug {
 	}
 	public static void algotest () {
 	
-		Algorithms.responseTime("3607081836",1365348980000l, 1367940980000l);
+		Algorithms.responseTime(new Contact ("Rebar Niemi", "-1", new String[]{"3607081836"}),1365348980000l, 1367940980000l);
 	}
 }

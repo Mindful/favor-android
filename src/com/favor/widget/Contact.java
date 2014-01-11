@@ -1,13 +1,50 @@
 package com.favor.widget;
 
+import java.util.Arrays;
+
 
 public class Contact {
-
+	
 	private final String name;
 	private final String[] addresses;
 	private final String id;
 
 	private boolean isSelected;
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(addresses);
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Contact other = (Contact) obj;
+		if (!Arrays.equals(addresses, other.addresses))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
 
 	public Contact(String name, String id, String[] addresses) {
 		this.name = name;
