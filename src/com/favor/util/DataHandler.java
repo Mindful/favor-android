@@ -545,29 +545,31 @@ public class DataHandler extends SQLiteOpenHelper{
 		if (type <= 0 || type >= 9) throw new dataException("Invalid data type. Please use class constants.");
 	}
 	
-	private String buildSelection(ArrayList<String> addresses, long fromDate, long untilDate){
+	private String buildSelection(ArrayList<String> addresses, long fromDate, long untilDate, boolean raw){
 		StringBuilder selection = new StringBuilder();
 		if (addresses==null){
 			//Nothing to do with addresses
 		} else if (addresses.size()==1){
-			selection.append(KEY_ADDRESS+"="+addresses.get(0));
+			if(raw) selection.append(" WHERE ");
+			selection.append(KEY_ADDRESS).append("=").append(addresses.get(0));
 		}
 		else{
+			if(raw) selection.append(" WHERE ");
 			selection.append("(");
 			for (int i = 0; i < addresses.size(); i++)
 			{
-				selection.append(KEY_ADDRESS+"="+addresses.get(i));
+				selection.append(KEY_ADDRESS).append("=").append(addresses.get(i));
 				if (i < addresses.size()-1) selection.append(" OR ");
 				else selection.append(")");
 			}
 		}
 		if (fromDate > -1){
 			if (selection.length() > 0) selection.append(" AND ");
-			selection.append(KEY_DATE + ">=" + fromDate);
+			selection.append(KEY_DATE).append(">=").append(fromDate);
 		}
 		if (untilDate > -1){
 			if (selection.length() > 0) selection.append(" AND ");
-			selection.append(KEY_DATE + "<=" +untilDate);
+			selection.append(KEY_DATE).append("<=").append(untilDate);
 		}
 		return selection.toString();
 		
@@ -655,7 +657,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = null;
 		if(contact!=null) addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
-		String selection = buildSelection(addresses, fromDate, untilDate);
+		String selection = buildSelection(addresses, fromDate, untilDate, false);
 		
 		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE+" "+SORT_DIRECTION);
 		ArrayList<textMessage> ret = new ArrayList<textMessage>(c.getCount());
@@ -713,7 +715,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		SQLiteDatabase db = getReadableDatabase();
 		
-		String selection = buildSelection(addresses, fromDate, untilDate);
+		String selection = buildSelection(addresses, fromDate, untilDate, false);
 		Cursor c = db.query(table, keys, selection, null, null, null, KEY_ADDRESS+", "+KEY_DATE+" "+SORT_DIRECTION);
 
 		int addressColumn = c.getColumnIndex(KEY_ADDRESS);
@@ -778,7 +780,7 @@ public class DataHandler extends SQLiteOpenHelper{
 			temp.append(keys[i]+",");
 		}
 		columns = temp.deleteCharAt(temp.length()-1).toString();
-		String selection = buildSelection(addresses, fromDate, untilDate);
+		String selection = buildSelection(addresses, fromDate, untilDate, true);
 		String sql = 
 				"SELECT "+columns+", 1 as "+GENERATED_KEY_SENT+" FROM "+TABLE_SENT+selection+
 				" UNION "+
