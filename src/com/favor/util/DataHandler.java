@@ -80,8 +80,32 @@ class textMessage {
 		else ret.media = -1;
 		return ret;
 	}
-	
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		textMessage other = (textMessage) obj;
+		if (address == null) {
+			if (other.address != null)
+				return false;
+		} else if (!address.equals(other.address))
+			return false;
+		if (charCount != other.charCount)
+			return false;
+		if (date != other.date)
+			return false;
+		if (media != other.media)
+			return false;
+		if (sent != other.sent)
+			return false;
+		return true;
+	}
+
 	/**
 	 * Strictly a debug method
 	 */
@@ -670,6 +694,58 @@ public class DataHandler extends SQLiteOpenHelper{
 		return ret;
 	}
 
+	
+	//TODO: TEST ME and other other updated multiQuery for efficiency, reliability, etc.
+	private HashMap<Contact, ArrayList<textMessage>> multiQueryDatabase(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table){
+		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
+		if (contacts.length < 2) throw new dataException("multiQuery should not be used with less than 2 contacts.");
+		if (keys.length == 0) throw new dataException("must request at least one value.");
+		
+		//Special case; this function needs to retrieve addresses regardless of whether they're
+		//requested or not, so we add KEY_ADDRESS to keys if it's not there already
+		boolean addressesRequested = false;
+		for (int i = 0; i < keys.length; i++)
+		{
+			if (keys[i]==KEY_ADDRESS) addressesRequested = true;
+		}
+		if (!addressesRequested)
+		{
+			String [] temp = new String[keys.length+1];
+			temp[keys.length]=KEY_ADDRESS;
+			for (int i = 0; i < keys.length; i++)
+			{
+				temp[i]=keys[i];
+			}
+			keys = temp;
+		}
+		
+		HashMap<Contact, ArrayList<textMessage>> ret = new HashMap<Contact, ArrayList<textMessage>>();
+		
+		int sent = (table == TABLE_SENT) ? 1 : 0;
+		
+		SQLiteDatabase db = getReadableDatabase();
+		
+		for (int i = 0; i < contacts.length; i++)
+		{
+			ArrayList<textMessage> contactMessages = new ArrayList<textMessage>();			
+			String selection = buildSelection(new ArrayList<String>(Arrays.asList(contacts[i].addresses())), fromDate, untilDate, false);
+			Cursor c = db.query(table, keys, selection, null, null, null, KEY_ADDRESS+", "+KEY_DATE+" "+SORT_DIRECTION);
+			
+			while(c.moveToNext()){
+				contactMessages.add(textMessage.build(c, sent));	
+			}
+			
+			ret.put(contacts[i], contactMessages);
+			c.close();
+		}
+		
+
+		db.close();
+		return ret;
+		
+		
+		
+	}
 	private HashMap<Contact, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
 	{		
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
@@ -701,7 +777,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		HashMap<Contact, ArrayList<textMessage>> ret = new HashMap<Contact, ArrayList<textMessage>>();
 		for (int i = 0; i < contacts.length; i++)
 		{
-			//The same ArrayList is pointed to by both hash tables, but we only use lists internally
+			//The same ArrayList is pointed to by both hash tables, but we only use the lists internally
 			String[] contactAddresses = contacts[i].addresses();
 			ArrayList<textMessage> contactMessages = new ArrayList<textMessage>();
 			ret.put(contacts[i], contactMessages);
