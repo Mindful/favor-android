@@ -782,8 +782,8 @@ public class DataHandler extends SQLiteOpenHelper{
 			ArrayList<textMessage> contactMessages = new ArrayList<textMessage>();
 			ret.put(contacts[i], contactMessages);
 			for (int j = 0; j < contactAddresses.length; j++) {
-				addresses.add(contactAddresses[i]);
-				lists.put(contactAddresses[i], contactMessages);
+				addresses.add(contactAddresses[j]);
+				lists.put(contactAddresses[j], contactMessages);
 			}
 		}
 		
