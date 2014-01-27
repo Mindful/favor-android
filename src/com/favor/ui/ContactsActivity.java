@@ -15,11 +15,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.favor.ui.ContactArrayAdapter.ContactViewHolder;
+import com.favor.util.Contact;
 import com.favor.util.DataHandler;
-import com.favor.widget.Contact;
-import com.favor.widget.ContactArrayAdapter;
-import com.favor.widget.OptionsMenu;
-import com.favor.widget.ContactArrayAdapter.ContactViewHolder;
 import com.favor.R;
 
 public class ContactsActivity extends SherlockListActivity {

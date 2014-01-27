@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 import com.favor.ui.GraphActivity;
-import com.favor.widget.Contact;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -215,10 +214,9 @@ public class DataHandler extends SQLiteOpenHelper{
 	 * param is true if we're using this for an SQL query and we need symbol escapes.
 	 */
     
-	//TODO: This would be marginally more efficient but less clear if we just used address.contains() && fetch in one conditional
 	private static String formatAddress(String address, boolean fetch)
 	{
-		if (address.contains("@")){ if (fetch) {address = "\"" + address +"\"";}}
+		if (address.contains("@") && fetch){ address = "\"" + address +"\"";}
 		else address = address.replaceAll("[^0-9]", ""); //regex matches anything except digits
 		return address;
 	}
@@ -674,9 +672,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		//Automatically sorted by date.
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (keys.length == 0) throw new dataException("must request at least one value.");
-		int sent;
-		if (table == TABLE_SENT) sent = 1;
-		else sent = 0;
+		int sent = (table == TABLE_SENT) ? 1 : 0;
 		
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = null;
@@ -692,6 +688,36 @@ public class DataHandler extends SQLiteOpenHelper{
 		c.close();
 		db.close();
 		return ret;
+	}
+	
+	public double average(Contact contact, String key, long fromDate, long untilDate, String table){
+		//-1 for no date, null contact for no addresses. Obviously, table is mandatory.
+		//Automatically sorted by date.
+		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
+		SQLiteDatabase db = getReadableDatabase();
+		ArrayList<String> addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
+		String selection = buildSelection(addresses, fromDate, untilDate, true);
+		
+		Cursor c = db.rawQuery("SELECT AVG("+key+") from "+table+selection, null);
+		if(c.moveToFirst()){
+			return c.getDouble(0);
+		}
+		else return 0.00d;
+	}
+	
+	public long sum(Contact contact, String key, long fromDate, long untilDate, String table){
+		//-1 for no date, null contact for no addresses. Obviously, table is mandatory.
+		//Automatically sorted by date.
+		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
+		SQLiteDatabase db = getReadableDatabase();
+		ArrayList<String> addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
+		String selection = buildSelection(addresses, fromDate, untilDate, true);
+		
+		Cursor c = db.rawQuery("SELECT SUM("+key+") from "+table+selection, null);
+		if(c.moveToFirst()){
+			return c.getLong(0);
+		}
+		else return 0;
 	}
 
 	

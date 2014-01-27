@@ -1,4 +1,4 @@
-package com.favor.widget;
+package com.favor.util;
 
 import java.util.Arrays;
 

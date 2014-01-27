@@ -6,9 +6,6 @@ import java.util.List;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.favor.util.Debug;
-import com.favor.widget.GraphView;
-
 public abstract class Graph {
 	
 	public static enum types {singleBar, doubleBar, doughnut}

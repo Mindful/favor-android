@@ -1,4 +1,4 @@
-package com.favor.widget;
+package com.favor.ui.graph;
 
 import com.favor.ui.GraphActivity;
 

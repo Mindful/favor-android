@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.favor.widget.Contact;
+
 
 
 public class Algorithms {
@@ -47,7 +47,7 @@ public class Algorithms {
   }
   
   /**
-   * Calculates the total characters sent and received for a contact and period of time,
+   * Calculates the AVERAGE characters sent and received for a contact and period of time,
    * returns an array of longs with sent characters in the 0th index and received
    * characters in the 1st index.
    * @param address
@@ -68,6 +68,8 @@ public class Algorithms {
 	  ArrayList <textMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
 	  ArrayList <textMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
+	  //TODO: IF we don't just end up using SQL for this, the "enhanced loops"
+	  //are substatially slower on arrays and arraylists. Don't use these.
 	  //counting sent values, stored at index 0 in the array values
 	  for (textMessage t : sent) {
 		  values[0] += t.charCount();

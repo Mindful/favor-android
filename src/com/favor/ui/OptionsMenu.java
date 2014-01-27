@@ -1,4 +1,4 @@
-package com.favor.widget;
+package com.favor.ui;
 
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;

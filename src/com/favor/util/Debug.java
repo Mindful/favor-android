@@ -1,5 +1,7 @@
 package com.favor.util;
 
+//This would ideally be in the favor.develop package but then we couldn't get at some of the internal datahandler stuff...
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -9,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.favor.widget.Contact;
+
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -110,6 +112,34 @@ public class Debug {
 	{
 		Log.v("Debug Log", message);
 	}
+
+	/*
+	public static void averageTest(){
+		DataHandler db = DataHandler.get();
+		Contact contact = null;
+		for (Contact cc : db.contacts()){
+			if(cc.addresses()[0].equals("3607428147")){
+				contact=cc; //Robert
+				Debug.log("Found Robert");
+			}
+		}
+		double sqlAverage = db.average(contact, DataHandler.KEY_CHARCOUNT, -1, -1, "sent");
+		double algoAverage = Algorithms.charCount(contact, -1, -1)[0];
+		Debug.log("SQL Average:"+sqlAverage+" Algorithmic Average:"+algoAverage);
+		long sum = db.sum(contact, DataHandler.KEY_CHARCOUNT, -1, -1, "sent");
+		Debug.log("Sum: "+sum);
+		for (Contact cc : db.contacts()){
+			if(cc.addresses()[0].equals("2023650265")){
+				contact=cc; //Rob Davis
+				Debug.log("Found Rob Davis");
+			}
+		}
+		sum = db.sum(contact, DataHandler.KEY_CHARCOUNT, -1, -1, "sent");
+		Debug.log("SQL Average:"+db.average(contact, DataHandler.KEY_CHARCOUNT, -1, -1, "sent"));
+		Debug.log("Sum: "+sum);
+		
+	}
+	*/
 	
 	/*
 	public static void queryEquality(){

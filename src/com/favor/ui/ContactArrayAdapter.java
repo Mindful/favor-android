@@ -1,4 +1,4 @@
-package com.favor.widget;
+package com.favor.ui;
 
 //import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -19,7 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.favor.ui.ContactsActivity;
+import com.favor.util.Contact;
 import com.favor.R;
 
 @SuppressWarnings("serial")
