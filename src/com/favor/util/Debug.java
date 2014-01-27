@@ -66,6 +66,7 @@ public class Debug {
 	}
 	
 	
+	@SuppressLint("UseSparseArrays")
 	public static void uriProperties(String uri, Context con)
 	  {
 			HashMap<Integer, String> e = new HashMap<Integer, String>();

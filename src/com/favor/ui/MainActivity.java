@@ -7,6 +7,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.favor.R;
 import com.favor.util.DataHandler;
 import com.favor.util.Debug;
+import com.favor.util.Benchmark;
 import com.favor.widget.OptionsMenu;
 
 import android.app.Activity;
@@ -24,7 +25,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends SherlockListActivity {
  
-	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database" };
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Benchmark Queries" };
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -58,6 +59,10 @@ public class MainActivity extends SherlockListActivity {
 			    }
 			    else if (str=="Dump Database"){
 			    	Debug.writeDatabase(temp);
+			    }
+			    else if (str=="Benchmark Queries"){
+			    	//Benchmark.setUpDatabase();
+			    	//Benchmark.multiQueryBenchmarks(150);
 			    }
 			}
 			
