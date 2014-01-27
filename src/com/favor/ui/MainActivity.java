@@ -25,7 +25,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends SherlockListActivity {
  
-	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Benchmark Queries" };
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database"};
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -60,10 +60,13 @@ public class MainActivity extends SherlockListActivity {
 			    else if (str=="Dump Database"){
 			    	Debug.writeDatabase(temp);
 			    }
-			    else if (str=="Benchmark Queries"){
-			    	//Benchmark.setUpDatabase();
-			    	//Benchmark.multiQueryBenchmarks(150);
-			    }
+//			    else if (str=="Test Query Equality"){
+//			    	Debug.queryEquality();
+//			    }
+//			    else if (str=="Benchmark Queries"){
+//			    	Benchmark.setUpDatabase();
+//			    	Benchmark.multiQueryBenchmarks(150);
+//			    }
 			}
 			
 		});

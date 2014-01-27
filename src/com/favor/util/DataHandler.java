@@ -695,7 +695,13 @@ public class DataHandler extends SQLiteOpenHelper{
 	}
 
 	
-	//TODO: TEST ME and other other updated multiQuery for efficiency, reliability, etc.
+	
+	//The below method is an alternative way of running multiQueries. It features more database hits and less sorting, but after some
+	//basic benchmarking it proved to be the slower of the two methods. I'm leaving it here in case it ever proves worth coming back
+	//to; it might serve as a model for something else or it has the slim potential to be more performant in cases where we fetch
+	//huge numbers of text messages for only a few contacts, although I'd be surprised if the difference were enough to make it worth
+	//using as a default.
+	/*
 	private HashMap<Contact, ArrayList<textMessage>> multiQueryDatabase(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table){
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");
 		if (contacts.length < 2) throw new dataException("multiQuery should not be used with less than 2 contacts.");
@@ -746,6 +752,7 @@ public class DataHandler extends SQLiteOpenHelper{
 		
 		
 	}
+	*/
 	private HashMap<Contact, ArrayList<textMessage>> multiQuery(Contact[] contacts, String[] keys, long fromDate, long untilDate, String table)
 	{		
 		if (fromDate > untilDate) throw new dataException("fromDate must be <= untilDate.");

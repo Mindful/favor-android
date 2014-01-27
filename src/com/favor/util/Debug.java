@@ -111,6 +111,57 @@ public class Debug {
 		Log.v("Debug Log", message);
 	}
 	
+	/*
+	public static void queryEquality(){
+		DataHandler db = DataHandler.get();
+		Contact[] c = new Contact[2];
+		List<Contact> contacts = db.contacts();
+		for (Contact cc : contacts){
+			//Debug.log(cc.toString());
+			if(cc.addresses()[0].equals("3607428147")){
+				c[0]=cc; //Robert
+				Debug.log("Found Robert");
+			}else if(cc.addresses()[0].equals("3607087506")){
+				c[1]=cc; //Rebar
+				Debug.log("Found Rebar");
+			}
+		}
+		HashMap<Contact, ArrayList<textMessage>> dbResults = db.multiQueryDatabase(c, DataHandler.KEYS_PUBLIC, -1, -1, "sent");
+		HashMap<Contact, ArrayList<textMessage>> javaResults = db.multiQuery(c, DataHandler.KEYS_PUBLIC, -1, -1, "sent");
+		int totalOne=dbResults.get(c[0]).size(), totalTwo=javaResults.get(c[0]).size();
+		Debug.log("Robert msg count -- total one:"+totalOne+" total two:"+totalTwo);
+		if(totalOne!=totalTwo){
+			Debug.log("Robert text quantity inequal; something broken.");
+		}
+		totalOne=dbResults.get(c[1]).size(); totalTwo=javaResults.get(c[1]).size();
+		Debug.log("Rebar msg count -- total one:"+totalOne+" total two:"+totalTwo);
+		if(totalOne!=totalTwo){
+			Debug.log("Rebar text quantity inequal; something broken.");
+		}
+		totalOne = totalTwo=0;
+		for (int i = 0; i < dbResults.get(c[0]).size(); ++i){
+			totalOne+=dbResults.get(c[0]).get(i).charCount();
+			totalTwo+=javaResults.get(c[0]).get(i).charCount();
+		}
+		if (totalOne!=totalTwo){
+			Debug.log("Robert text char count total inequal; something broken.");
+		}
+		Debug.log("Robert char count -- total one:"+totalOne+" total two:"+totalTwo);
+		totalOne = totalTwo = 0;
+		for (int i = 0; i < dbResults.get(c[1]).size(); ++i){
+			totalOne+=dbResults.get(c[1]).get(i).charCount();
+			totalTwo+=javaResults.get(c[1]).get(i).charCount();
+		}
+		Debug.log("Rebar char count -- total one:"+totalOne+" total two:"+totalTwo);
+		if (totalOne!=totalTwo){
+			Debug.log("Rebar text char count total inequal; something broken.");
+			
+		}
+		Debug.log("Finished");
+		
+	}
+	*/
+	
 	public static void testData(Contact contact)
 	{
 		//"3607087506"
