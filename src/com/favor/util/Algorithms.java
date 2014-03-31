@@ -12,6 +12,7 @@ import java.util.List;
 
 
 
+
 public class Algorithms {
 
   DataHandler db = DataHandler.get();
@@ -32,8 +33,8 @@ public class Algorithms {
 
 	  //Have to grab a random field. Character count seems as good as any
 	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
-	  ArrayList <textMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <favorMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <favorMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
 	  values[0] = sent.size();
 	  values[1] = rec.size();
@@ -65,18 +66,18 @@ public class Algorithms {
 	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
 
 	  //queries take an address, keys, and dates
-	  ArrayList <textMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
-	  ArrayList <textMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <favorMessage> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <favorMessage> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
 	  //TODO: IF we don't just end up using SQL for this, the "enhanced loops"
 	  //are substatially slower on arrays and arraylists. Don't use these.
 	  //counting sent values, stored at index 0 in the array values
-	  for (textMessage t : sent) {
+	  for (favorMessage t : sent) {
 		  values[0] += t.charCount();
 	  }
 
 	  //couting received values, stored at index 1 in the array values
-	  for (textMessage t : rec) {
+	  for (favorMessage t : rec) {
 		  values[1] += t.charCount();
 	  }
 	  //TODO: check for 0s before performing division; return empty/zero 
@@ -114,11 +115,11 @@ public class Algorithms {
   public static long[] responseTime (Contact contact, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	  String[] keys = new String[] {DataHandler.KEY_DATE};
- 	  LinkedList<textMessage> list = db.queryConversation(contact, keys, fromDate, untilDate);
+ 	  LinkedList<favorMessage> list = db.queryConversation(contact, keys, fromDate, untilDate);
  	  double avgSent = 0;
  	  double avgRec = 0;
  	  long [] averages = {0, 0};
- 	  textMessage temp, prev = null;
+ 	  favorMessage temp, prev = null;
  	  long time;
  		
  	  //too many intermediary list objects?
@@ -208,7 +209,7 @@ public class Algorithms {
   		//DataHandler.KEYS_PUBLIC accounts for all public keys
   		//I'm assuming you'll use charCount, date, media, and address. If there are any
   		//that you don't use, just build your own array with the keys excluding the one you don't need
-  		LinkedList<textMessage> convo = db.queryConversation(contact, keys, -1, -1);
+  		LinkedList<favorMessage> convo = db.queryConversation(contact, keys, -1, -1);
   		long sentChar = 0;
 //  		long recChar = 0;
 //  		double charRatio = 0;
@@ -220,7 +221,7 @@ public class Algorithms {
 //  		double mediaRatio = 0;
 //  		double responseRatio = 0;
   		
-  		for (textMessage t : convo) {
+  		for (favorMessage t : convo) {
   			if (!t.received()) { 		
   				sentChar += t.charCount();
   				sentCount++;
@@ -231,11 +232,11 @@ public class Algorithms {
   			
   		//response time calc
   		LinkedList<Long> sentTimes = new LinkedList<Long>();
-  		textMessage prev = null;
+  		favorMessage prev = null;
   		long time = 0;
   		while(convo.peekLast()!=null)
  		{
- 		    textMessage temp = convo.pollLast(); //removes from queue
+ 		    favorMessage temp = convo.pollLast(); //removes from queue
  			if (prev!= null)
  			{
  				time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?
@@ -270,7 +271,7 @@ public class Algorithms {
   	public static long friendScore (Contact contact) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataHandler.KEYS_PUBLIC; 
-  		LinkedList<textMessage> convo = db.queryConversation(contact, keys, -1, -1);
+  		LinkedList<favorMessage> convo = db.queryConversation(contact, keys, -1, -1);
   		int media = 0;
   		int messages = 0;
   		long charCount = 0;
@@ -280,18 +281,18 @@ public class Algorithms {
 //  		long minChar = Long.MAX_VALUE;
   		LinkedList<Long> recTimes = new LinkedList<Long>();
   		
-  		for (textMessage t: convo) {
+  		for (favorMessage t: convo) {
   				messages++;
   				charCount += t.charCount();
   				if (t.multimedia()) media++;
   		}
   		
-  		textMessage prev = null;
+  		favorMessage prev = null;
   		long maximum = Long.MIN_VALUE;
   		long minimum = Long.MAX_VALUE;
   		while(convo.peekLast()!=null)
  		{
- 		    textMessage temp = convo.pollLast(); //removes from queue
+ 		    favorMessage temp = convo.pollLast(); //removes from queue
  			if (prev!= null)
  			{
  				long time = temp.rawDate() - prev.rawDate(); //make time negative, because it will be. also consider switch ifs?

@@ -13,12 +13,14 @@ import java.util.Map;
 
 
 
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.util.Log;
 import android.util.SparseArray;
 import android.widget.Toast;
@@ -29,38 +31,46 @@ import android.widget.Toast;
 @SuppressLint("NewApi") //suppressing error on L46
 public class Debug {
 	
+	public static void strictMode(){
+		//StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
+		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
+		//TODO: change this after the email testing is done
+		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().penaltyLog().build());
+		//StrictMode.enableDefaults();
+	}
+	
 	public static void queryTest(Contact[] contacts, String[] keys)
 	{
 		Contact contact = contacts[0];
 		DataHandler db = DataHandler.get();
-		List<textMessage> list = db.queryFromAddress(contact, keys, -1, -1);
+		List<favorMessage> list = db.queryFromAddress(contact, keys, -1, -1);
 		Debug.log("From");
-		for (textMessage t : list )
+		for (favorMessage t : list )
 		{
 			Debug.log(""+t);
 		}
 		list = db.queryToAddress(contact, keys, -1, -1);
 		Debug.log("To");
-		for (textMessage t : list )
+		for (favorMessage t : list )
 		{
 			Debug.log(""+t);
 		}
 		list = db.queryConversation(contact, keys, -1, -1);
 		Debug.log("Convo");
-		for (textMessage t : list )
+		for (favorMessage t : list )
 		{
 			Debug.log(""+t);
 		}
 		Debug.log("MultiFrom");
-		HashMap<Contact, ArrayList<textMessage>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
-		for (Map.Entry<Contact, ArrayList<textMessage>> entry : multi.entrySet()) {
+		HashMap<Contact, ArrayList<favorMessage>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
+		for (Map.Entry<Contact, ArrayList<favorMessage>> entry : multi.entrySet()) {
 		    Debug.log(entry.getKey().getName()+":"+entry.getValue().size());
 		}
 		
 		for (int i = 0; i < contacts.length; i++)
 		{
 			list = multi.get(contacts[i]);
-			for (textMessage t : list )
+			for (favorMessage t : list )
 			{
 				Debug.log(""+t);
 			}

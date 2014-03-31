@@ -24,7 +24,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends SherlockListActivity {
  
-	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Compare Averages"};
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Test Mail"};
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -38,6 +38,7 @@ public class MainActivity extends SherlockListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Debug.strictMode();
 		DataHandler db = DataHandler.initialize(this);
 		db.update();
 		final Activity temp = this; //Only used for database dump toasting
@@ -58,6 +59,10 @@ public class MainActivity extends SherlockListActivity {
 			    }
 			    else if (str=="Dump Database"){
 			    	Debug.writeDatabase(temp);
+			    }
+			    else if (str=="Test Mail"){
+			    	DataHandler sdb = DataHandler.get();
+			    	sdb.updateEmail();
 			    }
 //			    else if (str=="Test Query Equality"){
 //			    	Debug.queryEquality();
