@@ -531,7 +531,8 @@ public class DataHandler extends SQLiteOpenHelper {
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {
 					 Argument args = new Argument();
 		               args.writeString("ALL");
-		               Response[] r = p.command("SEARCH (OR (TO \"tech163@fusionswift.com\") (FROM \"clifthom@evergreen.edu\"))", args);
+		               //Response[] r = p.command("SEARCH (OR (TO \"tech163@fusionswift.com\") (FROM \"clifthom@evergreen.edu\"))", args);
+		               Response[] r = p.command("UID SEARCH (or FROM \"clifthom@evergreen.edu\" FROM \"stong7@yahoo.com\" UID 1700:*)", args);
 		               //check the output, has to be as (1)
 		               Response response = r[r.length - 1];
 		               // Grab all SORT responses
