@@ -13,6 +13,12 @@ import java.util.Properties;
 import java.util.TimeZone;
 
 import com.favor.ui.GraphActivity;
+import com.sun.mail.iap.Argument;
+import com.sun.mail.iap.ProtocolException;
+import com.sun.mail.iap.Response;
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.protocol.IMAPProtocol;
+import com.sun.mail.imap.protocol.IMAPResponse;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -32,6 +38,7 @@ import javax.mail.Message;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.search.SearchTerm;
 
 class dataException extends RuntimeException {
 
@@ -233,6 +240,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public static final String KEY_CHARCOUNT = "chars"; // character count
 	public static final String KEY_MEDIA = "media"; // 1:media, 0:no media (sms
 													// or plain mms)
+	public static final String KEY_TYPE = "msg_type"; //TODO: coming soon, differentiates texts/emails/line/skype/etc.
 	private static final String GENERATED_KEY_SENT = "sent";
 	public static final String[] KEYS_PUBLIC = { KEY_DATE, KEY_ADDRESS,
 			KEY_CHARCOUNT, KEY_MEDIA };
@@ -365,7 +373,8 @@ public class DataHandler extends SQLiteOpenHelper {
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
 
-	private long lastFetch;
+	private long lastFetchSMS;
+	private long lastFetchEmail;
 	private ArrayList<Contact> contactsList;
 
 	/**
@@ -392,7 +401,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME,
 				Context.MODE_PRIVATE);
 		edit = prefs.edit();
-		lastFetch = prefs.getLong(SAVED_SMS_FETCH, 0);
+		lastFetchSMS = prefs.getLong(SAVED_SMS_FETCH, 0);
 	}
 
 	/**
@@ -503,25 +512,51 @@ public class DataHandler extends SQLiteOpenHelper {
 	public void updateEmail() {
 		Properties props = new Properties();
 		props.setProperty("mail.store.protocol", "imaps");
+		Debug.log("start email test");
 		try {
 			Session session = Session.getInstance(props, null);
 			Store store = session.getStore();
 			store.connect("imap.gmail.com", "joshuabtanner@gmail.com",
 					"tahnqydxlonnpqco");
-			Folder inbox = store.getFolder("INBOX");
+			IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
 			inbox.open(Folder.READ_ONLY);
 
-			Message msg = inbox.getMessage(inbox.getMessageCount());
+			//This code is largely modeled after the time I did something similar in Python, here:
+			//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
+			
+			lastFetchEmail = prefs.getLong(SAVED_EMAIL_FETCH, 0);
+			Object uids = inbox.doCommand(new IMAPFolder.ProtocolCommand() {
+				
+				@Override
+				public Object doCommand(IMAPProtocol p) throws ProtocolException {
+					 Argument args = new Argument();
+		               args.writeString("ALL");
+		               Response[] r = p.command("SEARCH (OR (TO \"tech163@fusionswift.com\") (FROM \"clifthom@evergreen.edu\"))", args);
+		               //check the output, has to be as (1)
+		               Response response = r[r.length - 1];
+		               // Grab all SORT responses
+		               Debug.log(response.toString());
+		               if (response.isOK()) { // command successful
+		                       for (int i = 0, len = r.length; i < len; i++) {
+		                                       if (!(r[i] instanceof IMAPResponse))
+		                                               continue;
+		                                       IMAPResponse ir = (IMAPResponse) r[i];
+		                                       if (ir.keyEquals("SEARCH")) {
+		                                               String num;
+		                                               Debug.log(ir.toString());
+		                                               while ((num = ir.readAtomString()) != null) {
+		                                                       Debug.log(num+" ");
+		                                               }
+		                                       }
+		                       }
+		               } else{
+		            	   Debug.log("response not okay");
+		               }
+		               Debug.log("finish");
+		               return null;
+					}
+				});
 
-			Address[] in = msg.getFrom();
-			for (Address address : in) {
-				Debug.log("FROM:" + address.toString());
-			}
-			Multipart mp = (Multipart) msg.getContent();
-			BodyPart bp = mp.getBodyPart(0);
-			Debug.log("SENT DATE:" + msg.getSentDate());
-			Debug.log("SUBJECT:" + msg.getSubject());
-			Debug.log("CONTENT:" + bp.getContent());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -529,12 +564,12 @@ public class DataHandler extends SQLiteOpenHelper {
 	}
 
 	private void updateSMS() {
-		lastFetch = prefs.getLong(SAVED_SMS_FETCH, 0);
+		lastFetchSMS = prefs.getLong(SAVED_SMS_FETCH, 0);
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
 		try {
 			Cursor c = context.getContentResolver().query(SMS_IN,
-					SMS_PROJECTION, KEY_DATE + " > " + lastFetch, null,
+					SMS_PROJECTION, KEY_DATE + " > " + lastFetchSMS, null,
 					KEY_DATE);
 			while (c.moveToNext()) {
 				db.insert(
@@ -546,7 +581,7 @@ public class DataHandler extends SQLiteOpenHelper {
 			}
 			c.close();
 			c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
 			while (c.moveToNext()) {
 				db.insert(
 						TABLE_SENT,
@@ -557,13 +592,13 @@ public class DataHandler extends SQLiteOpenHelper {
 			}
 			c.close();
 			c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
 			while (c.moveToNext()) {
 				receivedMMS(c.getLong(0), c.getLong(1), db);
 			}
 			c.close();
 			c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
 			while (c.moveToNext()) {
 				sentMMS(c.getLong(0), c.getLong(1), db);
 			}
