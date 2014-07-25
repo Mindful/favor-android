@@ -24,10 +24,11 @@ import android.support.v4.app.NavUtils;
 
 import com.favor.ui.graph.Graph;
 import com.favor.ui.graph.GraphView;
-import com.favor.util.Algorithms;
 import com.favor.util.Contact;
-import com.favor.util.DataHandler;
 import com.favor.R;
+
+import data.DataProcessor;
+import data.DataHandler;
 
 public class GraphActivity extends SherlockActivity {
 
@@ -107,7 +108,7 @@ public class GraphActivity extends SherlockActivity {
 			if (contacts.size() == 1)
 			{
 				long[][] relationshipScore = new long[1][]; //Seems pointless, has to be [1][x] for Doughnut
-				relationshipScore[0] = Algorithms.relationshipScore(contacts.get(0));
+				relationshipScore[0] = DataProcessor.relationshipScore(contacts.get(0));
 				return (Object) relationshipScore;
 			}
 			else
@@ -115,7 +116,7 @@ public class GraphActivity extends SherlockActivity {
 				long[] friendScores = new long[contacts.size()];
 				for (int i = 0; i < contacts.size(); i++)
 				{
-					friendScores[i] = Algorithms.friendScore(contacts.get(i));
+					friendScores[i] = DataProcessor.friendScore(contacts.get(i));
 				}
 				return (Object) friendScores; 
 			}
@@ -123,21 +124,21 @@ public class GraphActivity extends SherlockActivity {
 			long[][] characterCounts = new long[contacts.size()][];
 			for (int i = 0; i < contacts.size(); i++)
 			{
-				characterCounts[i] = Algorithms.charCount(contacts.get(i), fromDate, untilDate);
+				characterCounts[i] = DataProcessor.charCount(contacts.get(i), fromDate, untilDate);
 			}
 			return (Object) characterCounts;
 		case 2:
 			long[][] messageCounts = new long[contacts.size()][];
 			for (int i = 0; i < contacts.size(); i ++)
 			{
-				messageCounts[i] = Algorithms.messageCount(contacts.get(i), fromDate, untilDate);
+				messageCounts[i] = DataProcessor.messageCount(contacts.get(i), fromDate, untilDate);
 			}
 			return (Object) messageCounts;
 		case 3:
 			long[][] responseTimes = new long[contacts.size()][];
 			for (int i = 0; i < contacts.size(); i++)
 			{
-				responseTimes[i] = Algorithms.responseTime(contacts.get(i), fromDate, untilDate);
+				responseTimes[i] = DataProcessor.responseTime(contacts.get(i), fromDate, untilDate);
 			}
 			return (Object) responseTimes;
 		default:

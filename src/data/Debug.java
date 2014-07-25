@@ -1,4 +1,4 @@
-package com.favor.util;
+package data;
 
 //This would ideally be in the favor.develop package but then we couldn't get at some of the internal datahandler stuff...
 
@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.favor.util.Contact;
+
 
 
 
@@ -43,34 +46,34 @@ public class Debug {
 	{
 		Contact contact = contacts[0];
 		DataHandler db = DataHandler.get();
-		List<favorMessage> list = db.queryFromAddress(contact, keys, -1, -1);
+		List<Message> list = db.queryFromAddress(contact, keys, -1, -1);
 		Debug.log("From");
-		for (favorMessage t : list )
+		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
 		list = db.queryToAddress(contact, keys, -1, -1);
 		Debug.log("To");
-		for (favorMessage t : list )
+		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
 		list = db.queryConversation(contact, keys, -1, -1);
 		Debug.log("Convo");
-		for (favorMessage t : list )
+		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
 		Debug.log("MultiFrom");
-		HashMap<Contact, ArrayList<favorMessage>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
-		for (Map.Entry<Contact, ArrayList<favorMessage>> entry : multi.entrySet()) {
+		HashMap<Contact, ArrayList<Message>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
+		for (Map.Entry<Contact, ArrayList<Message>> entry : multi.entrySet()) {
 		    Debug.log(entry.getKey().getName()+":"+entry.getValue().size());
 		}
 		
 		for (int i = 0; i < contacts.length; i++)
 		{
 			list = multi.get(contacts[i]);
-			for (favorMessage t : list )
+			for (Message t : list )
 			{
 				Debug.log(""+t);
 			}
@@ -212,7 +215,7 @@ public class Debug {
 		//the math every time
 		DataHandler db = DataHandler.get();
 		
-		long[] chars = Algorithms.charCount(contact, -1, -1);
+		long[] chars = DataProcessor.charCount(contact, -1, -1);
 		db.saveData(contact, DataHandler.DATA_RECEIVED_CHARS, chars[1]);
 		db.saveData(contact, DataHandler.DATA_SENT_CHARS, chars[0]);
 		SparseArray<dataTime> all = db.getAllData(contact);
@@ -274,6 +277,6 @@ public class Debug {
 	}
 	public static void algotest () {
 	
-		Algorithms.responseTime(new Contact ("Rebar Niemi", "-1", new String[]{"3607081836"}),1365348980000l, 1367940980000l);
+		DataProcessor.responseTime(new Contact ("Rebar Niemi", "-1", new String[]{"3607081836"}),1365348980000l, 1367940980000l);
 	}
 }

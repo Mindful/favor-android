@@ -6,8 +6,9 @@ import com.actionbarsherlock.view.MenuItem;
 
 import com.favor.R;
 import com.favor.develop.Benchmark;
-import com.favor.util.DataHandler;
-import com.favor.util.Debug;
+
+import data.DataHandler;
+import data.Debug;
 
 import android.app.Activity;
 //import android.app.ListActivity;

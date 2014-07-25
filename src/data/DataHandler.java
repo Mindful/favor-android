@@ -1,6 +1,5 @@
-package com.favor.util;
+package data;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,9 +9,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 
 import com.favor.ui.GraphActivity;
+import com.favor.util.Contact;
+import com.favor.util.Misc;
 import com.sun.mail.iap.Argument;
 import com.sun.mail.iap.ProtocolException;
 import com.sun.mail.iap.Response;
@@ -34,7 +34,7 @@ import android.util.SparseArray;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Folder;
-import javax.mail.Message;
+//import javax.mail.Message;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
@@ -70,153 +70,6 @@ class dataTime {
 	public long time() {
 		return time;
 	}
-}
-
-class favorMessage {
-	private long date;
-	private int charCount;
-	private String address;
-	private int media;
-	private int sent;
-
-	private favorMessage() {
-	};
-
-	public static favorMessage build(Cursor c, int sent) {
-		favorMessage ret = new favorMessage();
-		int dateColumn = c.getColumnIndex(DataHandler.KEY_DATE), addressColumn = c
-				.getColumnIndex(DataHandler.KEY_ADDRESS), charCountColumn = c
-				.getColumnIndex(DataHandler.KEY_CHARCOUNT), mediaColumn = c
-				.getColumnIndex(DataHandler.KEY_MEDIA);
-		ret.sent = sent;
-		if (dateColumn != -1)
-			ret.date = c.getLong(dateColumn);
-		else
-			ret.date = -1;
-		if (addressColumn != -1)
-			ret.address = c.getString(addressColumn);
-		else
-			ret.address = null;
-		if (charCountColumn != -1)
-			ret.charCount = c.getInt(charCountColumn);
-		else
-			ret.charCount = -1;
-		if (mediaColumn != -1)
-			ret.media = c.getInt(mediaColumn);
-		else
-			ret.media = -1;
-		return ret;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		favorMessage other = (favorMessage) obj;
-		if (address == null) {
-			if (other.address != null)
-				return false;
-		} else if (!address.equals(other.address))
-			return false;
-		if (charCount != other.charCount)
-			return false;
-		if (date != other.date)
-			return false;
-		if (media != other.media)
-			return false;
-		if (sent != other.sent)
-			return false;
-		return true;
-	}
-
-	/**
-	 * Strictly a debug method
-	 */
-	public String toString() {
-		String log = "Address:";
-		if (address == null)
-			log += "<>";
-		else
-			log += address;
-		log += " Date:";
-		if (date == -1)
-			log += "<>";
-		else
-			log += date;
-		log += " Chars:";
-		if (charCount == -1)
-			log += "<>";
-		else
-			log += charCount;
-		log += " Media:";
-		if (media == -1)
-			log += "<>";
-		else
-			log += media;
-		log += " Sent:";
-		if (sent == -1)
-			log += "<>";
-		else
-			log += sent;
-		return log;
-	}
-
-	public boolean multimedia() {
-		if (media == -1)
-			throw new dataException(
-					"multimedia() value not known. Query must include KEY_MEDIA");
-		else
-			return media == 1;
-	}
-
-	public boolean received() {
-		if (sent == -1)
-			throw new dataException(
-					"received() value not known. Query must include KEY_SENT");
-		else
-			return sent == 0;
-	}
-
-	public int charCount() {
-		if (charCount == -1)
-			throw new dataException(
-					"charCount() value not known. Query must include KEY_CHARCOUNT");
-		else
-			return charCount;
-	}
-
-	public String address() {
-		if (address == null)
-			throw new dataException(
-					"address() value not known. Query must include KEY_ADDRESS");
-		else
-			return address;
-	}
-
-	public long rawDate() {
-		if (date == -1)
-			throw new dataException(
-					"rawDate() value not known. Query must include KEY_DATE");
-		else
-			return date;
-	}
-
-	public String textDate() {
-		if (date == -1)
-			throw new dataException(
-					"textDate() value not known. Query must include KEY_DATE");
-		else {
-			SimpleDateFormat d = new SimpleDateFormat(
-					"MM/dd/yyy hh:mm:ss a zzz");
-			d.setTimeZone(TimeZone.getDefault());
-			return d.format(new Date(date));
-		}
-	}
-
 }
 
 // http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
@@ -616,7 +469,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		} catch (Exception ex) {
 			throw new dataException(ex.toString());
 		} finally {
-			db.setTransactionSuccessful();
+			db.setTransactionSuccessful(); //TODO: this is dumb, it shouldn't be in the finally block when it's not always successful
 		}
 		db.endTransaction();
 
@@ -866,7 +719,7 @@ public class DataHandler extends SQLiteOpenHelper {
 															// recent message
 															// last
 
-	private ArrayList<favorMessage> query(Contact contact, String[] keys,
+	private ArrayList<Message> query(Contact contact, String[] keys,
 			long fromDate, long untilDate, String table) {
 		// -1 for no date, null contact for no addresses. Obviously, table is
 		// mandatory.
@@ -886,9 +739,9 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE
 				+ " " + SORT_DIRECTION);
-		ArrayList<favorMessage> ret = new ArrayList<favorMessage>(c.getCount());
+		ArrayList<Message> ret = new ArrayList<Message>(c.getCount());
 		while (c.moveToNext()) {
-			ret.add(favorMessage.build(c, sent));
+			ret.add(Message.build(c, sent));
 		}
 		c.close();
 		db.close();
@@ -987,7 +840,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * 
 	 * }
 	 */
-	private HashMap<Contact, ArrayList<favorMessage>> multiQuery(
+	private HashMap<Contact, ArrayList<Message>> multiQuery(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate,
 			String table) {
 		if (fromDate > untilDate)
@@ -1028,13 +881,13 @@ public class DataHandler extends SQLiteOpenHelper {
 																				// to
 																				// desired
 																				// size
-		HashMap<String, ArrayList<favorMessage>> lists = new HashMap<String, ArrayList<favorMessage>>();
-		HashMap<Contact, ArrayList<favorMessage>> ret = new HashMap<Contact, ArrayList<favorMessage>>();
+		HashMap<String, ArrayList<Message>> lists = new HashMap<String, ArrayList<Message>>();
+		HashMap<Contact, ArrayList<Message>> ret = new HashMap<Contact, ArrayList<Message>>();
 		for (int i = 0; i < contacts.length; i++) {
 			// The same ArrayList is pointed to by both hash tables, but we only
 			// use the lists internally
 			String[] contactAddresses = contacts[i].addresses();
-			ArrayList<favorMessage> contactMessages = new ArrayList<favorMessage>();
+			ArrayList<Message> contactMessages = new ArrayList<Message>();
 			ret.put(contacts[i], contactMessages);
 			for (int j = 0; j < contactAddresses.length; j++) {
 				addresses.add(contactAddresses[j]);
@@ -1054,7 +907,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		while (c.moveToNext()) {
 			lists.get(c.getString(addressColumn)).add(
-					favorMessage.build(c, sent));
+					Message.build(c, sent));
 		}
 
 		c.close();
@@ -1086,7 +939,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * @param untilDate
 	 *            Maximum date
 	 */
-	public LinkedList<favorMessage> queryConversation(Contact contact,
+	public LinkedList<Message> queryConversation(Contact contact,
 			String[] keys, long fromDate, long untilDate) {
 		// same sort direction as the other two
 		if (fromDate > untilDate)
@@ -1097,7 +950,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
 
-		LinkedList<favorMessage> res = new LinkedList<favorMessage>();
+		LinkedList<Message> res = new LinkedList<Message>();
 		SQLiteDatabase db = getReadableDatabase();
 
 		// Special case; this function needs to retrieve dates regardless of
@@ -1133,7 +986,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		Cursor c = db.rawQuery(sql, null);
 		int sentColumn = c.getColumnIndex(GENERATED_KEY_SENT);
 		while (c.moveToNext()) {
-			res.offer(favorMessage.build(c, c.getInt(sentColumn)));
+			res.offer(Message.build(c, c.getInt(sentColumn)));
 		}
 
 		return res;
@@ -1149,7 +1002,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * @param untilDate
 	 *            Maximum date
 	 */
-	public ArrayList<favorMessage> queryFromAll(String[] keys, long fromDate,
+	public ArrayList<Message> queryFromAll(String[] keys, long fromDate,
 			long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return query(null, keys, fromDate, untilDate, TABLE_RECEIVED);
@@ -1165,7 +1018,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * @param untilDate
 	 *            Maximum date
 	 */
-	public ArrayList<favorMessage> queryToAll(String[] keys, long fromDate,
+	public ArrayList<Message> queryToAll(String[] keys, long fromDate,
 			long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return query(null, keys, fromDate, untilDate, TABLE_SENT);
@@ -1184,7 +1037,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * @param untilDate
 	 *            Maximum date
 	 */
-	public ArrayList<favorMessage> queryFromAddress(Contact contact,
+	public ArrayList<Message> queryFromAddress(Contact contact,
 			String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return query(contact, keys, fromDate, untilDate, TABLE_RECEIVED);
@@ -1203,7 +1056,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 
-	public ArrayList<favorMessage> queryToAddress(Contact contact,
+	public ArrayList<Message> queryToAddress(Contact contact,
 			String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return query(contact, keys, fromDate, untilDate, TABLE_SENT);
@@ -1223,7 +1076,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * @param untilDate
 	 *            Maximum date
 	 */
-	public HashMap<Contact, ArrayList<favorMessage>> queryFromAddresses(
+	public HashMap<Contact, ArrayList<Message>> queryFromAddresses(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_RECEIVED);
@@ -1244,7 +1097,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 
-	public HashMap<Contact, ArrayList<favorMessage>> queryToAddresses(
+	public HashMap<Contact, ArrayList<Message>> queryToAddresses(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
 		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_SENT);
