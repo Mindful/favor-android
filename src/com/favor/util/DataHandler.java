@@ -529,10 +529,19 @@ public class DataHandler extends SQLiteOpenHelper {
 				
 				@Override
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {
-					 Argument args = new Argument();
-		               args.writeString("ALL");
+					StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
+					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
+					for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
+					for (int i = 0; i < test.length; i++) searchCommand.append("FROM \"").append(test[i]).append("\" ");
+					searchCommand.append("UID ").append(1700).append(":*");
+					Debug.log("Attempt at searchstring:");
+					Debug.log(searchCommand.toString());
+					
+					Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
+		            args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
 		               //Response[] r = p.command("SEARCH (OR (TO \"tech163@fusionswift.com\") (FROM \"clifthom@evergreen.edu\"))", args);
-		               Response[] r = p.command("UID SEARCH (or FROM \"clifthom@evergreen.edu\" FROM \"stong7@yahoo.com\" UID 1700:*)", args);
+		               //Response[] r = p.command("UID SEARCH or FROM \"clifthom@evergreen.edu\" FROM \"stong7@yahoo.com\" UID 1700:*", args);
+		               Response[] r = p.command(searchCommand.toString(), args);
 		               //check the output, has to be as (1)
 		               Response response = r[r.length - 1];
 		               // Grab all SORT responses
