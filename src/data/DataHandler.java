@@ -84,19 +84,18 @@ public class DataHandler extends SQLiteOpenHelper {
 	private static final String TABLE_SENT = "sent";
 	private static final String TABLE_RECEIVED = "received";
 	// Messages table column names
-	private static final String KEY_ID = "_id"; // unique integer message id
 	private static final String KEY_CONTACT_ID = "contact_id"; // Contact ID,
 																// valid *most
 																// of the time
-	public static final String KEY_DATE = "date"; // integer date
-	public static final String KEY_ADDRESS = "address"; // address
-	public static final String KEY_CHARCOUNT = "chars"; // character count
-	public static final String KEY_MEDIA = "media"; // 1:media, 0:no media (sms
+	
+	static final String KEY_ID = "_id"; // unique integer message id
+	static final String KEY_DATE = "date"; // integer date
+    static final String KEY_ADDRESS = "address"; // address
+	static final String KEY_CHARCOUNT = "chars"; // character count
+	static final String KEY_MEDIA = "media"; // 1:media, 0:no media (sms
 													// or plain mms)
-	public static final String KEY_TYPE = "msg_type"; //TODO: coming soon, differentiates texts/emails/line/skype/etc.
-	private static final String GENERATED_KEY_SENT = "sent";
-	public static final String[] KEYS_PUBLIC = { KEY_DATE, KEY_ADDRESS,
-			KEY_CHARCOUNT, KEY_MEDIA };
+	private static final String JOIN_KEY_SENT = "sent";
+	static final String[] KEYS_PUBLIC = { KEY_DATE, KEY_ADDRESS, KEY_CHARCOUNT, KEY_MEDIA };
 
 	// Data table
 	private static final String TABLE_DATA = "data";
@@ -106,17 +105,6 @@ public class DataHandler extends SQLiteOpenHelper {
 	private static final String KEY_DATA_TYPE = "type";
 	// USE KEY_DATE
 	private static final String KEY_COUNT = "count";
-
-	private static ContentValues row(long id, long date, String address,
-			String msg, int media, int sent) {
-		ContentValues ret = new ContentValues();
-		ret.put(KEY_ID, id);
-		ret.put(KEY_DATE, date);
-		ret.put(KEY_ADDRESS, address);
-		ret.put(KEY_CHARCOUNT, msg.length());
-		ret.put(KEY_MEDIA, media);
-		return ret;
-	}
 
 	/**
 	 * Format the address into something we can use (largely cleans up phone
@@ -170,13 +158,15 @@ public class DataHandler extends SQLiteOpenHelper {
 		edit.putLong(SAVED_SMS_FETCH, 0);
 		edit.apply();
 	}
+	
+	private void createTable(SQLiteDatabase db, String messageType){
+		
+	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SENT);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECEIVED);
-		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_SENT);
-		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_RECEIVED);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
 		onCreate(db);
 	}
@@ -208,15 +198,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		return singleton;
 	}
 
-	private static final Uri SMS_IN = Uri.parse("content://sms/inbox");
-	private static final Uri SMS_OUT = Uri.parse("content://sms/sent");
-	private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
-	private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
-	private static final String[] SMS_PROJECTION = { "_id", "date", "address",
-			"body" };
-	private static final String[] MMS_PROJECTION = { "_id", "date" };
-
-	private static final String SAVED_SMS_FETCH = "lastFetchSMS"; //This is a time
 	private static final String SAVED_EMAIL_FETCH = "lastFetchEmail"; //This is a UID
 	private static final String SAVED_INDEX = "index";
 
@@ -226,16 +207,20 @@ public class DataHandler extends SQLiteOpenHelper {
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
 
-	private long lastFetchSMS;
-	private long lastFetchEmail;
 	private ArrayList<Contact> contactsList;
 
 	/**
-	 * Utility method that provides easy access to the global application
-	 * context.
+	 * Utility method that provides easy access to the global application context.
 	 */
 	public Context context() {
 		return context;
+	}
+	
+	/**
+	 * Utility method that provides easy access to the data related preferences store.
+	 */
+	public SharedPreferences prefs(){
+		return prefs;
 	}
 
 	/**
@@ -248,13 +233,10 @@ public class DataHandler extends SQLiteOpenHelper {
 	// Not the prettiest, but people need not to be able to change it
 
 	private DataHandler(Activity mainActivity) {
-		super(mainActivity.getApplicationContext(), DATABASE_NAME, null,
-				DATABASE_VERSION);
+		super(mainActivity.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
 		context = mainActivity.getApplicationContext();
-		prefs = mainActivity.getSharedPreferences(PREFS_NAME,
-				Context.MODE_PRIVATE);
+		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		edit = prefs.edit();
-		lastFetchSMS = prefs.getLong(SAVED_SMS_FETCH, 0);
 	}
 
 	/**
@@ -426,155 +408,6 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	}
 
-	private void updateSMS() {
-		lastFetchSMS = prefs.getLong(SAVED_SMS_FETCH, 0);
-		SQLiteDatabase db = getWritableDatabase();
-		db.beginTransaction();
-		try {
-			Cursor c = context.getContentResolver().query(SMS_IN,
-					SMS_PROJECTION, KEY_DATE + " > " + lastFetchSMS, null,
-					KEY_DATE);
-			while (c.moveToNext()) {
-				db.insert(
-						TABLE_RECEIVED,
-						null,
-						row(c.getLong(0), c.getLong(1),
-								formatAddress(c.getString(2), false),
-								c.getString(3), 0, 0));
-			}
-			c.close();
-			c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
-			while (c.moveToNext()) {
-				db.insert(
-						TABLE_SENT,
-						null,
-						row(c.getLong(0), c.getLong(1),
-								formatAddress(c.getString(2), false),
-								c.getString(3), 0, 1));
-			}
-			c.close();
-			c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
-			while (c.moveToNext()) {
-				receivedMMS(c.getLong(0), c.getLong(1), db);
-			}
-			c.close();
-			c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetchSMS, null, KEY_DATE);
-			while (c.moveToNext()) {
-				sentMMS(c.getLong(0), c.getLong(1), db);
-			}
-			c.close();
-		} catch (Exception ex) {
-			throw new dataException(ex.toString());
-		} finally {
-			db.setTransactionSuccessful(); //TODO: this is dumb, it shouldn't be in the finally block when it's not always successful
-		}
-		db.endTransaction();
-
-		db.close();
-		Date d = new Date();
-		edit.putLong(SAVED_SMS_FETCH, d.getTime());
-		edit.apply();
-	}
-
-	private static final String MMS_CC = "130"; // 0x82 in
-												// com.google.android.mms.pdu.PduHeaders
-	private static final String MMS_BCC = "129"; // 0x81 in
-													// com.google.android.mms.pdu.PduHeaders
-	private static final String MMS_TO = "151"; // 0x97 in
-												// com.google.android.mms.pdu.PduHeaders
-	private static final String MMS_FROM = "137"; // 0x89 in
-													// com.google.android.mms.pdu.PduHeaders
-
-	private void sentMMS(long id, long date, SQLiteDatabase db) {
-		// MMS IDs are negative to avoid overlap
-		// Additionally, MMS dates must be multiplied by 1000 to work properly
-		// vs SMS dates
-		date = date * 1000l;
-		int media = 0;
-		String type, data = "";
-		Cursor c = context.getContentResolver().query(
-				Uri.parse("content://mms/" + id + "/part"),
-				new String[] { "_data", "text", "ct" },
-				"ct<>\"application/smil\"", null, null);
-		while (c.moveToNext()) {
-			type = c.getString(2);
-			if (type.equals("text/plain")) {
-				data = c.getString(0);
-				if (data == null) {
-					data = c.getString(1); // fetch from the "text" column
-				} else {
-					Misc.logError("Unknown message data:" + data); // we have
-																	// pure data
-				}
-			} else
-				media = 1;
-		}
-		c.close();
-
-		String filter = "(type=" + MMS_TO + " OR type=" + MMS_CC + " OR type="
-				+ MMS_BCC + ")";
-
-		c = context.getContentResolver().query(
-				Uri.parse("content://mms/" + id + "/addr"),
-				new String[] { "address" }, filter, null, null);
-		if (c.getCount() > 1) {
-			while (c.moveToNext()) {
-				db.insert(
-						TABLE_SENT,
-						null,
-						row(-id, date, formatAddress(c.getString(0), false),
-								data, media, 0));
-			}
-		} else {
-			if (c.moveToFirst()) {
-				db.insert(
-						TABLE_SENT,
-						null,
-						row(-id, date, formatAddress(c.getString(0), false),
-								data, media, 0));
-			}
-		}
-		c.close();
-	}
-
-	private void receivedMMS(long id, long date, SQLiteDatabase db) {
-		// MMS IDs are negative to avoid overlap
-		// Additionally, MMS dates must be multiplied by 1000 to work properly
-		// vs SMS dates
-		date = date * 1000l;
-		int media = 0;
-		String type, data = "";
-		Cursor c = context.getContentResolver().query(
-				Uri.parse("content://mms/" + id + "/part"),
-				new String[] { "_data", "text", "ct" },
-				"ct<>\"application/smil\"", null, null);
-		while (c.moveToNext()) {
-			type = c.getString(2);
-			if (type.equals("text/plain")) {
-				data = c.getString(0);
-				if (data == null) {
-					data = c.getString(1); // fetch from the "text" column
-				} else {
-					Misc.logError("Unknown message data:" + data); // we have
-																	// pure data
-				}
-			} else
-				media = 1;
-		}
-		c.close();
-		String filter = "type=" + MMS_FROM;
-		c = context.getContentResolver().query(
-				Uri.parse("content://mms/" + id + "/addr"),
-				new String[] { "address" }, filter, null, null);
-		c.moveToFirst();
-		String address = c.getString(0);
-		c.close();
-		db.insert(TABLE_RECEIVED, null,
-				row(-id, date, formatAddress(address, false), data, media, 0));
-	}
 
 	// Data Section
 	public static final int DATA_SENT_CHARS = 1; // total characters sent to
@@ -977,14 +810,14 @@ public class DataHandler extends SQLiteOpenHelper {
 		}
 		columns = temp.deleteCharAt(temp.length() - 1).toString();
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
-		String sql = "SELECT " + columns + ", 1 as " + GENERATED_KEY_SENT
+		String sql = "SELECT " + columns + ", 1 as " + JOIN_KEY_SENT
 				+ " FROM " + TABLE_SENT + selection + " UNION " + "SELECT "
-				+ columns + ", 0 as " + GENERATED_KEY_SENT + " FROM "
+				+ columns + ", 0 as " + JOIN_KEY_SENT + " FROM "
 				+ TABLE_RECEIVED + selection + " ORDER BY " + KEY_DATE + " "
 				+ SORT_DIRECTION;
 
 		Cursor c = db.rawQuery(sql, null);
-		int sentColumn = c.getColumnIndex(GENERATED_KEY_SENT);
+		int sentColumn = c.getColumnIndex(JOIN_KEY_SENT);
 		while (c.moveToNext()) {
 			res.offer(Message.build(c, c.getInt(sentColumn)));
 		}
