@@ -78,7 +78,6 @@ class dataTime {
 public class DataHandler extends SQLiteOpenHelper {
 	// SQLite aspects
 	private static final int DATABASE_VERSION = 1;
-	private static final String DATABASE_NAME = "messagesDatabase";
 
 	// Messages tables
 	private static final String TABLE_SENT = "sent";
@@ -88,15 +87,8 @@ public class DataHandler extends SQLiteOpenHelper {
 																// valid *most
 																// of the time
 	
-	static final String KEY_ID = "_id"; // unique integer message id
-	static final String KEY_DATE = "date"; // integer date
-    static final String KEY_ADDRESS = "address"; // address
-	static final String KEY_CHARCOUNT = "chars"; // character count
-	static final String KEY_MEDIA = "media"; // 1:media, 0:no media (sms
-													// or plain mms)
 	private static final String JOIN_KEY_SENT = "sent";
-	static final String[] KEYS_PUBLIC = { KEY_DATE, KEY_ADDRESS, KEY_CHARCOUNT, KEY_MEDIA };
-
+	
 	// Data table
 	private static final String TABLE_DATA = "data";
 
@@ -130,29 +122,29 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		// Sent table
 		// Unique to a combo of ID and address, to allow for outgoing duplicates
-		db.execSQL("CREATE TABLE " + TABLE_SENT + "(" + KEY_ID + " INTEGER,"
-				+ KEY_DATE + " INTEGER," + KEY_ADDRESS + " TEXT,"
-				+ KEY_CHARCOUNT + " INTEGER," + KEY_MEDIA + " INTEGER,"
-				+ "UNIQUE (" + KEY_ID + "," + KEY_ADDRESS + "))");
+		db.execSQL("CREATE TABLE " + TABLE_SENT + "(" + DataConstants.KEY_ID + " INTEGER,"
+				+ DataConstants.KEY_DATE + " INTEGER," + DataConstants.KEY_ADDRESS + " TEXT,"
+				+ DataConstants.KEY_CHARCOUNT + " INTEGER," + DataConstants.KEY_MEDIA + " INTEGER,"
+				+ "UNIQUE (" + DataConstants.KEY_ID + "," + DataConstants.KEY_ADDRESS + "))");
 
 		// Received Table
-		db.execSQL("CREATE TABLE " + TABLE_RECEIVED + "(" + KEY_ID
-				+ " INTEGER PRIMARY KEY," + KEY_DATE + " INTEGER,"
-				+ KEY_ADDRESS + " TEXT," + KEY_CHARCOUNT + " INTEGER,"
-				+ KEY_MEDIA + " INTEGER)");
+		db.execSQL("CREATE TABLE " + TABLE_RECEIVED + "(" + DataConstants.KEY_ID
+				+ " INTEGER PRIMARY KEY," + DataConstants.KEY_DATE + " INTEGER,"
+				+ DataConstants.KEY_ADDRESS + " TEXT," + DataConstants.KEY_CHARCOUNT + " INTEGER,"
+				+ DataConstants.KEY_MEDIA + " INTEGER)");
 
 		// Indices
 		if (prefs.getBoolean(SAVED_INDEX, true)) {
 			db.execSQL("CREATE INDEX i_" + TABLE_SENT + " ON " + TABLE_SENT
-					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+					+ " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
 			db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + " ON "
-					+ TABLE_RECEIVED + " (" + KEY_ADDRESS + "," + KEY_DATE
+					+ TABLE_RECEIVED + " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE
 					+ ")");
 		}
 
 		// Data table
 		db.execSQL("CREATE TABLE " + TABLE_DATA + "(" + KEY_CONTACT_ID
-				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + KEY_DATE
+				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + DataConstants.KEY_DATE
 				+ " INTEGER," + KEY_COUNT + " INTEGER," + "PRIMARY KEY("
 				+ KEY_CONTACT_ID + "," + KEY_DATA_TYPE + "))");
 		edit.putLong(SAVED_SMS_FETCH, 0);
@@ -209,6 +201,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	private ArrayList<Contact> contactsList;
 
+
 	/**
 	 * Utility method that provides easy access to the global application context.
 	 */
@@ -233,7 +226,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	// Not the prettiest, but people need not to be able to change it
 
 	private DataHandler(Activity mainActivity) {
-		super(mainActivity.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
+		super(mainActivity.getApplicationContext(), "messages", null, DATABASE_VERSION);
 		context = mainActivity.getApplicationContext();
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		edit = prefs.edit();
@@ -257,9 +250,9 @@ public class DataHandler extends SQLiteOpenHelper {
 			return;
 		SQLiteDatabase db = getWritableDatabase();
 		db.execSQL("CREATE INDEX i_" + TABLE_SENT + " ON " + TABLE_SENT + " ("
-				+ KEY_ADDRESS + "," + KEY_DATE + ")");
+				+ DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
 		db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + " ON " + TABLE_RECEIVED
-				+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+				+ " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
 	}
 
 	/**
@@ -338,7 +331,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		updateContacts();
 		// ----------------------------------
 		// Do the actual heavy lifting for texts and such below
-		updateSMS();
+		//updateSMS();
 		// conditionally updateEmail() and eventually possibly other updates
 
 	}
@@ -444,13 +437,13 @@ public class DataHandler extends SQLiteOpenHelper {
 		} else if (addresses.size() == 1) {
 			if (raw)
 				selection.append(" WHERE ");
-			selection.append(KEY_ADDRESS).append("=").append(addresses.get(0));
+			selection.append(DataConstants.KEY_ADDRESS).append("=").append(addresses.get(0));
 		} else {
 			if (raw)
 				selection.append(" WHERE ");
 			selection.append("(");
 			for (int i = 0; i < addresses.size(); i++) {
-				selection.append(KEY_ADDRESS).append("=")
+				selection.append(DataConstants.KEY_ADDRESS).append("=")
 						.append(addresses.get(i));
 				if (i < addresses.size() - 1)
 					selection.append(" OR ");
@@ -461,12 +454,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (fromDate > -1) {
 			if (selection.length() > 0)
 				selection.append(" AND ");
-			selection.append(KEY_DATE).append(">=").append(fromDate);
+			selection.append(DataConstants.KEY_DATE).append(">=").append(fromDate);
 		}
 		if (untilDate > -1) {
 			if (selection.length() > 0)
 				selection.append(" AND ");
-			selection.append(KEY_DATE).append("<=").append(untilDate);
+			selection.append(DataConstants.KEY_DATE).append("<=").append(untilDate);
 		}
 		return selection.toString();
 
@@ -488,7 +481,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public dataTime getData(Contact contact, int type) {
 		validDate(type);
 		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, KEY_DATE },
+		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, DataConstants.KEY_DATE },
 				KEY_CONTACT_ID + "=" + contact.id() + " AND " + KEY_DATA_TYPE
 						+ "=" + type, null, null, null, null);
 		if (c.getCount() == 0)
@@ -513,7 +506,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		SparseArray<dataTime> ret = new SparseArray<dataTime>();
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] { KEY_DATA_TYPE,
-				KEY_COUNT, KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
+				KEY_COUNT, DataConstants.KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
 				null, null, null, null);
 		while (c.moveToNext()) {
 			ret.put(c.getInt(0), new dataTime(c.getLong(1), c.getLong(2)));
@@ -541,7 +534,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(KEY_CONTACT_ID, contact.id());
 		values.put(KEY_DATA_TYPE, type);
-		values.put(KEY_DATE, new Date().getTime());
+		values.put(DataConstants.KEY_DATE, new Date().getTime());
 		values.put(KEY_COUNT, data);
 		db.insert(TABLE_DATA, null, values);
 	}
@@ -570,7 +563,7 @@ public class DataHandler extends SQLiteOpenHelper {
 					Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, false);
 
-		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE
+		Cursor c = db.query(table, keys, selection, null, null, null, DataConstants.KEY_DATE
 				+ " " + SORT_DIRECTION);
 		ArrayList<Message> ret = new ArrayList<Message>(c.getCount());
 		while (c.moveToNext()) {
@@ -690,12 +683,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		// already
 		boolean addressesRequested = false;
 		for (int i = 0; i < keys.length; i++) {
-			if (keys[i] == KEY_ADDRESS)
+			if (keys[i] == DataConstants.KEY_ADDRESS)
 				addressesRequested = true;
 		}
 		if (!addressesRequested) {
 			String[] temp = new String[keys.length + 1];
-			temp[keys.length] = KEY_ADDRESS;
+			temp[keys.length] = DataConstants.KEY_ADDRESS;
 			for (int i = 0; i < keys.length; i++) {
 				temp[i] = keys[i];
 			}
@@ -734,9 +727,9 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		String selection = buildSelection(addresses, fromDate, untilDate, false);
 		Cursor c = db.query(table, keys, selection, null, null, null,
-				KEY_ADDRESS + ", " + KEY_DATE + " " + SORT_DIRECTION);
+				DataConstants.KEY_ADDRESS + ", " + DataConstants.KEY_DATE + " " + SORT_DIRECTION);
 
-		int addressColumn = c.getColumnIndex(KEY_ADDRESS);
+		int addressColumn = c.getColumnIndex(DataConstants.KEY_ADDRESS);
 
 		while (c.moveToNext()) {
 			lists.get(c.getString(addressColumn)).add(
@@ -791,12 +784,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		// requested or not
 		boolean addressesRequested = false;
 		for (int i = 0; i < keys.length; i++) {
-			if (keys[i] == KEY_DATE)
+			if (keys[i] == DataConstants.KEY_DATE)
 				addressesRequested = true;
 		}
 		if (!addressesRequested) {
 			String[] temp = new String[keys.length + 1];
-			temp[keys.length] = KEY_DATE;
+			temp[keys.length] = DataConstants.KEY_DATE;
 			for (int i = 0; i < keys.length; i++) {
 				temp[i] = keys[i];
 			}
@@ -810,14 +803,14 @@ public class DataHandler extends SQLiteOpenHelper {
 		}
 		columns = temp.deleteCharAt(temp.length() - 1).toString();
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
-		String sql = "SELECT " + columns + ", 1 as " + JOIN_KEY_SENT
+		String sql = "SELECT " + columns + ", 1 as " + DataHandler.JOIN_KEY_SENT
 				+ " FROM " + TABLE_SENT + selection + " UNION " + "SELECT "
-				+ columns + ", 0 as " + JOIN_KEY_SENT + " FROM "
-				+ TABLE_RECEIVED + selection + " ORDER BY " + KEY_DATE + " "
+				+ columns + ", 0 as " + DataHandler.JOIN_KEY_SENT + " FROM "
+				+ TABLE_RECEIVED + selection + " ORDER BY " + DataConstants.KEY_DATE + " "
 				+ SORT_DIRECTION;
 
 		Cursor c = db.rawQuery(sql, null);
-		int sentColumn = c.getColumnIndex(JOIN_KEY_SENT);
+		int sentColumn = c.getColumnIndex(DataHandler.JOIN_KEY_SENT);
 		while (c.moveToNext()) {
 			res.offer(Message.build(c, c.getInt(sentColumn)));
 		}

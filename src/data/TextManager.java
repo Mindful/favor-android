@@ -37,8 +37,8 @@ public class TextManager extends MessageManager {
 		beginTransaction();
 		try {
 			Cursor c = context.getContentResolver().query(SMS_IN,
-					SMS_PROJECTION, KEY_DATE + " > " + lastFetch, null,
-					KEY_DATE);
+					SMS_PROJECTION, DataConstants.KEY_DATE + " > " + lastFetch, null,
+					DataConstants.KEY_DATE);
 			while (c.moveToNext()) {
 				db.insert(
 						TABLE_RECEIVED,
@@ -49,7 +49,7 @@ public class TextManager extends MessageManager {
 			}
 			c.close();
 			c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
 			while (c.moveToNext()) {
 				db.insert(
 						TABLE_SENT,
@@ -60,15 +60,15 @@ public class TextManager extends MessageManager {
 			}
 			c.close();
 			c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
 			while (c.moveToNext()) {
-				receivedMMS(c.getLong(0), c.getLong(1), db);
+				receivedMMS(c.getLong(0), c.getLong(1));
 			}
 			c.close();
 			c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
+					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
 			while (c.moveToNext()) {
-				sentMMS(c.getLong(0), c.getLong(1), db);
+				sentMMS(c.getLong(0), c.getLong(1));
 			}
 			c.close();
 			successfulTransaction();
@@ -89,7 +89,7 @@ public class TextManager extends MessageManager {
 	private static final String MMS_FROM = "137"; // 0x89 in
 													// com.google.android.mms.pdu.PduHeaders
 
-	private void sentMMS(long id, long date, SQLiteDatabase db) {
+	private void sentMMS(long id, long date) {
 		// MMS IDs are negative to avoid overlap
 		// Additionally, MMS dates must be multiplied by 1000 to work properly
 		// vs SMS dates
@@ -141,7 +141,7 @@ public class TextManager extends MessageManager {
 		c.close();
 	}
 
-	private void receivedMMS(long id, long date, SQLiteDatabase db) {
+	private void receivedMMS(long id, long date) {
 		// MMS IDs are negative to avoid overlap
 		// Additionally, MMS dates must be multiplied by 1000 to work properly
 		// vs SMS dates

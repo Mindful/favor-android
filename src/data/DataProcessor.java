@@ -30,7 +30,7 @@ public class DataProcessor {
 	  long [] values = {0,0};
 
 	  //Have to grab a random field. Character count seems as good as any
-	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  String[] keys = new String[] {DataConstants.KEY_CHARCOUNT};
 	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
 	  ArrayList <Message> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
 
@@ -61,7 +61,7 @@ public class DataProcessor {
 	  long [] values = {0,0};
 
 	  //only gets character count, all other fields are null
-	  String[] keys = new String[] {DataHandler.KEY_CHARCOUNT};
+	  String[] keys = new String[] {DataConstants.KEY_CHARCOUNT};
 
 	  //queries take an address, keys, and dates
 	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
@@ -112,7 +112,7 @@ public class DataProcessor {
    */
   public static long[] responseTime (Contact contact, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
- 	  String[] keys = new String[] {DataHandler.KEY_DATE};
+ 	  String[] keys = new String[] {DataConstants.KEY_DATE};
  	  LinkedList<Message> list = db.queryConversation(contact, keys, fromDate, untilDate);
  	  double avgSent = 0;
  	  double avgRec = 0;

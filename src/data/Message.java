@@ -21,10 +21,10 @@ public class Message {
 
 	public static Message build(Cursor c, int sent, int type) {
 		Message ret = new Message();
-		int dateColumn = c.getColumnIndex(DataHandler.KEY_DATE), 
-			addressColumn = c.getColumnIndex(DataHandler.KEY_ADDRESS), 
-			charCountColumn = c.getColumnIndex(DataHandler.KEY_CHARCOUNT), 
-			mediaColumn = c.getColumnIndex(DataHandler.KEY_MEDIA);
+		int dateColumn = c.getColumnIndex(DataConstants.KEY_DATE), 
+			addressColumn = c.getColumnIndex(DataConstants.KEY_ADDRESS), 
+			charCountColumn = c.getColumnIndex(DataConstants.KEY_CHARCOUNT), 
+			mediaColumn = c.getColumnIndex(DataConstants.KEY_MEDIA);
 		
 		ret.sent = sent;
 		ret.type = type;
