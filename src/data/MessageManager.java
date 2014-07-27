@@ -6,17 +6,11 @@ import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 
-import static data.DataHandler.KEY_ADDRESS;
-import static data.DataHandler.KEY_ID;
-import static data.DataHandler.KEY_DATE;
-import static data.DataHandler.KEY_ADDRESS;
-import static data.DataHandler.KEY_CHARCOUNT;
-import static data.DataHandler.KEY_MEDIA;
+
 
 public abstract class MessageManager {
 	
 		protected long lastFetch;
-		protected long lastID;
 		
 		protected final int type;
 		protected final String name;
@@ -30,7 +24,6 @@ public abstract class MessageManager {
 			//Register with the datahandler, and throw an exception if something of this type is already registered?
 			dh = DataHandler.get();
 			lastFetch = getLastFetch();
-			lastID = getLastID();
 			this.type = type;
 			this.name = name;
 		}
@@ -39,9 +32,6 @@ public abstract class MessageManager {
 			return dh.prefs().getLong("lastFetch"+name, 0);
 		}
 		
-		protected long getLastID(){
-			return dh.prefs().getLong("lastID"+name, 0);
-		}
 		
 		
 		abstract void fetch();
@@ -49,12 +39,13 @@ public abstract class MessageManager {
 		void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
 			if(db==null) throw new dataException("Cannot export messages to database without open transaction.");
 			ContentValues row = new ContentValues();
-			row.put(KEY_ID, id);
-			row.put(KEY_DATE, date);
-			row.put(KEY_ADDRESS, address);
-			row.put(KEY_CHARCOUNT, msg.length());
-			row.put(KEY_MEDIA, media);
-			//actual export code
+			row.put(DataConstants.KEY_ID, id);
+			row.put(DataConstants.KEY_DATE, date);
+			row.put(DataConstants.KEY_ADDRESS, formatAddress(address, false));
+			row.put(DataConstants.KEY_CHARCOUNT, msg.length());
+			row.put(DataConstants.KEY_MEDIA, media);
+			String table = (sent ? DataConstants.TABLE_SENT : DataConstants.TABLE_RECEIVED)+name;
+			db.insert(table, null, row);
 		}
 
 		
@@ -68,12 +59,11 @@ public abstract class MessageManager {
 			}
 		}
 		
-		void successfulTransaction(long lastID){
+		void successfulTransaction(long lastFetch){
 			if(db==null) throw new dataException("Cannot mark transaction successful without open transaction.");
 			db.setTransactionSuccessful();
 			success = true;
-			dh.prefs().edit().putLong("lastFetch"+name, new Date().getTime()).commit();
-			dh.prefs().edit().putLong("lastID"+name, new Date().getTime()).commit();
+			dh.prefs().edit().putLong("lastFetch"+name, lastFetch).commit();
 		}
 		
 		void endTransaction(){
