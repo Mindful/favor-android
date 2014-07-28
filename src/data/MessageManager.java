@@ -11,10 +11,9 @@ import android.database.sqlite.SQLiteDatabase;
 public abstract class MessageManager {
 	
 		protected long lastFetch;
-		
-		protected final int type;
-		protected final String name;
 		protected final DataHandler dh;
+		final int type;
+		final String name;
 
 		private boolean success = false;
 		private SQLiteDatabase db;
@@ -47,6 +46,8 @@ public abstract class MessageManager {
 			String table = (sent ? DataConstants.TABLE_SENT : DataConstants.TABLE_RECEIVED)+name;
 			db.insert(table, null, row);
 		}
+		
+		abstract String formatAddress(String address);
 
 		
 		
