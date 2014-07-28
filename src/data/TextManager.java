@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 
 import com.favor.util.Misc;
+import static data.DataConstants.*;
 
 
 
@@ -36,22 +37,22 @@ public class TextManager extends MessageManager {
 		beginTransaction();
 		try {
 			Cursor c = dh.context().getContentResolver().query(SMS_IN, SMS_PROJECTION, 
-					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
+					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
 			while (c.moveToNext()) exportMessage(false, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
 			c.close();
 			
 			c = dh.context().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
+					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
 			while (c.moveToNext()) while (c.moveToNext()) exportMessage(true, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
 			c.close();
 			
 			c = dh.context().getContentResolver().query(MMS_IN, MMS_PROJECTION,
-					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
+					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
 			while (c.moveToNext()) receivedMMS(c.getLong(0), c.getLong(1));
 			c.close();
 			
 			c = dh.context().getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-					DataConstants.KEY_DATE + " > " + lastFetch, null, DataConstants.KEY_DATE);
+					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
 			while (c.moveToNext()) sentMMS(c.getLong(0), c.getLong(1));
 			c.close();
 			successfulTransaction(new Date().getTime());

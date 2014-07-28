@@ -20,6 +20,8 @@ import javax.mail.BodyPart;
 //import javax.mail.Message;
 import javax.mail.search.SearchTerm;
 
+import static data.DataConstants.*;
+
 public class EmailManager extends MessageManager {
 
 	protected EmailManager(int type, String name) {
@@ -35,6 +37,7 @@ public class EmailManager extends MessageManager {
 	
 	// todo: eventually should be private, use or not determined by settings
 		public void updateEmail() {
+			//TODO: this only does received right now, we'll have to hit sent as a separate folder
 			Properties props = new Properties();
 			props.setProperty("mail.store.protocol", "imaps");
 			Debug.log("start email test");
@@ -80,12 +83,24 @@ public class EmailManager extends MessageManager {
 					}
 				});
 				
+			//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
+			javax.mail.Message[] messages = inbox.getMessagesByUID(uidArray);
+			for(int i = 0; i < messages.length; i++){
+				messages[i].getFrom()[0].toString();
+				messages[i].getContent(); //Well, this is probably what we'll need to determine both the message size 
+				//and whether it had media or not, but it looks like determining that is going to take consulting the
+				//documentation
+				messages[i].getReceivedDate().getTime();
+				boolean sent = false;
+				long id = uidArray[i];
+				//exportMessage(false, uidArray[i], messages[i].getFrom()[0].toString(),  )
+				//messages[i].getSentDate(); //For when we write the sent message querying code
+			}
+				
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
-			javax.mail.Message[] messages;
 		}
 
 	@Override

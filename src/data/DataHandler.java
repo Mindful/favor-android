@@ -101,43 +101,14 @@ public class DataHandler extends SQLiteOpenHelper {
 	// onCreate
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		// Both tables are indexed by address and then date for query
-		// optimization
-
-		// Sent table
-		// Unique to a combo of ID and address, to allow for outgoing duplicates
-		db.execSQL("CREATE TABLE " + DataConstants.TABLE_SENT + "(" + DataConstants.KEY_ID + " INTEGER,"
-				+ DataConstants.KEY_DATE + " INTEGER," + DataConstants.KEY_ADDRESS + " TEXT,"
-				+ DataConstants.KEY_CHARCOUNT + " INTEGER," + DataConstants.KEY_MEDIA + " INTEGER,"
-				+ "UNIQUE (" + DataConstants.KEY_ID + "," + DataConstants.KEY_ADDRESS + "))");
-
-		// Received Table
-		db.execSQL("CREATE TABLE " + DataConstants.TABLE_RECEIVED + "(" + DataConstants.KEY_ID
-				+ " INTEGER PRIMARY KEY," + DataConstants.KEY_DATE + " INTEGER,"
-				+ DataConstants.KEY_ADDRESS + " TEXT," + DataConstants.KEY_CHARCOUNT + " INTEGER,"
-				+ DataConstants.KEY_MEDIA + " INTEGER)");
-
-		// Indices
-		if (prefs.getBoolean(SAVED_INDEX, true)) {
-			db.execSQL("CREATE INDEX i_" + DataConstants.TABLE_SENT + " ON " + DataConstants.TABLE_SENT
-					+ " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
-			db.execSQL("CREATE INDEX i_" + DataConstants.TABLE_RECEIVED + " ON "
-					+ DataConstants.TABLE_RECEIVED + " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE
-					+ ")");
-		}
 
 		// Data table
 		db.execSQL("CREATE TABLE " + TABLE_DATA + "(" + KEY_CONTACT_ID
 				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + DataConstants.KEY_DATE
 				+ " INTEGER," + KEY_COUNT + " INTEGER," + "PRIMARY KEY("
 				+ KEY_CONTACT_ID + "," + KEY_DATA_TYPE + "))");
-		edit.putLong(SAVED_SMS_FETCH, 0);
-		edit.apply();
 	}
-	
-	private void createTable(SQLiteDatabase db, String messageType){
-		
-	}
+
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -230,6 +201,8 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * enabled, and can take a significant amount of time.
 	 */
 	public void enableIndexing() {
+		//TODO: This needs to iterate all our managers and handle indexes for each of them, not
+		// just build these two now irrelevant indices
 		if (indexingEnabled())
 			return;
 		SQLiteDatabase db = getWritableDatabase();
