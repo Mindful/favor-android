@@ -65,21 +65,12 @@ public class TextManager extends MessageManager {
 	
 	@Override
 	String formatAddress(String address) {
-		// TODO implement any address formattng necessary for the TextManager
-		return null;
-	}
-
-	
-	private String formatAddress(String address, boolean fetch) {
-		if (address.contains("@") && fetch) {
-			address = "\"" + address + "\"";
-		} else
-			address = address.replaceAll("[^0-9]", ""); // regex matches
-														// anything except
-														// digits
+		if (!address.contains("@")) address = address.replaceAll("[^0-9]", ""); // regex matches anything except digits
+		//TODO: Is this okay? Where is email formatting needed?
 		return address;
 	}
 
+	
 	private void sentMMS(long id, long date) {
 		// MMS IDs are negative to avoid overlap
 		// Additionally, MMS dates must be multiplied by 1000 to work properly

@@ -1,9 +1,12 @@
 package data;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.favor.util.Misc;
+
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 
 
@@ -40,7 +43,7 @@ public abstract class MessageManager {
 			ContentValues row = new ContentValues();
 			row.put(DataConstants.KEY_ID, id);
 			row.put(DataConstants.KEY_DATE, date);
-			row.put(DataConstants.KEY_ADDRESS, formatAddress(address, false));
+			row.put(DataConstants.KEY_ADDRESS, formatAddress(address));
 			row.put(DataConstants.KEY_CHARCOUNT, msg.length());
 			row.put(DataConstants.KEY_MEDIA, media);
 			String table = (sent ? DataConstants.TABLE_SENT : DataConstants.TABLE_RECEIVED)+name;
@@ -67,10 +70,11 @@ public abstract class MessageManager {
 			dh.prefs().edit().putLong("lastFetch"+name, lastFetch).commit();
 		}
 		
+		@SuppressLint("SimpleDateFormat")
 		void endTransaction(){
 			if(db==null) throw new dataException("Cannot end transaction without open transaction.");
-			//if(!success) throw new dataException("Transaction unsuccessful");
-			//TODO: Warning here? What? Log something?
+			if(!success)
+				Misc.logError(name+" message manager transaction unsuccessful at"+ new SimpleDateFormat().format(new Date()));
 			
 			db.endTransaction();
 			db.close();

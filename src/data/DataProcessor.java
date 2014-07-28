@@ -202,7 +202,7 @@ public class DataProcessor {
   	 */
   	public static long[] relationshipScore (Contact contact) {
   		DataHandler db = DataHandler.get();
-  		String[] keys = DataHandler.KEYS_PUBLIC; 
+  		String[] keys = DataConstants.KEYS_PUBLIC; 
   		//TODO: REBAR - READ THIS COMMENT BLOCK:
   		//DataHandler.KEYS_PUBLIC accounts for all public keys
   		//I'm assuming you'll use charCount, date, media, and address. If there are any
@@ -268,7 +268,7 @@ public class DataProcessor {
   	
   	public static long friendScore (Contact contact) {
   		DataHandler db = DataHandler.get();
-  		String[] keys = DataHandler.KEYS_PUBLIC; 
+  		String[] keys = DataConstants.KEYS_PUBLIC; 
   		LinkedList<Message> convo = db.queryConversation(contact, keys, -1, -1);
   		int media = 0;
   		int messages = 0;

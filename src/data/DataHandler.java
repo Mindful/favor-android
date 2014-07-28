@@ -31,15 +31,6 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.SparseArray;
 
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Folder;
-//import javax.mail.Message;
-import javax.mail.Multipart;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.search.SearchTerm;
-
 class dataException extends RuntimeException {
 
 	private static final long serialVersionUID = -2500275405542504803L;
@@ -329,70 +320,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	}
 
-	// todo: eventually should be private, use or not determined by settings
-	public void updateEmail() {
-		Properties props = new Properties();
-		props.setProperty("mail.store.protocol", "imaps");
-		Debug.log("start email test");
-		try {
-			Session session = Session.getInstance(props, null);
-			Store store = session.getStore();
-			store.connect("imap.gmail.com", "joshuabtanner@gmail.com",
-					"tahnqydxlonnpqco");
-			IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
-			inbox.open(Folder.READ_ONLY);
-
-			//This code is largely modeled after the time I did something similar in Python, here:
-			//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
-			
-			lastFetchEmail = prefs.getLong(SAVED_EMAIL_FETCH, 0);
-			Object uids = inbox.doCommand(new IMAPFolder.ProtocolCommand() {
-				
-				@Override
-				public Object doCommand(IMAPProtocol p) throws ProtocolException {
-					StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
-					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
-					for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
-					for (int i = 0; i < test.length; i++) searchCommand.append("FROM \"").append(test[i]).append("\" ");
-					searchCommand.append("UID ").append(1700).append(":*");
-					Debug.log("Attempt at searchstring:");
-					Debug.log(searchCommand.toString());
-					
-					Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
-		            args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
-		               //Response[] r = p.command("SEARCH (OR (TO \"tech163@fusionswift.com\") (FROM \"clifthom@evergreen.edu\"))", args);
-		               //Response[] r = p.command("UID SEARCH or FROM \"clifthom@evergreen.edu\" FROM \"stong7@yahoo.com\" UID 1700:*", args);
-		               Response[] r = p.command(searchCommand.toString(), args);
-		               //check the output, has to be as (1)
-		               Response response = r[r.length - 1];
-		               // Grab all SORT responses
-		               Debug.log(response.toString());
-		               if (response.isOK()) { // command successful
-		                       for (int i = 0, len = r.length; i < len; i++) {
-		                                       if (!(r[i] instanceof IMAPResponse))
-		                                               continue;
-		                                       IMAPResponse ir = (IMAPResponse) r[i];
-		                                       if (ir.keyEquals("SEARCH")) {
-		                                               String num;
-		                                               Debug.log(ir.toString());
-		                                               while ((num = ir.readAtomString()) != null) {
-		                                                       Debug.log(num+" ");
-		                                               }
-		                                       }
-		                       }
-		               } else{
-		            	   Debug.log("response not okay");
-		               }
-		               Debug.log("finish");
-		               return null;
-					}
-				});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+	
 
 
 	// Data Section
