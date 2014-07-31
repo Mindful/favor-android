@@ -14,11 +14,6 @@ import static data.DataConstants.*;
 //TODO: Does java use the "final" keyweord (before public, its seems like) to disallow overwriting functions?
 //if so, a lot of these should be final
 
-//TODO: Is there a difference between "INTEGER PRIMARY KEY ID" and a later declaration of "PRIMARY KEY(ID)"?
-//I don't think so, but if there is we could potentially be losing performance by not allowing this in some
-//cases
-
-
 public abstract class MessageManager {
 	
 		protected long lastFetch;
@@ -38,37 +33,47 @@ public abstract class MessageManager {
 			this.name = name;
 		}
 		
-		public long getLastFetch(){
+		final public long getLastFetch(){
 			return dh.prefs().getLong("lastFetch"+name, 0);
 		}
 		
-		void buildTable(){
+		
+		final void buildTable(){
 			db = dh.getWritableDatabase();
-			// Both tables are indexed by address and then date for query
-			// optimization
 
+			//TODO: use table ending statement method
 			// Sent table
 			// Unique to a combo of ID and address, to allow for outgoing duplicates
-			db.execSQL("CREATE TABLE " + TABLE_SENT + "(" + KEY_ID + " INTEGER,"
-					+ KEY_DATE + " INTEGER," + KEY_ADDRESS + " TEXT,"
-					+ KEY_CHARCOUNT + " INTEGER," + KEY_MEDIA + " INTEGER,"
-					+ "UNIQUE (" + KEY_ID + "," + KEY_ADDRESS + "))");
+			db.execSQL("CREATE TABLE " + TABLE_SENT + name + "(" + KEY_ID + " INTEGER,"
+					+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
+					+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
+					+ KEY_MEDIA + " INTEGER, "+ sentTableEndingStatement() + ")");
 
 			// Received Table
-			db.execSQL("CREATE TABLE " + TABLE_RECEIVED + "(" + KEY_ID
-					+ " INTEGER PRIMARY KEY," + KEY_DATE + " INTEGER,"
-					+ KEY_ADDRESS + " TEXT," + KEY_CHARCOUNT + " INTEGER,"
-					+ KEY_MEDIA + " INTEGER)");
+			db.execSQL("CREATE TABLE " + TABLE_RECEIVED + name + "(" + KEY_ID + " INTEGER,"
+					+ KEY_DATE + " INTEGER," + KEY_ADDRESS + 
+					" TEXT," + KEY_CHARCOUNT + " INTEGER,"
+					+ KEY_MEDIA + " INTEGER, " + receivedTableEndingStatement() + ")");
 
-			// Indices
+			// Tables are indexed by address and then date for query optimization
+			// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
+			// Indicates that "order depends on projection i.e. select name, lastname from table"
 			if (dh.indexingEnabled()) {
-				db.execSQL("CREATE INDEX i_" + TABLE_SENT + " ON " + TABLE_SENT
+				db.execSQL("CREATE INDEX i_" + TABLE_SENT + name + " ON " + TABLE_SENT
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-				db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + " ON "
-						+ TABLE_RECEIVED + " (" + KEY_ADDRESS + "," + KEY_DATE
-						+ ")");
+				db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + name + " ON " + TABLE_RECEIVED
+						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 			}
 			db = null;
+		}
+		
+		//private methods are auto-final, so this has to be protected
+		protected String sentTableEndingStatement(){
+			return "PRIMARY KEY ("+KEY_ID+")";
+		}
+		
+		protected String receivedTableEndingStatement(){
+			return "PRIMARY KEY ("+KEY_ID+")";
 		}
 		
 		
@@ -77,7 +82,7 @@ public abstract class MessageManager {
 		
 		abstract void fetch();
 		
-		protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
+		final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
 			if(db==null) throw new dataException("Cannot export messages to database without open transaction.");
 			ContentValues row = new ContentValues();
 			row.put(KEY_ID, id);
@@ -93,7 +98,7 @@ public abstract class MessageManager {
 
 		
 		
-		protected void beginTransaction(){
+		final protected void beginTransaction(){
 			if(db!=null) throw new dataException("Transactions should not be started with a transaction open");
 			else {
 				db = dh.getWritableDatabase();
@@ -102,7 +107,7 @@ public abstract class MessageManager {
 			}
 		}
 		
-		protected void successfulTransaction(long lastFetch){
+		final protected void successfulTransaction(long lastFetch){
 			if(db==null) throw new dataException("Cannot mark transaction successful without open transaction.");
 			db.setTransactionSuccessful();
 			success = true;
@@ -110,7 +115,7 @@ public abstract class MessageManager {
 		}
 		
 		@SuppressLint("SimpleDateFormat")
-		protected void endTransaction(){
+		final protected void endTransaction(){
 			if(db==null) throw new dataException("Cannot end transaction without open transaction.");
 			if(!success)
 				Misc.logError(name+" message manager transaction unsuccessful at"+ new SimpleDateFormat().format(new Date()));

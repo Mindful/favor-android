@@ -63,9 +63,6 @@ class dataTime {
 	}
 }
 
-// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
-// Indicates that
-// "order depends on projection i.e. select name, lastname from table"
 public class DataHandler extends SQLiteOpenHelper {
 	// SQLite aspects
 	private static final int DATABASE_VERSION = 1;

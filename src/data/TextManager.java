@@ -30,6 +30,11 @@ public class TextManager extends MessageManager {
 		super(type, name);
 		// TODO Auto-generated constructor stub
 	}
+	
+	@Override
+	protected String sentTableEndingStatement(){
+		return "PRIMARY KEY ("+KEY_ID+ "," + KEY_ADDRESS + ")";
+	}
 
 	@Override
 	void fetch() {
