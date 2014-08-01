@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 import com.favor.ui.GraphActivity;
+import com.favor.ui.graph.Graph.types;
 import com.favor.util.Contact;
 import com.favor.util.Misc;
 import com.sun.mail.iap.Argument;
@@ -30,6 +31,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.SparseArray;
+
+import static data.DataConstants.*;
 
 class dataException extends RuntimeException {
 
@@ -101,7 +104,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		// Data table
 		db.execSQL("CREATE TABLE " + TABLE_DATA + "(" + KEY_CONTACT_ID
-				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + DataConstants.KEY_DATE
+				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + KEY_DATE
 				+ " INTEGER," + KEY_COUNT + " INTEGER," + "PRIMARY KEY("
 				+ KEY_CONTACT_ID + "," + KEY_DATA_TYPE + "))");
 	}
@@ -109,8 +112,8 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE IF EXISTS " + DataConstants.TABLE_SENT);
-		db.execSQL("DROP TABLE IF EXISTS " + DataConstants.TABLE_RECEIVED);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SENT);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECEIVED);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
 		onCreate(db);
 	}
@@ -142,14 +145,15 @@ public class DataHandler extends SQLiteOpenHelper {
 		return singleton;
 	}
 
-	private static final String SAVED_EMAIL_FETCH = "lastFetchEmail"; //This is a UID
-	private static final String SAVED_INDEX = "index";
+	private static final String SAVED_INDEX = "indexing";
 
 	// Instance aspects
 
 	private final Context context;
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
+	
+	private final HashMap<Type, MessageManager> managers;
 
 	private ArrayList<Contact> contactsList;
 
@@ -172,16 +176,18 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * An unmodifiable list of contacts.
 	 */
 	public List<Contact> contacts() {
-		return Collections.unmodifiableList(contactsList);
+		return Collections.unmodifiableList(contactsList); 	// Not the prettiest, but people need not to be able to change it
 	}
-
-	// Not the prettiest, but people need not to be able to change it
 
 	private DataHandler(Activity mainActivity) {
 		super(mainActivity.getApplicationContext(), "messages", null, DATABASE_VERSION);
 		context = mainActivity.getApplicationContext();
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		edit = prefs.edit();
+		managers = new HashMap<Type, MessageManager>();
+		for (Type t: Type.values()){
+			managers.put(t, MessageManager.getManager(t));
+		}
 	}
 
 	/**
@@ -203,10 +209,10 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (indexingEnabled())
 			return;
 		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("CREATE INDEX i_" + DataConstants.TABLE_SENT + " ON " + DataConstants.TABLE_SENT + " ("
-				+ DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
-		db.execSQL("CREATE INDEX i_" + DataConstants.TABLE_RECEIVED + " ON " + DataConstants.TABLE_RECEIVED
-				+ " (" + DataConstants.KEY_ADDRESS + "," + DataConstants.KEY_DATE + ")");
+		db.execSQL("CREATE INDEX i_" + TABLE_SENT + " ON " + TABLE_SENT + " ("
+				+ KEY_ADDRESS + "," + KEY_DATE + ")");
+		db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + " ON " + TABLE_RECEIVED
+				+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 	}
 
 	/**
@@ -218,8 +224,8 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (!indexingEnabled())
 			return;
 		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("DROP INDEX IF EXISTS i_" + DataConstants.TABLE_SENT);
-		db.execSQL("DROP INDEX IF EXISTS i_" + DataConstants.TABLE_RECEIVED);
+		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_SENT);
+		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_RECEIVED);
 	}
 
 	/**
@@ -328,13 +334,13 @@ public class DataHandler extends SQLiteOpenHelper {
 		} else if (addresses.size() == 1) {
 			if (raw)
 				selection.append(" WHERE ");
-			selection.append(DataConstants.KEY_ADDRESS).append("=").append(addresses.get(0));
+			selection.append(KEY_ADDRESS).append("=").append(addresses.get(0));
 		} else {
 			if (raw)
 				selection.append(" WHERE ");
 			selection.append("(");
 			for (int i = 0; i < addresses.size(); i++) {
-				selection.append(DataConstants.KEY_ADDRESS).append("=")
+				selection.append(KEY_ADDRESS).append("=")
 						.append(addresses.get(i));
 				if (i < addresses.size() - 1)
 					selection.append(" OR ");
@@ -345,12 +351,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (fromDate > -1) {
 			if (selection.length() > 0)
 				selection.append(" AND ");
-			selection.append(DataConstants.KEY_DATE).append(">=").append(fromDate);
+			selection.append(KEY_DATE).append(">=").append(fromDate);
 		}
 		if (untilDate > -1) {
 			if (selection.length() > 0)
 				selection.append(" AND ");
-			selection.append(DataConstants.KEY_DATE).append("<=").append(untilDate);
+			selection.append(KEY_DATE).append("<=").append(untilDate);
 		}
 		return selection.toString();
 
@@ -372,7 +378,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public dataTime getData(Contact contact, int type) {
 		validDate(type);
 		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, DataConstants.KEY_DATE },
+		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, KEY_DATE },
 				KEY_CONTACT_ID + "=" + contact.id() + " AND " + KEY_DATA_TYPE
 						+ "=" + type, null, null, null, null);
 		if (c.getCount() == 0)
@@ -397,7 +403,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		SparseArray<dataTime> ret = new SparseArray<dataTime>();
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] { KEY_DATA_TYPE,
-				KEY_COUNT, DataConstants.KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
+				KEY_COUNT, KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
 				null, null, null, null);
 		while (c.moveToNext()) {
 			ret.put(c.getInt(0), new dataTime(c.getLong(1), c.getLong(2)));
@@ -425,7 +431,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(KEY_CONTACT_ID, contact.id());
 		values.put(KEY_DATA_TYPE, type);
-		values.put(DataConstants.KEY_DATE, new Date().getTime());
+		values.put(KEY_DATE, new Date().getTime());
 		values.put(KEY_COUNT, data);
 		db.insert(TABLE_DATA, null, values);
 	}
@@ -445,7 +451,7 @@ public class DataHandler extends SQLiteOpenHelper {
 			throw new dataException("fromDate must be <= untilDate.");
 		if (keys.length == 0)
 			throw new dataException("must request at least one value.");
-		int sent = (table == DataConstants.TABLE_SENT) ? 1 : 0;
+		int sent = (table == TABLE_SENT) ? 1 : 0;
 
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = null;
@@ -454,7 +460,7 @@ public class DataHandler extends SQLiteOpenHelper {
 					Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, false);
 
-		Cursor c = db.query(table, keys, selection, null, null, null, DataConstants.KEY_DATE
+		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE
 				+ " " + SORT_DIRECTION);
 		ArrayList<Message> ret = new ArrayList<Message>(c.getCount());
 		while (c.moveToNext()) {
@@ -574,12 +580,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		// already
 		boolean addressesRequested = false;
 		for (int i = 0; i < keys.length; i++) {
-			if (keys[i] == DataConstants.KEY_ADDRESS)
+			if (keys[i] == KEY_ADDRESS)
 				addressesRequested = true;
 		}
 		if (!addressesRequested) {
 			String[] temp = new String[keys.length + 1];
-			temp[keys.length] = DataConstants.KEY_ADDRESS;
+			temp[keys.length] = KEY_ADDRESS;
 			for (int i = 0; i < keys.length; i++) {
 				temp[i] = keys[i];
 			}
@@ -588,16 +594,8 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		// Get all addresses, and map all of each contact's numbers to its
 		// ArrayList.
-		ArrayList<String> addresses = new ArrayList<String>(contacts.length); // Probably
-																				// won't
-																				// be
-																				// big
-																				// enough,
-																				// but
-																				// closer
-																				// to
-																				// desired
-																				// size
+		ArrayList<String> addresses = new ArrayList<String>(contacts.length); // Probably won't be big enough,
+		//but closer to the desired size
 		HashMap<String, ArrayList<Message>> lists = new HashMap<String, ArrayList<Message>>();
 		HashMap<Contact, ArrayList<Message>> ret = new HashMap<Contact, ArrayList<Message>>();
 		for (int i = 0; i < contacts.length; i++) {
@@ -612,15 +610,15 @@ public class DataHandler extends SQLiteOpenHelper {
 			}
 		}
 
-		int sent = (table == DataConstants.TABLE_SENT) ? 1 : 0;
+		int sent = (table == TABLE_SENT) ? 1 : 0;
 
 		SQLiteDatabase db = getReadableDatabase();
 
 		String selection = buildSelection(addresses, fromDate, untilDate, false);
 		Cursor c = db.query(table, keys, selection, null, null, null,
-				DataConstants.KEY_ADDRESS + ", " + DataConstants.KEY_DATE + " " + SORT_DIRECTION);
+				KEY_ADDRESS + ", " + KEY_DATE + " " + SORT_DIRECTION);
 
-		int addressColumn = c.getColumnIndex(DataConstants.KEY_ADDRESS);
+		int addressColumn = c.getColumnIndex(KEY_ADDRESS);
 
 		while (c.moveToNext()) {
 			lists.get(c.getString(addressColumn)).add(
@@ -675,12 +673,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		// requested or not
 		boolean addressesRequested = false;
 		for (int i = 0; i < keys.length; i++) {
-			if (keys[i] == DataConstants.KEY_DATE)
+			if (keys[i] == KEY_DATE)
 				addressesRequested = true;
 		}
 		if (!addressesRequested) {
 			String[] temp = new String[keys.length + 1];
-			temp[keys.length] = DataConstants.KEY_DATE;
+			temp[keys.length] = KEY_DATE;
 			for (int i = 0; i < keys.length; i++) {
 				temp[i] = keys[i];
 			}
@@ -695,9 +693,9 @@ public class DataHandler extends SQLiteOpenHelper {
 		columns = temp.deleteCharAt(temp.length() - 1).toString();
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
 		String sql = "SELECT " + columns + ", 1 as " + DataHandler.JOIN_KEY_SENT
-				+ " FROM " + DataConstants.TABLE_SENT + selection + " UNION " + "SELECT "
+				+ " FROM " + TABLE_SENT + selection + " UNION " + "SELECT "
 				+ columns + ", 0 as " + DataHandler.JOIN_KEY_SENT + " FROM "
-				+ DataConstants.TABLE_RECEIVED + selection + " ORDER BY " + DataConstants.KEY_DATE + " "
+				+ TABLE_RECEIVED + selection + " ORDER BY " + KEY_DATE + " "
 				+ SORT_DIRECTION;
 
 		Cursor c = db.rawQuery(sql, null);
@@ -722,7 +720,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public ArrayList<Message> queryFromAll(String[] keys, long fromDate,
 			long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(null, keys, fromDate, untilDate, DataConstants.TABLE_RECEIVED);
+		return query(null, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 
 	/**
@@ -738,7 +736,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public ArrayList<Message> queryToAll(String[] keys, long fromDate,
 			long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(null, keys, fromDate, untilDate, DataConstants.TABLE_SENT);
+		return query(null, keys, fromDate, untilDate, TABLE_SENT);
 	}
 
 	/**
@@ -757,7 +755,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public ArrayList<Message> queryFromAddress(Contact contact,
 			String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(contact, keys, fromDate, untilDate, DataConstants.TABLE_RECEIVED);
+		return query(contact, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 
 	/**
@@ -776,7 +774,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public ArrayList<Message> queryToAddress(Contact contact,
 			String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(contact, keys, fromDate, untilDate, DataConstants.TABLE_SENT);
+		return query(contact, keys, fromDate, untilDate, TABLE_SENT);
 	}
 
 	/**
@@ -796,7 +794,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public HashMap<Contact, ArrayList<Message>> queryFromAddresses(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(contacts, keys, fromDate, untilDate, DataConstants.TABLE_RECEIVED);
+		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_RECEIVED);
 	}
 
 	/**
@@ -817,7 +815,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	public HashMap<Contact, ArrayList<Message>> queryToAddresses(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(contacts, keys, fromDate, untilDate, DataConstants.TABLE_SENT);
+		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_SENT);
 	}
 
 }

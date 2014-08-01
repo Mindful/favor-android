@@ -18,14 +18,24 @@ public abstract class MessageManager {
 	
 		protected long lastFetch;
 		protected final DataHandler dh;
-		final int type;
+		final Type type;
 		final String name;
 
 		private boolean success = false;
 		private SQLiteDatabase db;
 		
+		final static MessageManager getManager(Type type){
+			switch(type){
+			case TYPE_TEXT:
+				return new TextManager();
+			case TYPE_EMAIL:
+				return new EmailManager();
+			default:
+				throw new dataException("This should never happen.");
+			}
+		}
 		
-		protected MessageManager(int type, String name){
+		protected MessageManager(Type type, String name){
 			//Register with the datahandler, and throw an exception if something of this type is already registered?
 			dh = DataHandler.get();
 			lastFetch = getLastFetch();

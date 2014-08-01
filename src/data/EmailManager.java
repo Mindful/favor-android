@@ -24,8 +24,8 @@ import static data.DataConstants.*;
 
 public class EmailManager extends MessageManager {
 
-	protected EmailManager(int type, String name) {
-		super(type, name);
+	protected EmailManager() {
+		super(Type.TYPE_EMAIL, "email");
 	}
 
 	@Override

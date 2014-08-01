@@ -2,6 +2,7 @@ package data;
 
 public class DataConstants {
 
+	// Messages attributes
 	static final String KEY_ID = "_id"; // unique integer message id
 	static final String KEY_DATE = "date"; // integer date
 	static final String KEY_ADDRESS = "address"; // address
@@ -11,5 +12,10 @@ public class DataConstants {
 	// Messages tables
 	static final String TABLE_SENT = "sent";
 	static final String TABLE_RECEIVED = "received";
+	
+	//Messages types, these need to be accessable outside the package
+	public static enum Type {TYPE_TEXT, TYPE_EMAIL};
+	
+	
 
 }
