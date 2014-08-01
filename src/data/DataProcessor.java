@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.favor.util.Contact;
+import static data.DataConstants.*;
 
 
 
@@ -21,7 +22,13 @@ public class DataProcessor {
   private static final double MEDIA_WEIGHT = 0.15;
   private static final double RESPONSE_WEIGHT = 0.25;
   private static final long DISTANCE_VALUE = 900000l;
-  //TODO: constant for upper limit on response times
+  
+  //TODO: rewrite a lot of this with efficiency in mind (see doc). also of course the types here are all manually
+  //set to be texts, which is a serious bandaid. Also, the below todo is probably obsolete and even if it's not I'm not really
+  //sure that a cosntant upper limit makes sense...
+  
+  //TODO: constant for upper limit on response times 
+  
   
   
   public static long[] messageCount(Contact contact, long fromDate, long untilDate)
@@ -31,8 +38,8 @@ public class DataProcessor {
 
 	  //Have to grab a random field. Character count seems as good as any
 	  String[] keys = new String[] {DataConstants.KEY_CHARCOUNT};
-	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
-	  ArrayList <Message> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate, Type.TYPE_TEXT);
+	  ArrayList <Message> rec = db.queryFromAddress(contact, keys, fromDate, untilDate, Type.TYPE_TEXT);
 
 	  values[0] = sent.size();
 	  values[1] = rec.size();
@@ -64,8 +71,8 @@ public class DataProcessor {
 	  String[] keys = new String[] {DataConstants.KEY_CHARCOUNT};
 
 	  //queries take an address, keys, and dates
-	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate);
-	  ArrayList <Message> rec = db.queryFromAddress(contact, keys, fromDate, untilDate);
+	  ArrayList <Message> sent = db.queryToAddress(contact, keys, fromDate, untilDate, Type.TYPE_TEXT);
+	  ArrayList <Message> rec = db.queryFromAddress(contact, keys, fromDate, untilDate, Type.TYPE_TEXT);
 
 	  //TODO: IF we don't just end up using SQL for this, the "enhanced loops"
 	  //are substatially slower on arrays and arraylists. Don't use these.
@@ -113,7 +120,7 @@ public class DataProcessor {
   public static long[] responseTime (Contact contact, long fromDate, long untilDate) {
  	  DataHandler db = DataHandler.get();
  	  String[] keys = new String[] {DataConstants.KEY_DATE};
- 	  LinkedList<Message> list = db.queryConversation(contact, keys, fromDate, untilDate);
+ 	  LinkedList<Message> list = db.queryConversation(contact, keys, fromDate, untilDate, Type.TYPE_TEXT);
  	  double avgSent = 0;
  	  double avgRec = 0;
  	  long [] averages = {0, 0};
@@ -207,7 +214,7 @@ public class DataProcessor {
   		//DataHandler.KEYS_PUBLIC accounts for all public keys
   		//I'm assuming you'll use charCount, date, media, and address. If there are any
   		//that you don't use, just build your own array with the keys excluding the one you don't need
-  		LinkedList<Message> convo = db.queryConversation(contact, keys, -1, -1);
+  		LinkedList<Message> convo = db.queryConversation(contact, keys, -1, -1, Type.TYPE_TEXT);
   		long sentChar = 0;
 //  		long recChar = 0;
 //  		double charRatio = 0;
@@ -269,7 +276,7 @@ public class DataProcessor {
   	public static long friendScore (Contact contact) {
   		DataHandler db = DataHandler.get();
   		String[] keys = DataConstants.KEYS_PUBLIC; 
-  		LinkedList<Message> convo = db.queryConversation(contact, keys, -1, -1);
+  		LinkedList<Message> convo = db.queryConversation(contact, keys, -1, -1, Type.TYPE_TEXT);
   		int media = 0;
   		int messages = 0;
   		long charCount = 0;
