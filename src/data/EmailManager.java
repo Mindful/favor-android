@@ -27,6 +27,13 @@ public class EmailManager extends MessageManager {
 	protected EmailManager() {
 		super(Type.TYPE_EMAIL, "email");
 	}
+	
+	
+	//TODO: 95% sure this is necessary, but can always do with some verification
+	@Override
+	protected String sentTableEndingStatement(){
+		return "PRIMARY KEY ("+KEY_ID+ "," + KEY_ADDRESS + ")";
+	}
 
 	@Override
 	void fetch() {

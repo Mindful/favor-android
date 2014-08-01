@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import data.DataConstants.Type;
+
 import android.database.Cursor;
 
 public class Message {
@@ -13,13 +15,13 @@ public class Message {
 	private String address;
 	private int media;
 	private int sent;
-	private int type;
+	private Type type;
 	//TODO: update all of this to deal with message type
 
 	private Message() {
 	};
 
-	public static Message build(Cursor c, int sent, int type) {
+	public static Message build(Cursor c, int sent, Type type) {
 		Message ret = new Message();
 		int dateColumn = c.getColumnIndex(DataConstants.KEY_DATE), 
 			addressColumn = c.getColumnIndex(DataConstants.KEY_ADDRESS), 
@@ -60,12 +62,9 @@ public class Message {
 		log += " Media:";
 		if (media == -1) log += "<>";
 		else log += media;
-		log += " Sent:";
-		if (sent == -1) log += "<>";
-		else log += sent;
-		log+= " Type:";
-		if (type == -1) log += "<>"; //TODO: This should eventually check with DataHandler and spit out the type name if known
-		else log+= type;
+		//A message should always, always know the below two things about itself
+		log += " Sent:" + sent;
+		log += " Type:" +  DataHandler.get().messageTypeName(type);
 		return log;
 	}
 
@@ -79,8 +78,8 @@ public class Message {
 		else return sent == 0;
 	}
 	
-	public int type(){
-		if (type == -1) throw new dataException("type() value not known. This should never happen.");
+	public Type type(){
+		if (type == null) throw new dataException("type() value not known. This should never happen.");
 		else return type;
 	}
 		

@@ -48,12 +48,10 @@ public abstract class MessageManager {
 		}
 		
 		
-		final void buildTable(){
+		final void buildTables(){
 			db = dh.getWritableDatabase();
 
-			//TODO: use table ending statement method
 			// Sent table
-			// Unique to a combo of ID and address, to allow for outgoing duplicates
 			db.execSQL("CREATE TABLE " + TABLE_SENT + name + "(" + KEY_ID + " INTEGER,"
 					+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
 					+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
@@ -74,8 +72,36 @@ public abstract class MessageManager {
 				db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + name + " ON " + TABLE_RECEIVED
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 			}
+			db.close();
 			db = null;
 		}
+		
+		final public void dropTables(){
+			db = dh.getWritableDatabase();
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_SENT + name);
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECEIVED + name);
+			db.close();
+			db = null;
+		}
+		
+		final public void indexTables(){
+			db = dh.getWritableDatabase();
+			db.execSQL("CREATE INDEX i_" + TABLE_SENT + name + " ON " + TABLE_SENT + " ("
+					+ KEY_ADDRESS + "," + KEY_DATE + ")");
+			db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + name + " ON " + TABLE_RECEIVED
+					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+			db.close();
+			db = null;
+		}
+		
+		final public void dropIndices(){
+			db = dh.getWritableDatabase();
+			db.execSQL("DROP INDEX IF EXISTS " + TABLE_SENT + name);
+			db.execSQL("DROP INDEX IF EXISTS " + TABLE_RECEIVED + name);
+			db.close();
+			db = null;
+		}
+		
 		
 		//private methods are auto-final, so this has to be protected
 		protected String sentTableEndingStatement(){

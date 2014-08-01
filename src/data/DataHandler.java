@@ -48,6 +48,7 @@ class dataException extends RuntimeException {
 
 }
 
+//TODO: this probably needs to die; it's exactly the kind of thing that'd be more efficient as a 2-long array
 class dataTime {
 	private long count;
 	private long time;
@@ -88,6 +89,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * query and we need symbol escapes.
 	 */
 
+	//TODO: this should die asap
 	private static String formatAddress(String address, boolean fetch) {
 		if (address.contains("@") && fetch) {
 			address = "\"" + address + "\"";
@@ -112,8 +114,9 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SENT);
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECEIVED);
+		for (MessageManager m : managers.values()){
+			m.dropTables();
+		}
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
 		onCreate(db);
 	}
@@ -145,7 +148,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		return singleton;
 	}
 
-	private static final String SAVED_INDEX = "indexing";
+	private static final String SAVED_INDEXING = "indexing";
 
 	// Instance aspects
 
@@ -189,14 +192,21 @@ public class DataHandler extends SQLiteOpenHelper {
 			managers.put(t, MessageManager.getManager(t));
 		}
 	}
+	
+	/**
+	 * Spits out the name of a message type.
+	 */
 
+	public String messageTypeName(Type t){
+		return managers.get(t).name;
+	}
 	/**
 	 * Returns true if indexing is enabled (or defaulted to true), else returns
 	 * false.
 	 */
 
 	public boolean indexingEnabled() {
-		return prefs.getBoolean(SAVED_INDEX, true);
+		return prefs.getBoolean(SAVED_INDEXING, true);
 	}
 
 	/**
@@ -204,15 +214,12 @@ public class DataHandler extends SQLiteOpenHelper {
 	 * enabled, and can take a significant amount of time.
 	 */
 	public void enableIndexing() {
-		//TODO: This needs to iterate all our managers and handle indexes for each of them, not
-		// just build these two now irrelevant indices
-		if (indexingEnabled())
-			return;
-		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("CREATE INDEX i_" + TABLE_SENT + " ON " + TABLE_SENT + " ("
-				+ KEY_ADDRESS + "," + KEY_DATE + ")");
-		db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + " ON " + TABLE_RECEIVED
-				+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+		if (indexingEnabled()) return;
+		edit.putBoolean(SAVED_INDEXING, true);
+		edit.apply();
+		for (MessageManager m : managers.values()){
+			m.indexTables();
+		}
 	}
 
 	/**
@@ -221,11 +228,12 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 
 	public void disableIndexing() {
-		if (!indexingEnabled())
-			return;
-		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_SENT);
-		db.execSQL("DROP INDEX IF EXISTS i_" + TABLE_RECEIVED);
+		if (!indexingEnabled()) return;
+		edit.putBoolean(SAVED_INDEXING, false);
+		edit.apply();
+		for (MessageManager m : managers.values()){
+			m.dropIndices();
+		}
 	}
 
 	/**
