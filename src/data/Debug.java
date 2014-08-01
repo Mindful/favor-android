@@ -46,26 +46,26 @@ public class Debug {
 	{
 		Contact contact = contacts[0];
 		DataHandler db = DataHandler.get();
-		List<Message> list = db.queryFromAddress(contact, keys, -1, -1);
+		List<Message> list = db.queryFromAddress(contact, keys, -1, -1, DataConstants.Type.TYPE_TEXT);
 		Debug.log("From");
 		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
-		list = db.queryToAddress(contact, keys, -1, -1);
+		list = db.queryToAddress(contact, keys, -1, -1, DataConstants.Type.TYPE_TEXT);
 		Debug.log("To");
 		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
-		list = db.queryConversation(contact, keys, -1, -1);
+		list = db.queryConversation(contact, keys, -1, -1, DataConstants.Type.TYPE_TEXT);
 		Debug.log("Convo");
 		for (Message t : list )
 		{
 			Debug.log(""+t);
 		}
 		Debug.log("MultiFrom");
-		HashMap<Contact, ArrayList<Message>> multi = db.queryFromAddresses(contacts, keys, -1, -1);
+		HashMap<Contact, ArrayList<Message>> multi = db.queryFromAddresses(contacts, keys, -1, -1, DataConstants.Type.TYPE_TEXT);
 		for (Map.Entry<Contact, ArrayList<Message>> entry : multi.entrySet()) {
 		    Debug.log(entry.getKey().getName()+":"+entry.getValue().size());
 		}

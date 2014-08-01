@@ -8,18 +8,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 import com.favor.ui.GraphActivity;
-import com.favor.ui.graph.Graph.types;
 import com.favor.util.Contact;
-import com.favor.util.Misc;
-import com.sun.mail.iap.Argument;
-import com.sun.mail.iap.ProtocolException;
-import com.sun.mail.iap.Response;
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.protocol.IMAPProtocol;
-import com.sun.mail.imap.protocol.IMAPResponse;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -28,7 +19,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.SparseArray;
 
@@ -451,7 +441,7 @@ public class DataHandler extends SQLiteOpenHelper {
 															// last
 
 	private ArrayList<Message> query(Contact contact, String[] keys,
-			long fromDate, long untilDate, String table) {
+			long fromDate, long untilDate, boolean sentTable, Type type) {
 		// -1 for no date, null contact for no addresses. Obviously, table is
 		// mandatory.
 		// Automatically sorted by date.
@@ -459,7 +449,8 @@ public class DataHandler extends SQLiteOpenHelper {
 			throw new dataException("fromDate must be <= untilDate.");
 		if (keys.length == 0)
 			throw new dataException("must request at least one value.");
-		int sent = (table == TABLE_SENT) ? 1 : 0;
+		int sent = sentTable ? 1 : 0;
+		String table = managers.get(type).tableName(sentTable);
 
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = null;
@@ -472,7 +463,7 @@ public class DataHandler extends SQLiteOpenHelper {
 				+ " " + SORT_DIRECTION);
 		ArrayList<Message> ret = new ArrayList<Message>(c.getCount());
 		while (c.moveToNext()) {
-			ret.add(Message.build(c, sent));
+			ret.add(Message.build(c, sent, type));
 		}
 		c.close();
 		db.close();
@@ -480,12 +471,13 @@ public class DataHandler extends SQLiteOpenHelper {
 	}
 
 	public double average(Contact contact, String key, long fromDate,
-			long untilDate, String table) {
+			long untilDate, boolean sentTable, Type type) {
 		// -1 for no date, null contact for no addresses. Obviously, table is
 		// mandatory.
 		// Automatically sorted by date.
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
+		String table = managers.get(type).tableName(sentTable);
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
@@ -500,12 +492,13 @@ public class DataHandler extends SQLiteOpenHelper {
 	}
 
 	public long sum(Contact contact, String key, long fromDate, long untilDate,
-			String table) {
+			boolean sentTable, Type type) {
 		// -1 for no date, null contact for no addresses. Obviously, table is
 		// mandatory.
 		// Automatically sorted by date.
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
+		String table = managers.get(type).tableName(sentTable);
 		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
@@ -573,7 +566,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 	private HashMap<Contact, ArrayList<Message>> multiQuery(
 			Contact[] contacts, String[] keys, long fromDate, long untilDate,
-			String table) {
+			boolean sentTable, Type type) {
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
 		if (contacts.length < 2)
@@ -618,7 +611,8 @@ public class DataHandler extends SQLiteOpenHelper {
 			}
 		}
 
-		int sent = (table == TABLE_SENT) ? 1 : 0;
+		int sent = sentTable ? 1 : 0;
+		String table = managers.get(type).tableName(sentTable);
 
 		SQLiteDatabase db = getReadableDatabase();
 
@@ -630,7 +624,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		while (c.moveToNext()) {
 			lists.get(c.getString(addressColumn)).add(
-					Message.build(c, sent));
+					Message.build(c, sent, type));
 		}
 
 		c.close();
@@ -663,7 +657,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 	public LinkedList<Message> queryConversation(Contact contact,
-			String[] keys, long fromDate, long untilDate) {
+			String[] keys, long fromDate, long untilDate, Type type) {
 		// same sort direction as the other two
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
@@ -709,7 +703,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		Cursor c = db.rawQuery(sql, null);
 		int sentColumn = c.getColumnIndex(DataHandler.JOIN_KEY_SENT);
 		while (c.moveToNext()) {
-			res.offer(Message.build(c, c.getInt(sentColumn)));
+			res.offer(Message.build(c, c.getInt(sentColumn), type));
 		}
 
 		return res;
@@ -726,9 +720,9 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 	public ArrayList<Message> queryFromAll(String[] keys, long fromDate,
-			long untilDate) {
+			long untilDate, Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(null, keys, fromDate, untilDate, TABLE_RECEIVED);
+		return query(null, keys, fromDate, untilDate, false, type);
 	}
 
 	/**
@@ -742,9 +736,9 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 	public ArrayList<Message> queryToAll(String[] keys, long fromDate,
-			long untilDate) {
+			long untilDate, Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(null, keys, fromDate, untilDate, TABLE_SENT);
+		return query(null, keys, fromDate, untilDate, true, type);
 	}
 
 	/**
@@ -761,9 +755,9 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 	public ArrayList<Message> queryFromAddress(Contact contact,
-			String[] keys, long fromDate, long untilDate) {
+			String[] keys, long fromDate, long untilDate, Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(contact, keys, fromDate, untilDate, TABLE_RECEIVED);
+		return query(contact, keys, fromDate, untilDate, false, type);
 	}
 
 	/**
@@ -780,9 +774,9 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 
 	public ArrayList<Message> queryToAddress(Contact contact,
-			String[] keys, long fromDate, long untilDate) {
+			String[] keys, long fromDate, long untilDate, Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return query(contact, keys, fromDate, untilDate, TABLE_SENT);
+		return query(contact, keys, fromDate, untilDate, true, type);
 	}
 
 	/**
@@ -800,9 +794,10 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            Maximum date
 	 */
 	public HashMap<Contact, ArrayList<Message>> queryFromAddresses(
-			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
+			Contact[] contacts, String[] keys, long fromDate, long untilDate,
+			Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_RECEIVED);
+		return multiQuery(contacts, keys, fromDate, untilDate, false, type);
 	}
 
 	/**
@@ -821,9 +816,10 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 
 	public HashMap<Contact, ArrayList<Message>> queryToAddresses(
-			Contact[] contacts, String[] keys, long fromDate, long untilDate) {
+			Contact[] contacts, String[] keys, long fromDate, long untilDate,
+			Type type) {
 		// Pass -1 for no date limits. Do not pass 0 unless you mean 0.
-		return multiQuery(contacts, keys, fromDate, untilDate, TABLE_SENT);
+		return multiQuery(contacts, keys, fromDate, untilDate, true, type);
 	}
 
 }

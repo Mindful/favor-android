@@ -47,18 +47,22 @@ public abstract class MessageManager {
 			return dh.prefs().getLong("lastFetch"+name, 0);
 		}
 		
+		final public String tableName(boolean sent){
+			return (sent ? TABLE_SENT : TABLE_RECEIVED)+name;
+		}
+		
 		
 		final void buildTables(){
 			db = dh.getWritableDatabase();
 
 			// Sent table
-			db.execSQL("CREATE TABLE " + TABLE_SENT + name + "(" + KEY_ID + " INTEGER,"
+			db.execSQL("CREATE TABLE " + tableName(true) + "(" + KEY_ID + " INTEGER,"
 					+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
 					+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
 					+ KEY_MEDIA + " INTEGER, "+ sentTableEndingStatement() + ")");
 
 			// Received Table
-			db.execSQL("CREATE TABLE " + TABLE_RECEIVED + name + "(" + KEY_ID + " INTEGER,"
+			db.execSQL("CREATE TABLE " + tableName(false) + "(" + KEY_ID + " INTEGER,"
 					+ KEY_DATE + " INTEGER," + KEY_ADDRESS + 
 					" TEXT," + KEY_CHARCOUNT + " INTEGER,"
 					+ KEY_MEDIA + " INTEGER, " + receivedTableEndingStatement() + ")");
@@ -67,9 +71,9 @@ public abstract class MessageManager {
 			// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
 			// Indicates that "order depends on projection i.e. select name, lastname from table"
 			if (dh.indexingEnabled()) {
-				db.execSQL("CREATE INDEX i_" + TABLE_SENT + name + " ON " + TABLE_SENT
+				db.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + TABLE_SENT
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-				db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + name + " ON " + TABLE_RECEIVED
+				db.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + TABLE_RECEIVED
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 			}
 			db.close();
@@ -78,17 +82,17 @@ public abstract class MessageManager {
 		
 		final public void dropTables(){
 			db = dh.getWritableDatabase();
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_SENT + name);
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECEIVED + name);
+			db.execSQL("DROP TABLE IF EXISTS " + tableName(true));
+			db.execSQL("DROP TABLE IF EXISTS " + tableName(false));
 			db.close();
 			db = null;
 		}
 		
 		final public void indexTables(){
 			db = dh.getWritableDatabase();
-			db.execSQL("CREATE INDEX i_" + TABLE_SENT + name + " ON " + TABLE_SENT + " ("
+			db.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + TABLE_SENT + " ("
 					+ KEY_ADDRESS + "," + KEY_DATE + ")");
-			db.execSQL("CREATE INDEX i_" + TABLE_RECEIVED + name + " ON " + TABLE_RECEIVED
+			db.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + TABLE_RECEIVED
 					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 			db.close();
 			db = null;
@@ -96,8 +100,8 @@ public abstract class MessageManager {
 		
 		final public void dropIndices(){
 			db = dh.getWritableDatabase();
-			db.execSQL("DROP INDEX IF EXISTS " + TABLE_SENT + name);
-			db.execSQL("DROP INDEX IF EXISTS " + TABLE_RECEIVED + name);
+			db.execSQL("DROP INDEX IF EXISTS " + tableName(true));
+			db.execSQL("DROP INDEX IF EXISTS " + tableName(false));
 			db.close();
 			db = null;
 		}
@@ -126,7 +130,7 @@ public abstract class MessageManager {
 			row.put(KEY_ADDRESS, formatAddress(address));
 			row.put(KEY_CHARCOUNT, msg.length());
 			row.put(KEY_MEDIA, media);
-			String table = (sent ? TABLE_SENT : TABLE_RECEIVED)+name;
+			String table = tableName(sent);
 			db.insert(table, null, row);
 		}
 		
