@@ -16,21 +16,6 @@ public class DataConstants {
 	//Messages types, these need to be accessable outside the package
 	public static enum Type {TYPE_TEXT, TYPE_EMAIL};
 	
-	class dataException extends RuntimeException {
-
-		private static final long serialVersionUID = -2500275405542504803L;
-
-		public dataException(String exc) {
-			super(exc);
-		}
-
-		public String getMessage() {
-			return super.getMessage();
-		}
-
-	}
-
-	
 	
 
 }

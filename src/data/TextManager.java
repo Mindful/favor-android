@@ -26,8 +26,8 @@ public class TextManager extends MessageManager {
 	private final String MMS_FROM = "137"; // 0x89 in com.google.android.mms.pdu.PduHeaders
 
 
-	protected TextManager() {
-		super(Type.TYPE_TEXT, "text");
+	protected TextManager(DataHandler dh) {
+		super(Type.TYPE_TEXT, "text", dh);
 		// TODO Auto-generated constructor stub
 	}
 	

@@ -63,7 +63,7 @@ public class MainActivity extends SherlockListActivity {
 			    }
 			    else if (str=="Test Mail"){
 			    	DataHandler sdb = DataHandler.get();
-			    	sdb.updateEmail();
+			    	//sdb.updateEmail();
 			    }
 //			    else if (str=="Test Query Equality"){
 //			    	Debug.queryEquality();

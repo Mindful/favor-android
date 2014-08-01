@@ -99,13 +99,17 @@ public class DataHandler extends SQLiteOpenHelper {
 				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + KEY_DATE
 				+ " INTEGER," + KEY_COUNT + " INTEGER," + "PRIMARY KEY("
 				+ KEY_CONTACT_ID + "," + KEY_DATA_TYPE + "))");
+		
+		for (MessageManager m : managers.values()){
+			m.buildTables(db);
+		}
 	}
 
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		for (MessageManager m : managers.values()){
-			m.dropTables();
+			m.dropTables(db);
 		}
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
 		onCreate(db);
@@ -179,7 +183,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		edit = prefs.edit();
 		managers = new HashMap<Type, MessageManager>();
 		for (Type t: Type.values()){
-			managers.put(t, MessageManager.getManager(t));
+			managers.put(t, MessageManager.getManager(t, this));
 		}
 	}
 	
@@ -205,11 +209,13 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 	public void enableIndexing() {
 		if (indexingEnabled()) return;
+		SQLiteDatabase db = getReadableDatabase();
 		edit.putBoolean(SAVED_INDEXING, true);
 		edit.apply();
 		for (MessageManager m : managers.values()){
-			m.indexTables();
+			m.indexTables(db);
 		}
+		db.close();
 	}
 
 	/**
@@ -221,9 +227,11 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (!indexingEnabled()) return;
 		edit.putBoolean(SAVED_INDEXING, false);
 		edit.apply();
+		SQLiteDatabase db = getReadableDatabase();
 		for (MessageManager m : managers.values()){
-			m.dropIndices();
+			m.dropIndices(db);
 		}
+		db.close();
 	}
 
 	/**
@@ -288,10 +296,9 @@ public class DataHandler extends SQLiteOpenHelper {
 		// ----------------------------------
 		updateContacts();
 		// ----------------------------------
-		// Do the actual heavy lifting for texts and such below
-		//updateSMS();
-		// conditionally updateEmail() and eventually possibly other updates
-
+		for (MessageManager m : managers.values()){
+			m.fetch();
+		}
 	}
 
 	

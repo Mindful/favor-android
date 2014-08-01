@@ -24,20 +24,20 @@ public abstract class MessageManager {
 		private boolean success = false;
 		private SQLiteDatabase db;
 		
-		final static MessageManager getManager(Type type){
+		final static MessageManager getManager(Type type, DataHandler dh){
 			switch(type){
 			case TYPE_TEXT:
-				return new TextManager();
+				return new TextManager(dh);
 			case TYPE_EMAIL:
-				return new EmailManager();
+				return new EmailManager(dh);
 			default:
 				throw new dataException("This should never happen.");
 			}
 		}
 		
-		protected MessageManager(Type type, String name){
+		protected MessageManager(Type type, String name, DataHandler dh){
 			//Register with the datahandler, and throw an exception if something of this type is already registered?
-			dh = DataHandler.get();
+			this.dh = dh;
 			lastFetch = getLastFetch();
 			this.type = type;
 			this.name = name;
@@ -51,18 +51,19 @@ public abstract class MessageManager {
 			return (sent ? TABLE_SENT : TABLE_RECEIVED)+name;
 		}
 		
+		//Take an external database reference in the next 4 methods, both for locking safety reasons and becuase they're all
+		//called in batches. This is minor but important.
 		
-		final void buildTables(){
-			db = dh.getWritableDatabase();
+		final void buildTables(SQLiteDatabase external){
 
 			// Sent table
-			db.execSQL("CREATE TABLE " + tableName(true) + "(" + KEY_ID + " INTEGER,"
+			external.execSQL("CREATE TABLE " + tableName(true) + "(" + KEY_ID + " INTEGER,"
 					+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
 					+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
 					+ KEY_MEDIA + " INTEGER, "+ sentTableEndingStatement() + ")");
 
 			// Received Table
-			db.execSQL("CREATE TABLE " + tableName(false) + "(" + KEY_ID + " INTEGER,"
+			external.execSQL("CREATE TABLE " + tableName(false) + "(" + KEY_ID + " INTEGER,"
 					+ KEY_DATE + " INTEGER," + KEY_ADDRESS + 
 					" TEXT," + KEY_CHARCOUNT + " INTEGER,"
 					+ KEY_MEDIA + " INTEGER, " + receivedTableEndingStatement() + ")");
@@ -71,39 +72,28 @@ public abstract class MessageManager {
 			// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
 			// Indicates that "order depends on projection i.e. select name, lastname from table"
 			if (dh.indexingEnabled()) {
-				db.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + TABLE_SENT
+				external.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true)
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-				db.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + TABLE_RECEIVED
+				external.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + tableName(true)
 						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 			}
-			db.close();
-			db = null;
 		}
 		
-		final public void dropTables(){
-			db = dh.getWritableDatabase();
-			db.execSQL("DROP TABLE IF EXISTS " + tableName(true));
-			db.execSQL("DROP TABLE IF EXISTS " + tableName(false));
-			db.close();
-			db = null;
+		final public void dropTables(SQLiteDatabase external){
+			external.execSQL("DROP TABLE IF EXISTS " + tableName(true));
+			external.execSQL("DROP TABLE IF EXISTS " + tableName(false));
 		}
 		
-		final public void indexTables(){
-			db = dh.getWritableDatabase();
-			db.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + TABLE_SENT + " ("
-					+ KEY_ADDRESS + "," + KEY_DATE + ")");
-			db.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + TABLE_RECEIVED
+		final public void indexTables(SQLiteDatabase external){
+			external.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true) 
 					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-			db.close();
-			db = null;
+			external.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + tableName(false)
+					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
 		}
 		
-		final public void dropIndices(){
-			db = dh.getWritableDatabase();
-			db.execSQL("DROP INDEX IF EXISTS " + tableName(true));
-			db.execSQL("DROP INDEX IF EXISTS " + tableName(false));
-			db.close();
-			db = null;
+		final public void dropIndices(SQLiteDatabase external){
+			external.execSQL("DROP INDEX IF EXISTS i_" + tableName(true));
+			external.execSQL("DROP INDEX IF EXISTS i_" + tableName(false));
 		}
 		
 		

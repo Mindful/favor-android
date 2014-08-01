@@ -383,6 +383,7 @@ public class DataProcessor {
 }
 
 
+//TODO: this also needs death, as a perpetrator of construction costs (2 long arrays are more efficient, in short)
 class densityPoint {
 	public long value;
 	public int density;
