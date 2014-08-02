@@ -3,7 +3,7 @@ package data;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.favor.util.Misc;
+import com.favor.util.Logger;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -110,7 +110,7 @@ public abstract class MessageManager {
 		
 		
 		
-		abstract void fetch();
+		abstract boolean fetch();
 		
 		final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
 			if(db==null) throw new dataException("Cannot export messages to database without open transaction.");
@@ -148,7 +148,7 @@ public abstract class MessageManager {
 		final protected void endTransaction(){
 			if(db==null) throw new dataException("Cannot end transaction without open transaction.");
 			if(!success)
-				Misc.logError(name+" message manager transaction unsuccessful at"+ new SimpleDateFormat().format(new Date()));
+				Logger.error(name+" message manager transaction unsuccessful at "+ new SimpleDateFormat().format(new Date()));
 			
 			db.endTransaction();
 			db.close();

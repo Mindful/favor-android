@@ -7,6 +7,7 @@ import java.util.List;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import com.favor.util.Logger;
 import com.favor.util.Misc;
 
 public class singleBar extends Graph {
@@ -45,7 +46,7 @@ public class singleBar extends Graph {
 		}
 		catch (IOException e) 
 		{
-			Misc.logError("HTML load failure: " + e.getMessage());
+			Logger.error("HTML load failure: " + e.getMessage());
 			return "Load Error!";
 		}
 		int size = names.size();

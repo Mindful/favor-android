@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import com.favor.util.Misc;
+import com.favor.util.Logger;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -34,7 +34,7 @@ public class doughnut extends Graph {
 		}
 		catch (IOException e) 
 		{
-			Misc.logError("HTML load failure: " + e.getMessage());
+			Logger.error("HTML load failure: " + e.getMessage());
 			return "Load Error!";
 		}
 		setReplace('c', Long.toString(numbers[1]));

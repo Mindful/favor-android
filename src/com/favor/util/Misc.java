@@ -4,7 +4,6 @@ import java.util.LinkedList;
 
 import org.json.simple.JSONValue;
 
-import android.util.Log;
 
 
 public class Misc {
@@ -23,12 +22,6 @@ public class Misc {
 		for (int i = 0; i < array.length; i++)
 			list.add(Long.valueOf(array[i]));
 		return JSONValue.toJSONString(list);
-	}
-	
-	public static void logError(String err)
-	{
-		Log.e("Favor Error", err);
-		//TODO: Consider notifying user, or saving to error log
 	}
 	
 }

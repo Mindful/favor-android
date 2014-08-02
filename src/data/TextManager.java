@@ -5,7 +5,8 @@ import java.util.Date;
 import android.database.Cursor;
 import android.net.Uri;
 
-import com.favor.util.Misc;
+import com.favor.util.Logger;
+
 import static data.DataConstants.*;
 
 
@@ -37,7 +38,7 @@ public class TextManager extends MessageManager {
 	}
 
 	@Override
-	void fetch() {
+	boolean fetch() {
 		lastFetch = getLastFetch();
 		beginTransaction();
 		try {
@@ -66,6 +67,7 @@ public class TextManager extends MessageManager {
 		} finally {
 			endTransaction();
 		}
+		return true; //This is a simple fetch with no internet connectivity, so we can just return true as long as nothing excepts
 	}
 	
 	
@@ -93,7 +95,7 @@ public class TextManager extends MessageManager {
 			if (type.equals("text/plain")) {
 				data = c.getString(0);
 				if (data == null) data = c.getString(1); // fetch from the "text" column
-			    else Misc.logError("Unknown message data:" + data); // we have pure data
+			    else Logger.error("Unknown message data parsing sent MMS:" + data); // we have pure data
 			} else media = 1;
 		}
 		c.close();
@@ -129,7 +131,7 @@ public class TextManager extends MessageManager {
 				if (data == null) {
 					data = c.getString(1); // fetch from the "text" column
 				} else {
-					Misc.logError("Unknown message data:" + data); // we have
+					Logger.error("Unknown message data parsing receieved MMS:" + data); // we have
 																	// pure data
 				}
 			} else

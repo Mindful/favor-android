@@ -1,13 +1,15 @@
 package data;
 
+import java.io.IOException;
 import java.util.Properties;
 import java.util.Vector;
 
 import javax.mail.Folder;
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 
-import com.favor.util.Misc;
+import com.favor.util.Logger;
 import com.sun.mail.iap.Argument;
 import com.sun.mail.iap.ProtocolException;
 import com.sun.mail.iap.Response;
@@ -36,23 +38,37 @@ public class EmailManager extends MessageManager {
 	}
 
 	@Override
-	void fetch() {
+	boolean fetch() {
 		// TODO Auto-generated method stub
+		Properties props = new Properties();
+		props.setProperty("mail.store.protocol", "imaps");
+		Debug.log("start email test");
+		Session session = Session.getInstance(props, null);
+		Store store;
+		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
+		String user = "joshuabtanner@gmail.com";
+		try{
+			store = session.getStore();
+			store.connect(host, user, "tahnqydxlonnpqco");
+		} catch (MessagingException e){
+			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
+			return false;
+		}
+		try {
+			fetchFromServer(store, false);
+			//fetchFromServer(store, true);
+		} catch (MessagingException e) {
+			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
+			e.printStackTrace();
+		}
+		
+		return true;
 
 	}
 	
 	
 	// todo: eventually should be private, use or not determined by settings
-		public void updateEmail() {
-			//TODO: this only does received right now, we'll have to hit sent as a separate folder
-			Properties props = new Properties();
-			props.setProperty("mail.store.protocol", "imaps");
-			Debug.log("start email test");
-			try {
-				Session session = Session.getInstance(props, null);
-				Store store = session.getStore();
-				store.connect("imap.gmail.com", "joshuabtanner@gmail.com",
-						"tahnqydxlonnpqco");
+		private void fetchFromServer(Store store, boolean sent) throws MessagingException {
 				IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
 				inbox.open(Folder.READ_ONLY);
 
@@ -85,7 +101,7 @@ public class EmailManager extends MessageManager {
                                        }
                                }
 	                       }
-		               } else Misc.logError("Email communication failed: response not OK");	
+		               } else Logger.error("Email communication failed: response not OK");	
 		               return uids.toArray();
 					}
 				});
@@ -94,7 +110,12 @@ public class EmailManager extends MessageManager {
 			javax.mail.Message[] messages = inbox.getMessagesByUID(uidArray);
 			for(int i = 0; i < messages.length; i++){
 				messages[i].getFrom()[0].toString();
-				messages[i].getContent(); //Well, this is probably what we'll need to determine both the message size 
+				try {
+					messages[i].getContent();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} //Well, this is probably what we'll need to determine both the message size 
 				//and whether it had media or not, but it looks like determining that is going to take consulting the
 				//documentation
 				messages[i].getReceivedDate().getTime();
@@ -104,10 +125,6 @@ public class EmailManager extends MessageManager {
 				//messages[i].getSentDate(); //For when we write the sent message querying code
 			}
 				
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		}
 
 	@Override
