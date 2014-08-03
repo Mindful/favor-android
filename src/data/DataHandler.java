@@ -21,6 +21,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import android.util.SparseArray;
+import android.widget.Toast;
 
 import static data.DataConstants.*;
 
@@ -296,9 +297,12 @@ public class DataHandler extends SQLiteOpenHelper {
 		// ----------------------------------
 		updateContacts();
 		// ----------------------------------
+		long count = 0;
 		for (MessageManager m : managers.values()){
-			m.fetch();
+			count += m.fetch();
 		}
+		if (count>0) Toast.makeText(context, "Fetched "+count+" messages.", Toast.LENGTH_LONG).show();
+		else Toast.makeText(context, "No new messages found.", Toast.LENGTH_LONG).show();
 	}
 
 	

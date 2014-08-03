@@ -38,28 +38,42 @@ public class TextManager extends MessageManager {
 	}
 
 	@Override
-	boolean fetch() {
-		lastFetch = getLastFetch();
+	long fetch() {
+		long lastFetch = getLastFetch();
+		long count = 0;
 		beginTransaction();
 		try {
 			Cursor c = dh.context().getContentResolver().query(SMS_IN, SMS_PROJECTION, 
 					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
-			while (c.moveToNext()) exportMessage(false, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
+			while (c.moveToNext()) {
+				exportMessage(false, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
+				++count;
+			}
 			c.close();
 			
 			c = dh.context().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
 					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
-			while (c.moveToNext()) while (c.moveToNext()) exportMessage(true, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
+			while (c.moveToNext()) {
+				exportMessage(true, c.getLong(0), c.getLong(1), c.getString(2), c.getString(3), 0);
+				++count;
+			}
 			c.close();
 			
+			//MMS dates are formatted retardedly, so we have to divide lastFetch accordingly
 			c = dh.context().getContentResolver().query(MMS_IN, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
-			while (c.moveToNext()) receivedMMS(c.getLong(0), c.getLong(1));
+					KEY_DATE + " > " + lastFetch/1000l, null, KEY_DATE);
+			while (c.moveToNext()){
+				receivedMMS(c.getLong(0), c.getLong(1));
+				++count;
+			}
 			c.close();
 			
 			c = dh.context().getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-					KEY_DATE + " > " + lastFetch, null, KEY_DATE);
-			while (c.moveToNext()) sentMMS(c.getLong(0), c.getLong(1));
+					KEY_DATE + " > " + lastFetch/1000l, null, KEY_DATE);
+			while (c.moveToNext()){
+				sentMMS(c.getLong(0), c.getLong(1));
+				++count;
+			}
 			c.close();
 			successfulTransaction(new Date().getTime());
 		} catch (Exception ex) {
@@ -67,7 +81,7 @@ public class TextManager extends MessageManager {
 		} finally {
 			endTransaction();
 		}
-		return true; //This is a simple fetch with no internet connectivity, so we can just return true as long as nothing excepts
+		return count; //This is a simple fetch with no internet connectivity, so we can just return true as long as nothing excepts
 	}
 	
 	

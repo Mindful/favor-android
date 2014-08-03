@@ -38,7 +38,7 @@ public class EmailManager extends MessageManager {
 	}
 
 	@Override
-	boolean fetch() {
+	long fetch() {
 		// TODO Auto-generated method stub
 //		Properties props = new Properties();
 //		props.setProperty("mail.store.protocol", "imaps");
@@ -62,7 +62,7 @@ public class EmailManager extends MessageManager {
 //			e.printStackTrace();
 //		}
 //		
-		return true;
+		return 0;
 
 	}
 	
@@ -76,7 +76,7 @@ public class EmailManager extends MessageManager {
 				//The IMAP search buildin gcode is largely modeled after the time I did something similar in Python:
 				//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
 				final String addressField = sent ? "TO" : "FROM";
-				lastFetch = getLastFetch();
+				final long lastFetch = getLastFetch();
 				long[] uidArray = (long[])inbox.doCommand(new IMAPFolder.ProtocolCommand() {
 					@Override
 					public Object doCommand(IMAPProtocol p) throws ProtocolException {

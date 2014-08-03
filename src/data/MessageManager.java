@@ -16,7 +16,6 @@ import static data.DataConstants.*;
 
 public abstract class MessageManager {
 	
-		protected long lastFetch;
 		protected final DataHandler dh;
 		final Type type;
 		final String name;
@@ -38,7 +37,6 @@ public abstract class MessageManager {
 		protected MessageManager(Type type, String name, DataHandler dh){
 			//Register with the datahandler, and throw an exception if something of this type is already registered?
 			this.dh = dh;
-			lastFetch = getLastFetch();
 			this.type = type;
 			this.name = name;
 		}
@@ -111,7 +109,7 @@ public abstract class MessageManager {
 		
 		
 		
-		abstract boolean fetch();
+		abstract long fetch();
 		
 		final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
 			if(db==null) throw new dataException("Cannot export messages to database without open transaction.");
