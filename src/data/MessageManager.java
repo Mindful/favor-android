@@ -35,10 +35,17 @@ public abstract class MessageManager {
 		}
 		
 		protected MessageManager(Type type, String name, DataHandler dh){
-			//Register with the datahandler, and throw an exception if something of this type is already registered?
 			this.dh = dh;
 			this.type = type;
 			this.name = name;
+		}
+		
+		final protected long getLong(String varName, long def){
+			return dh.prefs().getLong(varName+name, def);
+		}
+		
+		final protected void setLong(String varName, long l){
+			dh.prefs().edit().putLong(varName+name, l).commit();
 		}
 		
 		final public long getLastFetch(){
@@ -136,11 +143,11 @@ public abstract class MessageManager {
 			}
 		}
 		
-		final protected void successfulTransaction(long lastFetch){
+		final protected void successfulTransaction(){
 			if(db==null) throw new dataException("Cannot mark transaction successful without open transaction.");
 			db.setTransactionSuccessful();
 			success = true;
-			dh.prefs().edit().putLong("lastFetch"+name, lastFetch).commit();
+			dh.prefs().edit().putLong("lastFetch"+name, new Date().getTime()).commit();
 		}
 		
 		@SuppressLint("SimpleDateFormat")

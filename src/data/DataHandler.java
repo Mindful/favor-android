@@ -302,7 +302,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		for (MessageManager m : managers.values()){
 			count += m.fetch();
 		}
-		if (count>0) Toast.makeText(context, "Fetched "+count+" messages.", Toast.LENGTH_LONG).show();
+		if (count>0) Toast.makeText(context, "Fetched "+count+" new messages.", Toast.LENGTH_LONG).show();
 		else Toast.makeText(context, "No new messages found.", Toast.LENGTH_LONG).show();
 	}
 

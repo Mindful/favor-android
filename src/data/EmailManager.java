@@ -30,6 +30,8 @@ public class EmailManager extends MessageManager {
 
 	protected EmailManager(DataHandler dh) {
 		super(Type.TYPE_EMAIL, "email", dh);
+		//http://tools.ietf.org/html/rfc3501 defines UIDS as
+		//"nz-number" (non-zero) numbers, so the lastFetch should start at 1
 	}
 	
 	
@@ -43,30 +45,43 @@ public class EmailManager extends MessageManager {
 	long fetch(){return 0;}
 	//@Override
 	public long fetchTest() {
-		 //TODO Auto-generated method stub
 		Properties props = new Properties();
 		props.setProperty("mail.store.protocol", "imaps");
 		Debug.log("start email test");
 		Session session = Session.getInstance(props, null);
-		Store store;
+		Store store = null;
 		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
 		String user = "joshuabtanner@gmail.com";
 		Pattern sentPattern = Pattern.compile("sent", Pattern.CASE_INSENSITIVE);
 		try{
 			store = session.getStore();
 			store.connect(host, user, "tahnqydxlonnpqco");
+			//Attempt to find the "sent" folder
+			String sentFolderName = null;
 			Folder[] folders = store.getDefaultFolder().list("*");
 			for (int i = 0; i < folders.length; i++){
 				 Debug.log(">> "+folders[i].getName());
-				 if (sentPattern.matcher(folders[i].getName()).find()) Debug.log("Match "+folders[i].getFullName());
-				 
+				 if (sentPattern.matcher(folders[i].getName()).find()){
+					 Debug.log("SentFolder match: "+folders[i].getFullName());
+					 if (sentFolderName!=null){
+						 throw new dataException("Competing sent folder names:\""+sentFolderName+"\"/\""+folders[i].getFullName());
+					 } else sentFolderName = folders[i].getFullName();
+				 }
+			}
+			if (sentFolderName==null){
+				String folderList = "";
+				for (Folder f: folders) folderList+=f.getFullName()+", ";
+				folderList = folderList.substring(0, folderList.length()-2);
+				throw new dataException("Could not find sent folder in folders ["+folderList+"]");
 			}
 		} catch (MessagingException e){
 			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
 			return 0;
+		} catch (dataException e){
+			Logger.exception("Error interfacing with mail provider "+host, e);
 		}
 		try {
-			fetchFromServer(store, false);
+			fetchFromServer(store, false, "INBOX");
 			//fetchFromServer(store, true);
 		} catch (MessagingException e) {
 			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
@@ -78,24 +93,23 @@ public class EmailManager extends MessageManager {
 	}
 	
 	
-	// todo: eventually should be private, use or not determined by settings
-		private void fetchFromServer(Store store, boolean sent) throws MessagingException {
-			//TODO: is "SENT" the proper name?
-				IMAPFolder inbox = (IMAPFolder) (sent ? store.getFolder("SENT") : store.getFolder("INBOX"));
-				inbox.open(Folder.READ_ONLY);
+	// TODO: eventually should be private, use or not determined by settings
+		private void fetchFromServer(Store store, boolean sent, String folderName) throws MessagingException {
+				IMAPFolder folder =  (IMAPFolder) store.getFolder(folderName);
+				folder.open(Folder.READ_ONLY);
 
-				//The IMAP search buildin gcode is largely modeled after the time I did something similar in Python:
+				//The IMAP search building code is largely modeled after the time I did something similar in Python:
 				//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
 				final String addressField = sent ? "TO" : "FROM";
-				final long lastFetch = getLastFetch();
-				long[] uidArray = (long[])inbox.doCommand(new IMAPFolder.ProtocolCommand() {
+				final long lastUID = sent ? getLong("lastSentUID", 1) : getLong("lastReceivedUID", 1);
+				long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 					@Override
 					public Object doCommand(IMAPProtocol p) throws ProtocolException {
 						StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
 						String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
 						for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
 						for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
-						searchCommand.append("UID ").append(lastFetch).append(":*");
+						searchCommand.append("UID ").append(lastUID).append(":*");
 						Debug.log(searchCommand.toString());
 					   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
 			           args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
@@ -110,6 +124,7 @@ public class EmailManager extends MessageManager {
                                        String num;
                                        while ((num = ir.readAtomString()) != null) {
                                                uids.add(Long.valueOf(num));
+                                               Debug.log(num);
                                        }
                                }
 	                       }
@@ -126,7 +141,7 @@ public class EmailManager extends MessageManager {
 				});
 				
 			//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
-			javax.mail.Message[] messages = inbox.getMessagesByUID(uidArray);
+			javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
 			for(int i = 0; i < messages.length; i++){
 				messages[i].getFrom()[0].toString();
 				try {
