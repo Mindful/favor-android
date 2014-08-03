@@ -30,8 +30,6 @@ public class EmailManager extends MessageManager {
 
 	protected EmailManager(DataHandler dh) {
 		super(Type.TYPE_EMAIL, "email", dh);
-		//http://tools.ietf.org/html/rfc3501 defines UIDS as
-		//"nz-number" (non-zero) numbers, so the lastFetch should start at 1
 	}
 	
 	
@@ -41,9 +39,9 @@ public class EmailManager extends MessageManager {
 		return "PRIMARY KEY ("+KEY_ID+ "," + KEY_ADDRESS + ")";
 	}
 
-	
+	@Override
 	long fetch(){return 0;}
-	//@Override
+
 	public long fetchTest() {
 		Properties props = new Properties();
 		props.setProperty("mail.store.protocol", "imaps");
@@ -53,11 +51,11 @@ public class EmailManager extends MessageManager {
 		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
 		String user = "joshuabtanner@gmail.com";
 		Pattern sentPattern = Pattern.compile("sent", Pattern.CASE_INSENSITIVE);
+		String sentFolderName = null;
 		try{
 			store = session.getStore();
 			store.connect(host, user, "tahnqydxlonnpqco");
 			//Attempt to find the "sent" folder
-			String sentFolderName = null;
 			Folder[] folders = store.getDefaultFolder().list("*");
 			for (int i = 0; i < folders.length; i++){
 				 Debug.log(">> "+folders[i].getName());
@@ -82,7 +80,7 @@ public class EmailManager extends MessageManager {
 		}
 		try {
 			fetchFromServer(store, false, "INBOX");
-			//fetchFromServer(store, true);
+			fetchFromServer(store, true, sentFolderName);
 		} catch (MessagingException e) {
 			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
 			e.printStackTrace();
@@ -95,71 +93,76 @@ public class EmailManager extends MessageManager {
 	
 	// TODO: eventually should be private, use or not determined by settings
 		private void fetchFromServer(Store store, boolean sent, String folderName) throws MessagingException {
-				IMAPFolder folder =  (IMAPFolder) store.getFolder(folderName);
-				folder.open(Folder.READ_ONLY);
+			IMAPFolder folder =  (IMAPFolder) store.getFolder(folderName);
+			folder.open(Folder.READ_ONLY);
 
-				//The IMAP search building code is largely modeled after the time I did something similar in Python:
-				//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
-				final String addressField = sent ? "TO" : "FROM";
-				final long lastUID = sent ? getLong("lastSentUID", 1) : getLong("lastReceivedUID", 1);
-				long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
-					@Override
-					public Object doCommand(IMAPProtocol p) throws ProtocolException {
-						StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
-						String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
-						for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
-						for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
-						searchCommand.append("UID ").append(lastUID).append(":*");
-						Debug.log(searchCommand.toString());
-					   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
-			           args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
-		               Response[] r = p.command(searchCommand.toString(), args);
-		               Response response = r[r.length - 1];
-		               ArrayList<Long> uids = new ArrayList<Long>();
-		               if (response.isOK()) { 
-	                       for (int i = 0, len = r.length; i < len; i++) {
-                               if (!(r[i] instanceof IMAPResponse)) continue;
-                               IMAPResponse ir = (IMAPResponse) r[i];
-                               if (ir.keyEquals("SEARCH")) {
-                                       String num;
-                                       while ((num = ir.readAtomString()) != null) {
-                                               uids.add(Long.valueOf(num));
-                                               Debug.log(num);
-                                       }
-                               }
-	                       }
-		               } else Logger.error("Email communication failed with response: "+response);
-		               //Obnoxiously we have to unbox each long before returning it, but if we start off with a long[] array
-		               //then we risk having empty slots because the only thing we can use for its size is r.length
-		               long[] ret = new long[uids.size()];
-		               for (int i = 0; i < uids.size(); i++){
-		            	  ret[i] =  uids.get(i).longValue();
-		               }
-		               
-		               return ret;
-					}
-				});
-				
-			//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
-			javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
-			for(int i = 0; i < messages.length; i++){
-				messages[i].getFrom()[0].toString();
-				try {
-					messages[i].getContent();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} //Well, this is probably what we'll need to determine both the message size 
-				//and whether it had media or not, but it looks like determining that is going to take consulting the
-				//documentation
-				messages[i].getReceivedDate().getTime();
-				boolean messageSent = false;
-				long id = uidArray[i];
-				//exportMessage(false, uidArray[i], messages[i].getFrom()[0].toString(),  )
-				//messages[i].getSentDate(); //For when we write the sent message querying code
-			}
-				
+			//The IMAP search building code is largely modeled after the time I did something similar in Python:
+			//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py/#L184
+			//Also, http://tools.ietf.org/html/rfc3501 defines UIDS as
+			//"nz-number" (non-zero) numbers, so the lastSent/ReceivedUID should start at 1
+			//Lastly, I have no idea why these two properly used variables generate unused warnings
+			@SuppressWarnings("unused")
+			final String addressField = sent ? "TO" : "FROM";
+			@SuppressWarnings("unused")
+			final long lastUID = sent ? getLong("lastSentUID", 1) : getLong("lastReceivedUID", 1);
+			final String df = folderName;
+			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
+				@Override
+				public Object doCommand(IMAPProtocol p) throws ProtocolException {
+					StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
+					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
+					for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
+					for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
+					searchCommand.append("UID ").append(lastUID).append(":*");
+					Debug.log(searchCommand.toString());
+				   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
+		           args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
+	               Response[] r = p.command(searchCommand.toString(), args);
+	               Response response = r[r.length - 1];
+	               ArrayList<Long> uids = new ArrayList<Long>();
+	               if (response.isOK()) { 
+                       for (int i = 0, len = r.length; i < len; i++) {
+                           if (!(r[i] instanceof IMAPResponse)) continue;
+                           IMAPResponse ir = (IMAPResponse) r[i];
+                           if (ir.keyEquals("SEARCH")) {
+                                   String num;
+                                   while ((num = ir.readAtomString()) != null) {
+                                           uids.add(Long.valueOf(num));
+                                           Debug.log(df+":"+num);
+                                   }
+                           }
+                       }
+	               } else Logger.error("Email communication failed with response: "+response);
+	               //Obnoxiously we have to unbox each long before returning it, but if we start off with a long[] array
+	               //then we risk having empty slots because the only thing we can use for its size is r.length
+	               long[] ret = new long[uids.size()];
+	               for (int i = 0; i < uids.size(); i++){
+	            	  ret[i] =  uids.get(i).longValue();
+	               }
+	               
+	               return ret;
+				}
+			});
+			
+		//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
+		javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
+		for(int i = 0; i < messages.length; i++){
+			messages[i].getFrom()[0].toString();
+			try {
+				messages[i].getContent();
+			} catch (IOException e) {
+				Logger.exception("Error reading mail message", e);
+			} //Well, this is probably what we'll need to determine both the message size 
+			//and whether it had media or not, but it looks like determining that is going to take consulting the
+			//documentation
+			messages[i].getReceivedDate().getTime();
+			boolean messageSent = false;
+			long id = uidArray[i];
+			//exportMessage(false, uidArray[i], messages[i].getFrom()[0].toString(),  )
+			//messages[i].getSentDate(); //For when we write the sent message querying code
 		}
+			
+	}
 
 	@Override
 	String formatAddress(String address) {
