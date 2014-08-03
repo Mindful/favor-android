@@ -25,7 +25,7 @@ import android.widget.AdapterView.OnItemClickListener;
  
 public class MainActivity extends SherlockListActivity {
  
-	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Test Mail"};
+	static final String[] MENU_ITEMS = new String[] { "List By Contacts", "Dump Database", "Test Mail", "Remake DB"};
 	
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -64,6 +64,8 @@ public class MainActivity extends SherlockListActivity {
 			    else if (str=="Test Mail"){
 			    	DataHandler sdb = DataHandler.get();
 			    	//sdb.updateEmail();
+			    }else if (str=="Remake DB"){
+			    	Debug.remakeDB();
 			    }
 //			    else if (str=="Test Query Equality"){
 //			    	Debug.queryEquality();

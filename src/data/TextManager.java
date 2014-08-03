@@ -145,7 +145,7 @@ public class TextManager extends MessageManager {
 		c.moveToFirst();
 		String address = c.getString(0);
 		c.close();
-		exportMessage(true, -id, date, address, data, media);
+		exportMessage(false, -id, date, address, data, media);
 	}
 
 

@@ -82,6 +82,7 @@ public abstract class MessageManager {
 		final public void dropTables(SQLiteDatabase external){
 			external.execSQL("DROP TABLE IF EXISTS " + tableName(true));
 			external.execSQL("DROP TABLE IF EXISTS " + tableName(false));
+			dh.prefs().edit().putLong("lastFetch"+name, 0).commit();
 		}
 		
 		final public void indexTables(SQLiteDatabase external){

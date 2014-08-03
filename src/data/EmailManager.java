@@ -40,28 +40,28 @@ public class EmailManager extends MessageManager {
 	@Override
 	boolean fetch() {
 		// TODO Auto-generated method stub
-		Properties props = new Properties();
-		props.setProperty("mail.store.protocol", "imaps");
-		Debug.log("start email test");
-		Session session = Session.getInstance(props, null);
-		Store store;
-		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
-		String user = "joshuabtanner@gmail.com";
-		try{
-			store = session.getStore();
-			store.connect(host, user, "tahnqydxlonnpqco");
-		} catch (MessagingException e){
-			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
-			return false;
-		}
-		try {
-			fetchFromServer(store, false);
-			//fetchFromServer(store, true);
-		} catch (MessagingException e) {
-			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
-			e.printStackTrace();
-		}
-		
+//		Properties props = new Properties();
+//		props.setProperty("mail.store.protocol", "imaps");
+//		Debug.log("start email test");
+//		Session session = Session.getInstance(props, null);
+//		Store store;
+//		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
+//		String user = "joshuabtanner@gmail.com";
+//		try{
+//			store = session.getStore();
+//			store.connect(host, user, "tahnqydxlonnpqco");
+//		} catch (MessagingException e){
+//			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
+//			return false;
+//		}
+//		try {
+//			fetchFromServer(store, false);
+//			//fetchFromServer(store, true);
+//		} catch (MessagingException e) {
+//			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
+//			e.printStackTrace();
+//		}
+//		
 		return true;
 
 	}
@@ -69,12 +69,13 @@ public class EmailManager extends MessageManager {
 	
 	// todo: eventually should be private, use or not determined by settings
 		private void fetchFromServer(Store store, boolean sent) throws MessagingException {
-				IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
+			//TODO: is "SENT" the proper name?
+				IMAPFolder inbox = (IMAPFolder) (sent ? store.getFolder("SENT") : store.getFolder("INBOX"));
 				inbox.open(Folder.READ_ONLY);
 
-				//This code is largely modeled after the time I did something similar in Python, here:
+				//The IMAP search buildin gcode is largely modeled after the time I did something similar in Python:
 				//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py
-				
+				final String addressField = sent ? "TO" : "FROM";
 				lastFetch = getLastFetch();
 				long[] uidArray = (long[])inbox.doCommand(new IMAPFolder.ProtocolCommand() {
 					@Override
@@ -82,7 +83,7 @@ public class EmailManager extends MessageManager {
 						StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
 						String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
 						for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
-						for (int i = 0; i < test.length; i++) searchCommand.append("FROM \"").append(test[i]).append("\" ");
+						for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
 						searchCommand.append("UID ").append(lastFetch).append(":*");
 						
 					   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
@@ -119,7 +120,7 @@ public class EmailManager extends MessageManager {
 				//and whether it had media or not, but it looks like determining that is going to take consulting the
 				//documentation
 				messages[i].getReceivedDate().getTime();
-				boolean sent = false;
+				boolean messageSent = false;
 				long id = uidArray[i];
 				//exportMessage(false, uidArray[i], messages[i].getFrom()[0].toString(),  )
 				//messages[i].getSentDate(); //For when we write the sent message querying code
