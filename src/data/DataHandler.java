@@ -151,7 +151,8 @@ public class DataHandler extends SQLiteOpenHelper {
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
 	
-	private final HashMap<Type, MessageManager> managers;
+	//TODO: this should be private; it's public only for testing purposes
+	public final HashMap<Type, MessageManager> managers;
 
 	private ArrayList<Contact> contactsList;
 

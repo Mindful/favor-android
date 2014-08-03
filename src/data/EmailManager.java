@@ -1,8 +1,10 @@
 package data;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import javax.mail.Folder;
 import javax.mail.MessagingException;
@@ -37,31 +39,40 @@ public class EmailManager extends MessageManager {
 		return "PRIMARY KEY ("+KEY_ID+ "," + KEY_ADDRESS + ")";
 	}
 
-	@Override
-	long fetch() {
-		// TODO Auto-generated method stub
-//		Properties props = new Properties();
-//		props.setProperty("mail.store.protocol", "imaps");
-//		Debug.log("start email test");
-//		Session session = Session.getInstance(props, null);
-//		Store store;
-//		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
-//		String user = "joshuabtanner@gmail.com";
-//		try{
-//			store = session.getStore();
-//			store.connect(host, user, "tahnqydxlonnpqco");
-//		} catch (MessagingException e){
-//			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
-//			return false;
-//		}
-//		try {
-//			fetchFromServer(store, false);
-//			//fetchFromServer(store, true);
-//		} catch (MessagingException e) {
-//			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
-//			e.printStackTrace();
-//		}
-//		
+	
+	long fetch(){return 0;}
+	//@Override
+	public long fetchTest() {
+		 //TODO Auto-generated method stub
+		Properties props = new Properties();
+		props.setProperty("mail.store.protocol", "imaps");
+		Debug.log("start email test");
+		Session session = Session.getInstance(props, null);
+		Store store;
+		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
+		String user = "joshuabtanner@gmail.com";
+		Pattern sentPattern = Pattern.compile("sent", Pattern.CASE_INSENSITIVE);
+		try{
+			store = session.getStore();
+			store.connect(host, user, "tahnqydxlonnpqco");
+			Folder[] folders = store.getDefaultFolder().list("*");
+			for (int i = 0; i < folders.length; i++){
+				 Debug.log(">> "+folders[i].getName());
+				 if (sentPattern.matcher(folders[i].getName()).find()) Debug.log("Match "+folders[i].getFullName());
+				 
+			}
+		} catch (MessagingException e){
+			Logger.exception("Error connecting to mail provider "+host+" as "+user, e);
+			return 0;
+		}
+		try {
+			fetchFromServer(store, false);
+			//fetchFromServer(store, true);
+		} catch (MessagingException e) {
+			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
+			e.printStackTrace();
+		}
+		
 		return 0;
 
 	}
@@ -85,12 +96,12 @@ public class EmailManager extends MessageManager {
 						for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
 						for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
 						searchCommand.append("UID ").append(lastFetch).append(":*");
-						
+						Debug.log(searchCommand.toString());
 					   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
 			           args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
 		               Response[] r = p.command(searchCommand.toString(), args);
 		               Response response = r[r.length - 1];
-		               Vector<Long> uids = new Vector<Long>();
+		               ArrayList<Long> uids = new ArrayList<Long>();
 		               if (response.isOK()) { 
 	                       for (int i = 0, len = r.length; i < len; i++) {
                                if (!(r[i] instanceof IMAPResponse)) continue;
@@ -102,8 +113,15 @@ public class EmailManager extends MessageManager {
                                        }
                                }
 	                       }
-		               } else Logger.error("Email communication failed: response not OK");	
-		               return uids.toArray();
+		               } else Logger.error("Email communication failed with response: "+response);
+		               //Obnoxiously we have to unbox each long before returning it, but if we start off with a long[] array
+		               //then we risk having empty slots because the only thing we can use for its size is r.length
+		               long[] ret = new long[uids.size()];
+		               for (int i = 0; i < uids.size(); i++){
+		            	  ret[i] =  uids.get(i).longValue();
+		               }
+		               
+		               return ret;
 					}
 				});
 				

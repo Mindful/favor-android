@@ -7,6 +7,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.favor.R;
 import com.favor.develop.Benchmark;
 
+import data.DataConstants;
 import data.DataHandler;
 import data.Debug;
 
@@ -63,7 +64,8 @@ public class MainActivity extends SherlockListActivity {
 			    }
 			    else if (str=="Test Mail"){
 			    	DataHandler sdb = DataHandler.get();
-			    	//sdb.updateEmail();
+			    	data.EmailManager test = (data.EmailManager)(sdb.managers.get(DataConstants.Type.TYPE_EMAIL));
+			    	test.fetchTest();
 			    }else if (str=="Remake DB"){
 			    	Debug.remakeDB();
 			    }
