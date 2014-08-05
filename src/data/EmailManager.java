@@ -3,11 +3,11 @@ package data;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.regex.Pattern;
 
 import javax.mail.Folder;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 
@@ -19,10 +19,8 @@ import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.protocol.IMAPProtocol;
 import com.sun.mail.imap.protocol.IMAPResponse;
 
-import javax.mail.Address;
 import javax.mail.BodyPart;
-//import javax.mail.Message;
-import javax.mail.search.SearchTerm;
+import javax.mail.internet.MimeMessage;
 
 import static data.DataConstants.*;
 
@@ -101,9 +99,7 @@ public class EmailManager extends MessageManager {
 			//Also, http://tools.ietf.org/html/rfc3501 defines UIDS as
 			//"nz-number" (non-zero) numbers, so the lastSent/ReceivedUID should start at 1
 			//Lastly, I have no idea why these two properly used variables generate unused warnings
-			@SuppressWarnings("unused")
 			final String addressField = sent ? "TO" : "FROM";
-			@SuppressWarnings("unused")
 			final long lastUID = sent ? getLong("lastSentUID", 1) : getLong("lastReceivedUID", 1);
 			final String df = folderName;
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
@@ -152,16 +148,58 @@ public class EmailManager extends MessageManager {
 				messages[i].getContent();
 			} catch (IOException e) {
 				Logger.exception("Error reading mail message", e);
-			} //Well, this is probably what we'll need to determine both the message size 
-			//and whether it had media or not, but it looks like determining that is going to take consulting the
-			//documentation
-			messages[i].getReceivedDate().getTime();
-			boolean messageSent = false;
-			long id = uidArray[i];
-			//exportMessage(false, uidArray[i], messages[i].getFrom()[0].toString(),  )
+			}
+			try{
+				if (sent) sentEmail(messages[i], uidArray[i]);
+				else receivedEmail(messages[i], uidArray[i]);
+			} catch (IOException e){
+				Logger.exception("Mail IO problem", e);
+			}
+			catch (MessagingException e){
+				Logger.exception("Mail problem", e);
+			}
 			//messages[i].getSentDate(); //For when we write the sent message querying code
 		}
 			
+	}
+		
+	private void receivedEmail(javax.mail.Message message, long UID) throws IOException, MessagingException{
+		int media = 0;
+		String body = null;
+		if(message instanceof MimeMessage)
+        {
+            MimeMessage m = (MimeMessage)message;
+            Object contentObject = m.getContent();
+            if(contentObject instanceof Multipart)
+            {
+                BodyPart clearTextPart = null;
+                BodyPart htmlTextPart = null;
+                Multipart content = (Multipart)contentObject;
+                int count = content.getCount();
+                for(int i=0; i<count; i++)
+                {
+                    BodyPart part =  content.getBodyPart(i);
+                    if(part.isMimeType("text/plain")) clearTextPart = part;
+                    else if (part.isMimeType("text/html")) htmlTextPart = part;
+                    else media = 1; //If it's not text and it's not HTML, that's media enough for me
+                }
+
+                if (clearTextPart!=null) body = (String) clearTextPart.getContent();
+                //else if (htmlTextPart!=null) body = Jsoup.parse((String) htmlTextPart.getContent()).text();
+                else if (htmlTextPart!=null) body = (String) htmlTextPart.getContent();
+
+            }
+            else if (contentObject instanceof String) body = (String) contentObject; //Simple text-only email, not MIME formatted
+            else Logger.error("Unable to decypher email: "+message.toString());//We're not really sure what it is now
+        }
+        long date = message.getReceivedDate().getTime();
+        String from = message.getFrom()[0].toString();
+        Debug.log("Date:"+date+" from:"+from+"body:"+body);
+		//exportMessage(false, UID, date, from, body, media);
+	}
+	
+	private void sentEmail(javax.mail.Message m, long UID){
+
 	}
 
 	@Override
