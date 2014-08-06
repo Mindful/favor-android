@@ -21,7 +21,7 @@ public abstract class MessageManager {
 		final String name;
 
 		private boolean success = false;
-		private SQLiteDatabase db;
+		private SQLiteDatabase db = null;
 		
 		final static MessageManager getManager(Type type, DataHandler dh){
 			switch(type){
@@ -153,8 +153,7 @@ public abstract class MessageManager {
 		@SuppressLint("SimpleDateFormat")
 		final protected void endTransaction(){
 			if(db==null) throw new dataException("Cannot end transaction without open transaction.");
-			if(!success)
-				Logger.error(name+" message manager transaction unsuccessful at "+ new SimpleDateFormat().format(new Date()));
+			if(!success) Logger.error(name+" message manager transaction unsuccessful at "+ new SimpleDateFormat().format(new Date()));
 			
 			db.endTransaction();
 			db.close();

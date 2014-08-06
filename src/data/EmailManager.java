@@ -24,7 +24,13 @@ import javax.mail.internet.MimeMessage;
 
 import static data.DataConstants.*;
 
+
 public class EmailManager extends MessageManager {
+	
+	private static final String SENT_UID = "lastSentUID";
+	private static final String RECEIVED_UID = "lastReceivedUID";
+	private static final String SENT_UID_VALIDITY = "sentUIDValidity";
+	private static final String RECEIVED_UID_VALIDITY = "receivedUIDValidity";
 
 	protected EmailManager(DataHandler dh) {
 		super(Type.TYPE_EMAIL, "email", dh);
@@ -89,10 +95,21 @@ public class EmailManager extends MessageManager {
 	}
 	
 	
-	// TODO: eventually should be private, use or not determined by settings
 		private void fetchFromServer(Store store, boolean sent, String folderName) throws MessagingException {
-			IMAPFolder folder =  (IMAPFolder) store.getFolder(folderName);
+			IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
 			folder.open(Folder.READ_ONLY);
+			long lastUIDValidity = sent ? getLong(SENT_UID_VALIDITY, 0) : getLong(RECEIVED_UID_VALIDITY, 0);
+			long UIDValidity = folder.getUIDValidity();
+			if (lastUIDValidity!=0){
+				if(lastUIDValidity!=UIDValidity){
+					Logger.warn("UID validity value of "+folderName+" changed from "+lastUIDValidity+" to "+UIDValidity+
+							". This will require a mail database rebuild");
+					//TODO: This is bad news. We basically need to drop and rebuild our tables.
+					//--------
+					//BIG DEAL
+					//--------
+				}
+			}
 
 			//The IMAP search building code is largely modeled after the time I did something similar in Python:
 			//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py/#L184
@@ -100,13 +117,17 @@ public class EmailManager extends MessageManager {
 			//"nz-number" (non-zero) numbers, so the lastSent/ReceivedUID should start at 1
 			//Lastly, I have no idea why these two properly used variables generate unused warnings
 			final String addressField = sent ? "TO" : "FROM";
-			final long lastUID = sent ? getLong("lastSentUID", 1) : getLong("lastReceivedUID", 1);
+			final long lastUID = (sent ? getLong(SENT_UID, 0) : getLong(RECEIVED_UID, 0))+1; //Adding 1 is important because UID fetch includes the lowest value you give it
+			Debug.log("lastUID:"+lastUID+" max (next-1):"+(folder.getUIDNext()-1));
+			if (lastUID >= (folder.getUIDNext()-1)) return; //If our last is less than or equal to the current max, we've no work to do
+			
+			
 			final String df = folderName;
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 				@Override
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {
 					StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
-					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com"};
+					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com"};
 					for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
 					for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
 					searchCommand.append("UID ").append(lastUID).append(":*");
@@ -140,26 +161,33 @@ public class EmailManager extends MessageManager {
 				}
 			});
 			
+		if (uidArray.length==0) return;
 		//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
+		//Also (this has to be true for the code to work properly) getMessagesByUID returns an array of
+		//messages with messages in the same spot as their UIDs in the argument array, and the initial
+		//UID argument array is in ascending order.
 		javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
-		for(int i = 0; i < messages.length; i++){
-			messages[i].getFrom()[0].toString();
-			try {
-				messages[i].getContent();
-			} catch (IOException e) {
-				Logger.exception("Error reading mail message", e);
-			}
-			try{
+		beginTransaction();
+		try{
+			for(int i = 0; i < messages.length; i++){
 				if (sent) sentEmail(messages[i], uidArray[i]);
 				else receivedEmail(messages[i], uidArray[i]);
-			} catch (IOException e){
-				Logger.exception("Mail IO problem", e);
 			}
-			catch (MessagingException e){
-				Logger.exception("Mail problem", e);
+			if (sent) {
+				setLong(SENT_UID, uidArray[uidArray.length-1]);
+				setLong(SENT_UID_VALIDITY, UIDValidity);
 			}
-			//messages[i].getSentDate(); //For when we write the sent message querying code
+			else {
+				setLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
+				setLong(RECEIVED_UID_VALIDITY, UIDValidity);
+			}
+			successfulTransaction();
+		} catch (MessagingException e){
+			Logger.exception("Problem importing mail", e);
+		} catch (IOException e){
+			Logger.exception("IO Problem importing mail", e);
 		}
+		endTransaction();
 			
 	}
 		
@@ -194,12 +222,13 @@ public class EmailManager extends MessageManager {
         }
         long date = message.getReceivedDate().getTime();
         String from = message.getFrom()[0].toString();
-        Debug.log("Date:"+date+" from:"+from+"body:"+body);
+        if (body!=null) Debug.log("Date:"+date+" from:"+from+" media:"+media+" body length:"+body.length());
+        else Debug.log("Date:"+date+" from:"+from+" media:"+media+" body length: 0");
 		//exportMessage(false, UID, date, from, body, media);
 	}
 	
 	private void sentEmail(javax.mail.Message m, long UID){
-
+		//messages[i].getSentDate(); //For when we write the sent message querying code
 	}
 
 	@Override

@@ -14,6 +14,10 @@ public class Logger {
 		Log.e("Favor - Error:", err);
 	}
 	
+	public static void warn(String warn){
+		Log.w("Favor - Warning:", warn);
+	}
+	
 	public static void exception(String msg, Exception e){
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
