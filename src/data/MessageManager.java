@@ -17,6 +17,7 @@ import static data.DataConstants.*;
 public abstract class MessageManager {
 	
 		protected final DataHandler dh;
+		protected final String savedValues[];
 		final Type type;
 		final String name;
 
@@ -38,18 +39,31 @@ public abstract class MessageManager {
 			this.dh = dh;
 			this.type = type;
 			this.name = name;
+			this.savedValues = new String[] {};
+		}
+		
+		protected MessageManager(Type type, String name, DataHandler dh, String[] savedValues){
+			this.dh = dh;
+			this.type = type;
+			this.name = name;
+			this.savedValues = savedValues;
 		}
 		
 		final protected long getLong(String varName, long def){
 			return dh.prefs().getLong(varName+name, def);
 		}
 		
-		final protected void setLong(String varName, long l){
+		final protected void putLong(String varName, long l){
 			dh.prefs().edit().putLong(varName+name, l).commit();
 		}
 		
+		final protected void removeLong(String varName){
+			//dh.prefs().edit().remove(varName).commit(); //This method doesn't appear to work?
+			dh.prefs().edit().putLong(varName+name, 0).commit();
+		}
+		
 		final public long getLastFetch(){
-			return dh.prefs().getLong("lastFetch"+name, 0);
+			return getLong("lastFetch", 0);
 		}
 		
 		final public String tableName(boolean sent){
@@ -87,7 +101,8 @@ public abstract class MessageManager {
 		final public void dropTables(SQLiteDatabase external){
 			external.execSQL("DROP TABLE IF EXISTS " + tableName(true));
 			external.execSQL("DROP TABLE IF EXISTS " + tableName(false));
-			dh.prefs().edit().putLong("lastFetch"+name, 0).commit();
+			removeLong("lastFetch");
+			for (String s : savedValues) removeLong(s);
 		}
 		
 		final public void indexTables(SQLiteDatabase external){
@@ -147,7 +162,7 @@ public abstract class MessageManager {
 			if(db==null) throw new dataException("Cannot mark transaction successful without open transaction.");
 			db.setTransactionSuccessful();
 			success = true;
-			dh.prefs().edit().putLong("lastFetch"+name, new Date().getTime()).commit();
+			putLong("lastFetch", new Date().getTime());
 		}
 		
 		@SuppressLint("SimpleDateFormat")

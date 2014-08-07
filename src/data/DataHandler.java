@@ -109,6 +109,7 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		//TODO: try comparing versions? do we need to? I don't remember
 		for (MessageManager m : managers.values()){
 			m.dropTables(db);
 		}

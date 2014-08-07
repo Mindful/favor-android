@@ -29,7 +29,6 @@ public class TextManager extends MessageManager {
 
 	protected TextManager(DataHandler dh) {
 		super(Type.TYPE_TEXT, "text", dh);
-		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
@@ -88,8 +87,7 @@ public class TextManager extends MessageManager {
 	
 	@Override
 	String formatAddress(String address) {
-		if (!address.contains("@")) address = address.replaceAll("[^0-9]", ""); // regex matches anything except digits
-		//TODO: Is this okay? Where is email formatting needed?
+		if (!address.contains("@")) address = address.replaceAll("[^0-9]", "");
 		return address;
 	}
 

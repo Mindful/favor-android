@@ -2,9 +2,13 @@ package data;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.mail.Address;
 import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -20,6 +24,7 @@ import com.sun.mail.imap.protocol.IMAPProtocol;
 import com.sun.mail.imap.protocol.IMAPResponse;
 
 import javax.mail.BodyPart;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import static data.DataConstants.*;
@@ -31,13 +36,13 @@ public class EmailManager extends MessageManager {
 	private static final String RECEIVED_UID = "lastReceivedUID";
 	private static final String SENT_UID_VALIDITY = "sentUIDValidity";
 	private static final String RECEIVED_UID_VALIDITY = "receivedUIDValidity";
+	
 
 	protected EmailManager(DataHandler dh) {
-		super(Type.TYPE_EMAIL, "email", dh);
+		super(Type.TYPE_EMAIL, "email", dh, new String[] {SENT_UID, RECEIVED_UID, SENT_UID_VALIDITY, RECEIVED_UID_VALIDITY});
 	}
 	
 	
-	//TODO: 95% sure this is necessary, but can always do with some verification
 	@Override
 	protected String sentTableEndingStatement(){
 		return "PRIMARY KEY ("+KEY_ID+ "," + KEY_ADDRESS + ")";
@@ -83,8 +88,8 @@ public class EmailManager extends MessageManager {
 			Logger.exception("Error interfacing with mail provider "+host, e);
 		}
 		try {
-			fetchFromServer(store, false, "INBOX");
-			fetchFromServer(store, true, sentFolderName);
+			fetchFromServer(store, "INBOX", false);
+			fetchFromServer(store, sentFolderName, true);
 		} catch (MessagingException e) {
 			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
 			e.printStackTrace();
@@ -95,7 +100,7 @@ public class EmailManager extends MessageManager {
 	}
 	
 	
-		private void fetchFromServer(Store store, boolean sent, String folderName) throws MessagingException {
+		private void fetchFromServer(Store store, String folderName, boolean sent) throws MessagingException {
 			IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
 			folder.open(Folder.READ_ONLY);
 			long lastUIDValidity = sent ? getLong(SENT_UID_VALIDITY, 0) : getLong(RECEIVED_UID_VALIDITY, 0);
@@ -117,19 +122,18 @@ public class EmailManager extends MessageManager {
 			//"nz-number" (non-zero) numbers, so the lastSent/ReceivedUID should start at 1
 			//Lastly, I have no idea why these two properly used variables generate unused warnings
 			final String addressField = sent ? "TO" : "FROM";
-			final long lastUID = (sent ? getLong(SENT_UID, 0) : getLong(RECEIVED_UID, 0))+1; //Adding 1 is important because UID fetch includes the lowest value you give it
+			final long lastUID = (sent ? getLong(SENT_UID, 0) : getLong(RECEIVED_UID, 0))+1; //Adding 1 is important because UID fetch includes the lowest value you give it  
 			Debug.log("lastUID:"+lastUID+" max (next-1):"+(folder.getUIDNext()-1));
 			if (lastUID >= (folder.getUIDNext()-1)) return; //If our last is less than or equal to the current max, we've no work to do
 			
-			
+			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com"};
 			final String df = folderName;
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 				@Override
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {
 					StringBuilder searchCommand = new StringBuilder("UID SEARCH ");
-					String[] test = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com"};
-					for (int i = 1; i < test.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
-					for (int i = 0; i < test.length; i++) searchCommand.append(addressField+" \"").append(test[i]).append("\" ");
+					for (int i = 1; i < addresses.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
+					for (int i = 0; i < addresses.length; i++) searchCommand.append(addressField+" \"").append(addresses[i]).append("\" ");
 					searchCommand.append("UID ").append(lastUID).append(":*");
 					Debug.log(searchCommand.toString());
 				   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
@@ -169,17 +173,16 @@ public class EmailManager extends MessageManager {
 		javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
 		beginTransaction();
 		try{
-			for(int i = 0; i < messages.length; i++){
-				if (sent) sentEmail(messages[i], uidArray[i]);
-				else receivedEmail(messages[i], uidArray[i]);
+			for(int i = 0; i < messages.length; i++) {
+				parseEmail(messages[i], uidArray[i], addresses, sent);
 			}
 			if (sent) {
-				setLong(SENT_UID, uidArray[uidArray.length-1]);
-				setLong(SENT_UID_VALIDITY, UIDValidity);
+				putLong(SENT_UID, uidArray[uidArray.length-1]);
+				putLong(SENT_UID_VALIDITY, UIDValidity);
 			}
 			else {
-				setLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
-				setLong(RECEIVED_UID_VALIDITY, UIDValidity);
+				putLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
+				putLong(RECEIVED_UID_VALIDITY, UIDValidity);
 			}
 			successfulTransaction();
 		} catch (MessagingException e){
@@ -191,9 +194,10 @@ public class EmailManager extends MessageManager {
 			
 	}
 		
-	private void receivedEmail(javax.mail.Message message, long UID) throws IOException, MessagingException{
+	private void parseEmail(javax.mail.Message message, long UID, String addresses[], boolean sent) throws IOException, MessagingException{
 		int media = 0;
 		String body = null;
+		Set<String> validAddresses = new HashSet<String>(Arrays.asList(addresses));
 		if(message instanceof MimeMessage)
         {
             MimeMessage m = (MimeMessage)message;
@@ -220,21 +224,33 @@ public class EmailManager extends MessageManager {
             else if (contentObject instanceof String) body = (String) contentObject; //Simple text-only email, not MIME formatted
             else Logger.error("Unable to decypher email: "+message.toString());//We're not really sure what it is now
         }
-        long date = message.getReceivedDate().getTime();
-        String from = message.getFrom()[0].toString();
-        if (body!=null) Debug.log("Date:"+date+" from:"+from+" media:"+media+" body length:"+body.length());
-        else Debug.log("Date:"+date+" from:"+from+" media:"+media+" body length: 0");
-		//exportMessage(false, UID, date, from, body, media);
+		if (body==null) body = ""; //No code to export null values
+		if (sent){
+	        long date = message.getSentDate().getTime();
+	        Address to[] = message.getAllRecipients();
+	        String addr;
+	        //Generate a record for every recipient
+	        for (int i = 0; i < to.length; i++){
+	        	addr = ((InternetAddress)to[i]).getAddress();
+	        	if (validAddresses.contains(addr)) exportMessage(true, UID, date, addr, body, media);
+	        	//Debug.log("Date:"+date+" from:"+addr+" media:"+media+" body length:"+body.length());
+	        }
+		} else {
+	        long date = message.getReceivedDate().getTime();
+        	Address from[] = message.getFrom();
+        	String addr;
+        	//Generate a record for the first recognized sender. Multiple senders is such a weird edge case anyway, though
+        	for (int i = 0; i < from.length; i++){
+        		addr = ((InternetAddress)from[i]).getAddress();
+        		if (validAddresses.contains(addr)) exportMessage(false, UID, date, addr, body, media);
+    	        //Debug.log("Date:"+date+" from:"+addr+" media:"+media+" body length:"+body.length());
+	        }
+		}
 	}
 	
-	private void sentEmail(javax.mail.Message m, long UID){
-		//messages[i].getSentDate(); //For when we write the sent message querying code
-	}
-
 	@Override
 	String formatAddress(String address) {
-		// TODO Auto-generated method stub
-		return null;
+		return address; //No formatting necessary at current
 	}
 
 }
