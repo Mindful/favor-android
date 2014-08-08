@@ -9,6 +9,8 @@ public class Contact {
 	private final String[] addresses;
 	private final String id;
 
+	//TODO: THE FUCKING LEVEL OF WRONGNESS THIS IS INFURIATING
+	//THE CLASS IS NOT A BUTTON ITEM. HOLY SHIT
 	private boolean isSelected;
 
 	@Override

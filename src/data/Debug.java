@@ -218,7 +218,7 @@ public class Debug {
 		long[] chars = DataProcessor.charCount(contact, -1, -1);
 		db.saveData(contact, DataHandler.DATA_RECEIVED_CHARS, chars[1]);
 		db.saveData(contact, DataHandler.DATA_SENT_CHARS, chars[0]);
-		SparseArray<dataTime> all = db.getAllData(contact);
+		SparseArray<long[]> all = db.getAllData(contact);
 		log("Received Chars:"+all.get(DataHandler.DATA_RECEIVED_CHARS));
 		log("Sent chars:"+all.get(DataHandler.DATA_SENT_CHARS));
 		db.saveData(contact, DataHandler.DATA_SENT_MMS, 250l);

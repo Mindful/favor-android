@@ -122,7 +122,6 @@ public class EmailManager extends MessageManager {
 			
 			//TODO: get addresses from somewhere reasonable
 			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com", "jtanner2@pacbell.net"};
-			final String df = folderName;
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 				@Override
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {

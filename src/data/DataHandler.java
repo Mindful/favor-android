@@ -39,25 +39,6 @@ class dataException extends RuntimeException {
 
 }
 
-//TODO: this probably needs to die; it's exactly the kind of thing that'd be more efficient as a 2-long array
-class dataTime {
-	private long count;
-	private long time;
-
-	public dataTime(long count, long time) {
-		this.count = count;
-		this.time = time;
-	}
-
-	public long count() {
-		return count;
-	}
-
-	public long time() {
-		return time;
-	}
-}
-
 public class DataHandler extends SQLiteOpenHelper {
 	// SQLite aspects
 	private static final int DATABASE_VERSION = 1;
@@ -75,19 +56,11 @@ public class DataHandler extends SQLiteOpenHelper {
 	private static final String KEY_COUNT = "count";
 
 	/**
-	 * Format the address into something we can use (largely cleans up phone
-	 * numbers). Boolean "fetch" param is true if we're using this for an SQL
-	 * query and we need symbol escapes.
+	 * Format the address into something we can use (cleans up phone numbers)
 	 */
 
-	//TODO: this should die asap
-	private static String formatAddress(String address, boolean fetch) {
-		if (address.contains("@") && fetch) {
-			address = "\"" + address + "\"";
-		} else
-			address = address.replaceAll("[^0-9]", ""); // regex matches
-														// anything except
-														// digits
+	String formatAddress(String address) {
+		if (!address.contains("@")) address = address.replaceAll("[^0-9]", "");
 		return address;
 	}
 
@@ -109,7 +82,6 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		//TODO: try comparing versions? do we need to? I don't remember
 		for (MessageManager m : managers.values()){
 			m.dropTables(db);
 		}
@@ -152,8 +124,7 @@ public class DataHandler extends SQLiteOpenHelper {
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
 	
-	//TODO: this should be private; it's public only for testing purposes
-	public final HashMap<Type, MessageManager> managers;
+	private final HashMap<Type, MessageManager> managers;
 
 	private ArrayList<Contact> contactsList;
 
@@ -252,33 +223,26 @@ public class DataHandler extends SQLiteOpenHelper {
 				ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " ASC");
 
 		contactsList = new ArrayList<Contact>(contacts.getCount());
-		// This will be slightly larger than it actually needs to be, but is
-		// almost certainly better than
-		// starting with a tiny ArrayList
+		// This will be slightly larger than it actually needs to be, but is probably better than starting with a tiny ArrayList
 		String curId = null, curName = null;
 		ArrayList<String> buffer = new ArrayList<String>();
+		//Loop through records for every number, assigning it to the proper contact
 		while (contacts.moveToNext()) {
-			// If using IDs seems overkill, remember that two contacts can have
-			// the same name
+			// If using IDs seems overkill, remember that two contacts can have the same name
 			String rowId = contacts.getString(2);
 			if (!rowId.equals(curId)) {
 				if (curId != null) {
-					contactsList
-							.add(new Contact(curName, curId, (String[]) buffer
-									.toArray(new String[buffer.size()])));
+					contactsList.add(new Contact(curName, curId, (String[]) buffer.toArray(new String[buffer.size()])));
 					buffer.clear();
 				}
 				curId = rowId;
 				curName = contacts.getString(0);
 			}
-			buffer.add(formatAddress(contacts.getString(1), false));
+			buffer.add(formatAddress(contacts.getString(1)));
 		}
 		// Have to handle the last contact after the loop terminates
-		if (curId != null)
-			contactsList.add(new Contact(curName, curId, (String[]) buffer
-					.toArray(new String[buffer.size()])));
+		if (curId != null) contactsList.add(new Contact(curName, curId, (String[]) buffer.toArray(new String[buffer.size()])));
 		Collections.sort(contactsList, new Comparator<Contact>() {
-
 			@Override
 			public int compare(Contact lhs, Contact rhs) {
 				return lhs.getName().compareTo(rhs.getName());
@@ -375,9 +339,8 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	/**
 	 * Loads data about a user. Data types are listed as class constants in the
-	 * form DATA_xxxxx. Returns a dataTime object with fields "count" and
-	 * "time", both longs. If no data is found, fields "count" and "time" will
-	 * be -1.
+	 * form DATA_xxxxx. Returns a 2-long array with [data, time]
+	 * If no data is found, data and count will be -1.
 	 * 
 	 * @param address
 	 *            The address of the user you are saving data about.
@@ -386,38 +349,39 @@ public class DataHandler extends SQLiteOpenHelper {
 	 *            (DATA_xxxxx)
 	 * 
 	 */
-	public dataTime getData(Contact contact, int type) {
+	public long[] getData(Contact contact, int type) {
 		validDate(type);
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, KEY_DATE },
 				KEY_CONTACT_ID + "=" + contact.id() + " AND " + KEY_DATA_TYPE
 						+ "=" + type, null, null, null, null);
 		if (c.getCount() == 0)
-			return new dataTime(-1, -1);
+			return new long[]{-1, -1};
 		else if (c.getCount() > 1)
 			throw new dataException("getData producing multiple results.");
 		c.moveToNext();
-		return new dataTime(c.getLong(0), c.getLong(1));
+		return new long[]{c.getLong(0), c.getLong(1)};
 	}
 
 	/**
 	 * Loads all data about a user, returning anything found in a SparseArray,
 	 * with data mapped to its type. Data types are listed as class constants in
-	 * the form DATA_xxxxx. Returns -1 if no data is found.
+	 * the form DATA_xxxxx. Returns -1 if no data is found. Data is in the typical
+	 * format of a 2-long array with [data, time].
 	 * 
 	 * @param address
 	 *            The address of the user you are saving data about.
 	 * 
 	 */
 
-	public SparseArray<dataTime> getAllData(Contact contact) {
-		SparseArray<dataTime> ret = new SparseArray<dataTime>();
+	public SparseArray<long[]> getAllData(Contact contact) {
+		SparseArray<long[]> ret = new SparseArray<long[]>();
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = db.query(TABLE_DATA, new String[] { KEY_DATA_TYPE,
 				KEY_COUNT, KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
 				null, null, null, null);
 		while (c.moveToNext()) {
-			ret.put(c.getInt(0), new dataTime(c.getLong(1), c.getLong(2)));
+			ret.put(c.getInt(0), new long[]{c.getLong(1), c.getLong(2)});
 		}
 		return ret;
 
