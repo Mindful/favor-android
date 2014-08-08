@@ -249,6 +249,7 @@ public class DataHandler extends SQLiteOpenHelper {
 			}
 
 		});
+		contacts.close();
 	}
 
 	/**
@@ -355,11 +356,9 @@ public class DataHandler extends SQLiteOpenHelper {
 		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, KEY_DATE },
 				KEY_CONTACT_ID + "=" + contact.id() + " AND " + KEY_DATA_TYPE
 						+ "=" + type, null, null, null, null);
-		if (c.getCount() == 0)
-			return new long[]{-1, -1};
-		else if (c.getCount() > 1)
-			throw new dataException("getData producing multiple results.");
-		c.moveToNext();
+		if (c.getCount() == 0) return new long[]{-1, -1};
+		else if (c.getCount() > 1) throw new dataException("getData producing multiple results.");
+		c.close();
 		return new long[]{c.getLong(0), c.getLong(1)};
 	}
 
@@ -383,6 +382,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		while (c.moveToNext()) {
 			ret.put(c.getInt(0), new long[]{c.getLong(1), c.getLong(2)});
 		}
+		c.close();
 		return ret;
 
 	}
@@ -460,12 +460,10 @@ public class DataHandler extends SQLiteOpenHelper {
 				Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
 
-		Cursor c = db.rawQuery("SELECT AVG(" + key + ") from " + table
-				+ selection, null);
-		if (c.moveToFirst()) {
-			return c.getDouble(0);
-		} else
-			return 0.00d;
+		Cursor c = db.rawQuery("SELECT AVG(" + key + ") from " + table + selection, null);
+		double ret = c.moveToFirst() ? c.getDouble(0) : 0.00d;
+		c.close();
+		return ret;
 	}
 
 	public long sum(Contact contact, String key, long fromDate, long untilDate,
@@ -483,10 +481,9 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		Cursor c = db.rawQuery("SELECT SUM(" + key + ") from " + table
 				+ selection, null);
-		if (c.moveToFirst()) {
-			return c.getLong(0);
-		} else
-			return 0;
+		long ret = c.moveToFirst() ? c.getLong(0) : 0l;
+		c.close();
+		return ret;
 	}
 
 	// The below method is an alternative way of running multiQueries. It
@@ -679,10 +676,8 @@ public class DataHandler extends SQLiteOpenHelper {
 
 		Cursor c = db.rawQuery(sql, null);
 		int sentColumn = c.getColumnIndex(DataHandler.JOIN_KEY_SENT);
-		while (c.moveToNext()) {
-			res.offer(Message.build(c, c.getInt(sentColumn), type));
-		}
-
+		while (c.moveToNext()) res.offer(Message.build(c, c.getInt(sentColumn), type));
+		c.close();
 		return res;
 	}
 
