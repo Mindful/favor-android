@@ -53,7 +53,6 @@ public class EmailManager extends MessageManager {
 		long count = 0;
 		Properties props = new Properties();
 		props.setProperty("mail.store.protocol", "imaps");
-		Debug.log("start email test");
 		Session session = Session.getInstance(props, null);
 		Store store = null;
 		String host = "imap.gmail.com"; //TODO: we should be getting these (and password, but we won't save that) somewhere
@@ -66,9 +65,7 @@ public class EmailManager extends MessageManager {
 			//Attempt to find the "sent" folder
 			Folder[] folders = store.getDefaultFolder().list("*");
 			for (int i = 0; i < folders.length; i++){
-				 Debug.log(">> "+folders[i].getName());
 				 if (sentPattern.matcher(folders[i].getName()).find()){
-					 Debug.log("SentFolder match: "+folders[i].getFullName());
 					 if (sentFolderName!=null){
 						 throw new dataException("Competing sent folder names:\""+sentFolderName+"\"/\""+folders[i].getFullName());
 					 } else sentFolderName = folders[i].getFullName();
@@ -121,7 +118,6 @@ public class EmailManager extends MessageManager {
 			//Lastly, I have no idea why these two properly used variables generate unused warnings
 			final String addressField = sent ? "TO" : "FROM";
 			final long lastUID = (sent ? getLong(SENT_UID, 0) : getLong(RECEIVED_UID, 0))+1; //Adding 1 is important because UID fetch includes the lowest value you give it  
-			Debug.log("lastUID:"+lastUID+" max (next-1):"+(folder.getUIDNext()-1));
 			if (lastUID >= (folder.getUIDNext()-1)) return 0; //If our last is less than or equal to the current max, we've no work to do
 			
 			//TODO: get addresses from somewhere reasonable
@@ -134,7 +130,6 @@ public class EmailManager extends MessageManager {
 					for (int i = 1; i < addresses.length; i++) searchCommand.append("OR "); //Start i at 1 so we get one less OR
 					for (int i = 0; i < addresses.length; i++) searchCommand.append(addressField+" \"").append(addresses[i]).append("\" ");
 					searchCommand.append("UID ").append(lastUID).append(":*");
-					Debug.log(searchCommand.toString());
 				   Argument args = new Argument(); //Admittedly I don't understand this as well as I could; the IMAP cmd generating code is mine
 		           args.writeString("ALL"); //but the actual Javamail implementation is basically sourced from http://www.mailinglistarchive.com/javamail-interest@java.sun.com/msg00561.html
 	               Response[] r = p.command(searchCommand.toString(), args);
@@ -148,7 +143,6 @@ public class EmailManager extends MessageManager {
                                    String num;
                                    while ((num = ir.readAtomString()) != null) {
                                            uids.add(Long.valueOf(num));
-                                           Debug.log(df+":"+num);
                                    }
                            }
                        }
@@ -233,7 +227,6 @@ public class EmailManager extends MessageManager {
 	        for (int i = 0; i < to.length; i++){
 	        	addr = ((InternetAddress)to[i]).getAddress();
 	        	if (validAddresses.contains(addr)) exportMessage(true, UID, date, addr, body, media);
-	        	//Debug.log("Date:"+date+" from:"+addr+" media:"+media+" body length:"+body.length());
 	        }
 		} else {
 	        long date = message.getReceivedDate().getTime();
@@ -243,7 +236,6 @@ public class EmailManager extends MessageManager {
         	for (int i = 0; i < from.length; i++){
         		addr = ((InternetAddress)from[i]).getAddress();
         		if (validAddresses.contains(addr)) exportMessage(false, UID, date, addr, body, media);
-    	        //Debug.log("Date:"+date+" from:"+addr+" media:"+media+" body length:"+body.length());
 	        }
 		}
 	}
