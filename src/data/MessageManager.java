@@ -105,6 +105,10 @@ public abstract class MessageManager {
 			for (String s : savedValues) removeLong(s);
 		}
 		
+		final protected void dropTables(){
+			dropTables(dh.getWritableDatabase());
+		}
+		
 		final public void indexTables(SQLiteDatabase external){
 			external.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true) 
 					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");

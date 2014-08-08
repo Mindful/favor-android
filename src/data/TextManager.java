@@ -38,9 +38,9 @@ public class TextManager extends MessageManager {
 
 	@Override
 	long fetch() {
+		long count = 0;
 		//We can just use the lastFetch for this because we're going on time anyway
 		long lastFetchDate = getLastFetch();
-		long count = 0;
 		beginTransaction();
 		try {
 			Cursor c = dh.context().getContentResolver().query(SMS_IN, SMS_PROJECTION, 

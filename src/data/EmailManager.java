@@ -49,9 +49,8 @@ public class EmailManager extends MessageManager {
 	}
 
 	@Override
-	long fetch(){return 0;}
-
-	public long fetchTest() {
+	long fetch() {
+		long count = 0;
 		Properties props = new Properties();
 		props.setProperty("mail.store.protocol", "imaps");
 		Debug.log("start email test");
@@ -88,19 +87,20 @@ public class EmailManager extends MessageManager {
 			Logger.exception("Error interfacing with mail provider "+host, e);
 		}
 		try {
-			fetchFromServer(store, "INBOX", false);
-			fetchFromServer(store, sentFolderName, true);
+			count += fetchFromServer(store, "INBOX", false);
+			count += fetchFromServer(store, sentFolderName, true);
 		} catch (MessagingException e) {
 			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
 			e.printStackTrace();
 		}
 		
-		return 0;
+		return count;
 
 	}
 	
 	
-		private void fetchFromServer(Store store, String folderName, boolean sent) throws MessagingException {
+		private long fetchFromServer(Store store, String folderName, boolean sent) throws MessagingException {
+			long count = 0;
 			IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
 			folder.open(Folder.READ_ONLY);
 			long lastUIDValidity = sent ? getLong(SENT_UID_VALIDITY, 0) : getLong(RECEIVED_UID_VALIDITY, 0);
@@ -109,10 +109,8 @@ public class EmailManager extends MessageManager {
 				if(lastUIDValidity!=UIDValidity){
 					Logger.warn("UID validity value of "+folderName+" changed from "+lastUIDValidity+" to "+UIDValidity+
 							". This will require a mail database rebuild");
-					//TODO: This is bad news. We basically need to drop and rebuild our tables.
-					//--------
-					//BIG DEAL
-					//--------
+					//This is bad news. We need to drop and rebuild our tables.
+					dropTables();
 				}
 			}
 
@@ -124,9 +122,10 @@ public class EmailManager extends MessageManager {
 			final String addressField = sent ? "TO" : "FROM";
 			final long lastUID = (sent ? getLong(SENT_UID, 0) : getLong(RECEIVED_UID, 0))+1; //Adding 1 is important because UID fetch includes the lowest value you give it  
 			Debug.log("lastUID:"+lastUID+" max (next-1):"+(folder.getUIDNext()-1));
-			if (lastUID >= (folder.getUIDNext()-1)) return; //If our last is less than or equal to the current max, we've no work to do
+			if (lastUID >= (folder.getUIDNext()-1)) return 0; //If our last is less than or equal to the current max, we've no work to do
 			
-			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com"};
+			//TODO: get addresses from somewhere reasonable
+			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com", "jtanner2@pacbell.net"};
 			final String df = folderName;
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 				@Override
@@ -165,7 +164,7 @@ public class EmailManager extends MessageManager {
 				}
 			});
 			
-		if (uidArray.length==0) return;
+		if (uidArray.length==0) return 0;
 		//Have to use fully qualified namespace to avoid overlap with Favor's native "Message" object
 		//Also (this has to be true for the code to work properly) getMessagesByUID returns an array of
 		//messages with messages in the same spot as their UIDs in the argument array, and the initial
@@ -175,6 +174,7 @@ public class EmailManager extends MessageManager {
 		try{
 			for(int i = 0; i < messages.length; i++) {
 				parseEmail(messages[i], uidArray[i], addresses, sent);
+				++count;
 			}
 			if (sent) {
 				putLong(SENT_UID, uidArray[uidArray.length-1]);
@@ -191,7 +191,7 @@ public class EmailManager extends MessageManager {
 			Logger.exception("IO Problem importing mail", e);
 		}
 		endTransaction();
-			
+		return count;
 	}
 		
 	private void parseEmail(javax.mail.Message message, long UID, String addresses[], boolean sent) throws IOException, MessagingException{

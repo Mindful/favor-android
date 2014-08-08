@@ -62,11 +62,12 @@ public class MainActivity extends SherlockListActivity {
 			    else if (str=="Dump Database"){
 			    	Debug.writeDatabase(temp);
 			    }
-			    else if (str=="Test Mail"){
-			    	DataHandler sdb = DataHandler.get();
-			    	data.EmailManager test = (data.EmailManager)(sdb.managers.get(DataConstants.Type.TYPE_EMAIL));
-			    	test.fetchTest();
-			    }else if (str=="Remake DB"){
+//			    else if (str=="Test Mail"){
+//			    	DataHandler sdb = DataHandler.get();
+//			    	data.EmailManager test = (data.EmailManager)(sdb.managers.get(DataConstants.Type.TYPE_EMAIL));
+//			    	test.fetchTest();
+//			    }
+			    else if (str=="Remake DB"){
 			    	Debug.remakeDB();
 			    }
 //			    else if (str=="Test Query Equality"){
