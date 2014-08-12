@@ -70,22 +70,30 @@ public abstract class MessageManager {
 			return (sent ? TABLE_SENT : TABLE_RECEIVED)+name;
 		}
 		
-		//Take an external database reference in the next 4 methods, both for locking safety reasons and becuase they're all
+		//Take an external database reference in the next 4 methods, both for locking safety reasons and because they're all
 		//called in batches. This is minor but important.
+		
+		private String tableCreationStatement(boolean sent){
+			if (sent){
+				return "CREATE TABLE " + tableName(true) + "(" + KEY_ID + " INTEGER,"
+						+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
+						+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
+						+ KEY_MEDIA + " INTEGER, "+ sentTableEndingStatement() + ")";
+			} else {
+				return "CREATE TABLE " + tableName(false) + "(" + KEY_ID + " INTEGER,"
+						+ KEY_DATE + " INTEGER," + KEY_ADDRESS + 
+						" TEXT," + KEY_CHARCOUNT + " INTEGER,"
+						+ KEY_MEDIA + " INTEGER, " + receivedTableEndingStatement() + ")";
+			}
+		}
 		
 		final void buildTables(SQLiteDatabase external){
 
 			// Sent table
-			external.execSQL("CREATE TABLE " + tableName(true) + "(" + KEY_ID + " INTEGER,"
-					+ KEY_DATE + " INTEGER," + KEY_ADDRESS 
-					+ " TEXT," + KEY_CHARCOUNT + " INTEGER," 
-					+ KEY_MEDIA + " INTEGER, "+ sentTableEndingStatement() + ")");
+			external.execSQL(tableCreationStatement(true));
 
 			// Received Table
-			external.execSQL("CREATE TABLE " + tableName(false) + "(" + KEY_ID + " INTEGER,"
-					+ KEY_DATE + " INTEGER," + KEY_ADDRESS + 
-					" TEXT," + KEY_CHARCOUNT + " INTEGER,"
-					+ KEY_MEDIA + " INTEGER, " + receivedTableEndingStatement() + ")");
+			external.execSQL(tableCreationStatement(false));
 
 			// Tables are indexed by address and then date for query optimization
 			// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
@@ -105,8 +113,12 @@ public abstract class MessageManager {
 			for (String s : savedValues) removeLong(s);
 		}
 		
-		final protected void dropTables(){
-			dropTables(dh.getWritableDatabase());
+		final protected void truncateTable(boolean sent){
+			SQLiteDatabase db = dh.getWritableDatabase();
+			db.execSQL("DROP TABLE IF EXISTS "+tableName(sent));
+			db.execSQL(tableCreationStatement(sent));
+			db.close();
+			db = null;
 		}
 		
 		final public void indexTables(SQLiteDatabase external){

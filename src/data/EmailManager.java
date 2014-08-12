@@ -86,6 +86,7 @@ public class EmailManager extends MessageManager {
 		try {
 			count += fetchFromServer(store, "INBOX", false);
 			count += fetchFromServer(store, sentFolderName, true);
+			store.close();
 		} catch (MessagingException e) {
 			Logger.exception("Error interfacing with mail provider "+host+" as "+user, e);
 			e.printStackTrace();
@@ -102,14 +103,20 @@ public class EmailManager extends MessageManager {
 			folder.open(Folder.READ_ONLY);
 			long lastUIDValidity = sent ? getLong(SENT_UID_VALIDITY, 0) : getLong(RECEIVED_UID_VALIDITY, 0);
 			long UIDValidity = folder.getUIDValidity();
-			if (lastUIDValidity!=0){
-				if(lastUIDValidity!=UIDValidity){
-					Logger.warn("UID validity value of "+folderName+" changed from "+lastUIDValidity+" to "+UIDValidity+
-							". This will require a mail database rebuild");
-					//This is bad news. We need to drop and rebuild our tables.
-					dropTables();
+			if (lastUIDValidity!=0 && lastUIDValidity!=UIDValidity){
+				Logger.warn("UID validity value of "+folderName+" changed from "+lastUIDValidity+" to "+UIDValidity+
+						". This will require a mail database rebuild");
+				//Bad news. We need to drop and rebuild our tables relevant to this fetch.
+				if (sent){
+					removeLong(SENT_UID);
+					truncateTable(sent);
+				}else {
+					removeLong(RECEIVED_UID);
+					truncateTable(sent);
 				}
-			}
+			} 
+			if (sent) putLong(SENT_UID_VALIDITY, UIDValidity);
+			else putLong(RECEIVED_UID_VALIDITY, UIDValidity);
 
 			//The IMAP search building code is largely modeled after the time I did something similar in Python:
 			//https://github.com/Mindful/PyText/blob/master/src/pt_mail_internal.py/#L184
@@ -121,7 +128,7 @@ public class EmailManager extends MessageManager {
 			if (lastUID >= (folder.getUIDNext()-1)) return 0; //If our last is less than or equal to the current max, we've no work to do
 			
 			//TODO: get addresses from somewhere reasonable
-			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "stevehope2@gmail.com", "jtanner2@pacbell.net"};
+			final String[] addresses = {"clifthom@evergreen.edu", "stong7@yahoo.com", "funkymystic@gmail.com", "jtanner2@pacbell.net"};
 			long[] uidArray = (long[])folder.doCommand(new IMAPFolder.ProtocolCommand() {
 				@Override
 				public Object doCommand(IMAPProtocol p) throws ProtocolException {
@@ -169,14 +176,8 @@ public class EmailManager extends MessageManager {
 				parseEmail(messages[i], uidArray[i], addresses, sent);
 				++count;
 			}
-			if (sent) {
-				putLong(SENT_UID, uidArray[uidArray.length-1]);
-				putLong(SENT_UID_VALIDITY, UIDValidity);
-			}
-			else {
-				putLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
-				putLong(RECEIVED_UID_VALIDITY, UIDValidity);
-			}
+			if (sent) putLong(SENT_UID, uidArray[uidArray.length-1]);
+			else putLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
 			successfulTransaction();
 		} catch (MessagingException e){
 			Logger.exception("Problem importing mail", e);
