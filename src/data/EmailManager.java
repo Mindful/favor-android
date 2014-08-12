@@ -27,6 +27,8 @@ import javax.mail.BodyPart;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.jsoup.Jsoup;
+
 import static data.DataConstants.*;
 
 
@@ -211,8 +213,7 @@ public class EmailManager extends MessageManager {
                 }
 
                 if (clearTextPart!=null) body = (String) clearTextPart.getContent();
-                //else if (htmlTextPart!=null) body = Jsoup.parse((String) htmlTextPart.getContent()).text();
-                else if (htmlTextPart!=null) body = (String) htmlTextPart.getContent();
+                else if (htmlTextPart!=null) body = Jsoup.parse((String) htmlTextPart.getContent()).text();
 
             }
             else if (contentObject instanceof String) body = (String) contentObject; //Simple text-only email, not MIME formatted

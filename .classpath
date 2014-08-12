@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="libs/additionnal.jar"/>
 	<classpathentry kind="lib" path="libs/activation.jar"/>
 	<classpathentry kind="lib" path="libs/mail.jar"/>
+	<classpathentry kind="lib" path="C:/Users/josh/Projects/favor/libs/jsoup-1.7.3.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
