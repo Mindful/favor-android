@@ -3,11 +3,11 @@ package data;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.almworks.sqlite4java.SQLiteException;
 import com.favor.util.Logger;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
 
 import static data.DataConstants.*;
 
@@ -20,9 +20,6 @@ public abstract class MessageManager {
 		protected final String savedValues[];
 		final Type type;
 		final String name;
-
-		private boolean success = false;
-		private SQLiteDatabase db = null;
 		
 		final static MessageManager getManager(Type type, DataHandler dh){
 			switch(type){
@@ -87,50 +84,66 @@ public abstract class MessageManager {
 			}
 		}
 		
-		final void buildTables(SQLiteDatabase external){
+		final void buildTables(){
+			try{				
+				// Sent table
+				dh.exec(tableCreationStatement(true));
 
-			// Sent table
-			external.execSQL(tableCreationStatement(true));
+				// Received Table
+				dh.exec(tableCreationStatement(false));
 
-			// Received Table
-			external.execSQL(tableCreationStatement(false));
-
-			// Tables are indexed by address and then date for query optimization
-			// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
-			// Indicates that "order depends on projection i.e. select name, lastname from table"
-			if (dh.indexingEnabled()) {
-				external.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true)
-						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-				external.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + tableName(true)
-						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+				// Tables are indexed by address and then date for query optimization
+				// http://stackoverflow.com/questions/15732713/column-index-order-sqlite-creates-table
+				// Indicates that "order depends on projection i.e. select name, lastname from table"
+				if (dh.indexingEnabled()) {
+					dh.exec("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true)
+							+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+					dh.exec("CREATE INDEX i_" + tableName(false) + " ON " + tableName(true)
+							+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+				}
+			} catch (SQLiteException e){
+				Logger.exception(name + " message manager could not construct tables", e);
 			}
 		}
 		
-		final public void dropTables(SQLiteDatabase external){
-			external.execSQL("DROP TABLE IF EXISTS " + tableName(true));
-			external.execSQL("DROP TABLE IF EXISTS " + tableName(false));
+		final public void dropTables(){
+			try {
+				dh.exec("DROP TABLE IF EXISTS " + tableName(true));
+				dh.exec("DROP TABLE IF EXISTS " + tableName(false));
+			} catch (SQLiteException e) {
+				Logger.exception(name + " message manager could not drop tables", e);
+			}
 			removeLong("lastFetch");
 			for (String s : savedValues) removeLong(s);
 		}
 		
 		final protected void truncateTable(boolean sent){
-			SQLiteDatabase db = dh.getWritableDatabase();
-			db.execSQL("DROP TABLE IF EXISTS "+tableName(sent));
-			db.execSQL(tableCreationStatement(sent));
-			db.close();
-			db = null;
+			try {
+				dh.exec("DROP TABLE IF EXISTS "+tableName(sent));
+				dh.exec(tableCreationStatement(sent));
+			} catch (SQLiteException e) {
+				Logger.exception(name + " message manager could not truncate tables", e);
+			}
 		}
 		
-		final public void indexTables(SQLiteDatabase external){
-			external.execSQL("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true) 
-					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
-			external.execSQL("CREATE INDEX i_" + tableName(false) + " ON " + tableName(false)
-					+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+		final public void indexTables(){
+			try {
+				dh.exec("CREATE INDEX i_" + tableName(true) + " ON " + tableName(true) 
+						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+				dh.exec("CREATE INDEX i_" + tableName(false) + " ON " + tableName(false)
+						+ " (" + KEY_ADDRESS + "," + KEY_DATE + ")");
+			} catch (SQLiteException e) {
+				Logger.exception(name + " message manager could not index tables", e);
+			}
 		}
 		
-		final public void dropIndices(SQLiteDatabase external){
-			external.execSQL("DROP INDEX IF EXISTS i_" + tableName(true));
-			external.execSQL("DROP INDEX IF EXISTS i_" + tableName(false));
+		final public void dropIndices(){
+			try {
+				dh.exec("DROP INDEX IF EXISTS i_" + tableName(true));
+				dh.exec("DROP INDEX IF EXISTS i_" + tableName(false));
+			} catch (SQLiteException e) {
+				Logger.exception(name + " message manager could not drop indices", e);
+			}
 		}
 		
 		
@@ -163,32 +176,5 @@ public abstract class MessageManager {
 		
 		abstract String formatAddress(String address);
 
-		
-		
-		final protected void beginTransaction(){
-			if(db!=null) throw new dataException("Transactions should not be started with a transaction open");
-			else {
-				db = dh.getWritableDatabase();
-				success = false;
-				db.beginTransaction();
-			}
-		}
-		
-		final protected void successfulTransaction(){
-			if(db==null) throw new dataException("Cannot mark transaction successful without open transaction.");
-			db.setTransactionSuccessful();
-			success = true;
-			putLong("lastFetch", new Date().getTime());
-		}
-		
-		@SuppressLint("SimpleDateFormat")
-		final protected void endTransaction(){
-			if(db==null) throw new dataException("Cannot end transaction without open transaction.");
-			if(!success) Logger.error(name+" message manager transaction unsuccessful at "+ new SimpleDateFormat().format(new Date()));
-			
-			db.endTransaction();
-			db.close();
-			db=null;
-		}
 		
 }

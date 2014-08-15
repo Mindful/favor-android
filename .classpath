@@ -9,5 +9,10 @@
 	<classpathentry kind="lib" path="libs/activation.jar"/>
 	<classpathentry kind="lib" path="libs/mail.jar"/>
 	<classpathentry kind="lib" path="C:/Users/josh/Projects/favor/libs/jsoup-1.7.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/josh/Projects/favor/libs/sqlite4java.jar" sourcepath="C:/Users/josh/Desktop/sqlite4java-282/sqlite4java-src.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/josh/Desktop/sqlite4java-282/sqlite4java-docs.zip!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

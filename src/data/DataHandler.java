@@ -1,5 +1,6 @@
 package data;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,16 +10,18 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.almworks.sqlite4java.SQLiteConnection;
+import com.almworks.sqlite4java.SQLiteException;
+import com.almworks.sqlite4java.SQLiteStatement;
 import com.favor.ui.GraphActivity;
 import com.favor.util.Contact;
+import com.favor.util.Logger;
 
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import android.util.SparseArray;
 import android.widget.Toast;
@@ -39,21 +42,8 @@ class dataException extends RuntimeException {
 
 }
 
-public class DataHandler extends SQLiteOpenHelper {
-	// SQLite aspects
-	private static final int DATABASE_VERSION = 1;
-	
-	private static final String JOIN_KEY_SENT = "sent";
-	
-	// Data table
-	private static final String TABLE_DATA = "data";
+public class DataHandler {
 
-	// Data table column names
-	private static final String KEY_CONTACT_ID = "contact_id"; // Contact ID,  valid *most of the time
-	// USE KEY_ADDRESS
-	private static final String KEY_DATA_TYPE = "type";
-	// USE KEY_DATE
-	private static final String KEY_COUNT = "count";
 
 	/**
 	 * Format the address into something we can use (cleans up phone numbers)
@@ -63,30 +53,46 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (!address.contains("@")) address = address.replaceAll("[^0-9]", "");
 		return address;
 	}
-
-	// onCreate
-	@Override
-	public void onCreate(SQLiteDatabase db) {
-
-		// Data table
-		db.execSQL("CREATE TABLE " + TABLE_DATA + "(" + KEY_CONTACT_ID
-				+ " TEXT," + KEY_DATA_TYPE + " INTEGER," + KEY_DATE
-				+ " INTEGER," + KEY_COUNT + " INTEGER," + "PRIMARY KEY("
-				+ KEY_CONTACT_ID + "," + KEY_DATA_TYPE + "))");
-		
-		for (MessageManager m : managers.values()){
-			m.buildTables(db);
+	
+	private void open(){
+		if(db!=null) throw new dataException("Redundant open. Ensure database is closed before reopening");
+		db = new SQLiteConnection(new File(PlatformConstants.getDbName()));
+		try {
+			db.open(true);
+		} catch (SQLiteException e) {
+			Logger.exception("Failed to open database connection", e);
 		}
+	}
+	
+	@SuppressWarnings("unused") //It should be unused though, as far as I can tell. TODO: or maybe we should close it on exit?
+	private void close(){
+		if(db==null) throw new dataException("Redundant close. Ensure database is open before closing");
+		db.dispose();
+		db = null;
+	}
+	
+	void exec(String SQL) throws SQLiteException{
+		if(db==null) throw new dataException("Cannot execute SQL on closed database");
+		db.exec(SQL);
+	}
+	
+	
+//	private void exec(String SQL, int lo) throws SQLiteException{
+//		if(db==null) throw new dataException("Cannot execute SQL on closed database");
+//		SQLiteStatement st = db.prepare("derp");
+//		st.b
+//		
+//	}
+
+
+	public void createTables() {
+		for (MessageManager m : managers.values()) m.buildTables();
 	}
 
 
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		for (MessageManager m : managers.values()){
-			m.dropTables(db);
-		}
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
-		onCreate(db);
+	public void truncateDatabase() {
+		for (MessageManager m : managers.values()) m.dropTables();
+		createTables();
 	}
 
 	// Static aspects
@@ -117,12 +123,14 @@ public class DataHandler extends SQLiteOpenHelper {
 	}
 
 	private static final String SAVED_INDEXING = "indexing";
+	private static final String JOIN_KEY_SENT = "sent";
 
 	// Instance aspects
 
 	private final Context context;
 	private final SharedPreferences prefs;
 	private final SharedPreferences.Editor edit;
+	private SQLiteConnection db;
 	
 	private final HashMap<Type, MessageManager> managers;
 
@@ -150,8 +158,8 @@ public class DataHandler extends SQLiteOpenHelper {
 		return Collections.unmodifiableList(contactsList); 	// Not the prettiest, but people need not to be able to change it
 	}
 
+	//TODO: When we replace the preferences with something else as well I don't think we'll even need to take an activity context
 	private DataHandler(Activity mainActivity) {
-		super(mainActivity.getApplicationContext(), "messages", null, DATABASE_VERSION);
 		context = mainActivity.getApplicationContext();
 		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		edit = prefs.edit();
@@ -159,6 +167,7 @@ public class DataHandler extends SQLiteOpenHelper {
 		for (Type t: Type.values()){
 			managers.put(t, MessageManager.getManager(t, this));
 		}
+		open();
 	}
 	
 	/**
@@ -183,13 +192,11 @@ public class DataHandler extends SQLiteOpenHelper {
 	 */
 	public void enableIndexing() {
 		if (indexingEnabled()) return;
-		SQLiteDatabase db = getReadableDatabase();
 		edit.putBoolean(SAVED_INDEXING, true);
 		edit.apply();
 		for (MessageManager m : managers.values()){
-			m.indexTables(db);
+			m.indexTables();
 		}
-		db.close();
 	}
 
 	/**
@@ -201,11 +208,9 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (!indexingEnabled()) return;
 		edit.putBoolean(SAVED_INDEXING, false);
 		edit.apply();
-		SQLiteDatabase db = getReadableDatabase();
 		for (MessageManager m : managers.values()){
-			m.dropIndices(db);
+			m.dropIndices();
 		}
-		db.close();
 	}
 
 	/**
@@ -275,32 +280,6 @@ public class DataHandler extends SQLiteOpenHelper {
 	
 
 
-	// Data Section
-	public static final int DATA_SENT_CHARS = 1; // total characters sent to
-													// this contact (long)
-	public static final int DATA_RECEIVED_CHARS = 2; // total characters
-														// received from this
-														// contact (long)
-	public static final int DATA_SEND_TIME = 3; // average response time to this
-												// contact (longdate)
-	public static final int DATA_RECEIVE_TIME = 4; // average response from this
-													// contact (longdate)
-	public static final int DATA_SENT_MMS = 5; // mms messages sent to this
-												// contact (long)
-	public static final int DATA_RECEIVED_MMS = 6; // mms messages received from
-													// this contact (long)
-	public static final int DATA_SENT_TOTAL = 7; // total messages (sms+mms)
-													// sent to this contact
-													// (long)
-	public static final int DATA_RECEIVED_TOTAL = 8; // total messages (sms+mms)
-														// received from this
-														// contact (long)
-
-	private void validDate(int type) {
-		if (type <= 0 || type >= 9)
-			throw new dataException(
-					"Invalid data type. Please use class constants.");
-	}
 
 	private String buildSelection(ArrayList<String> addresses, long fromDate,
 			long untilDate, boolean raw) {
@@ -338,78 +317,6 @@ public class DataHandler extends SQLiteOpenHelper {
 
 	}
 
-	/**
-	 * Loads data about a user. Data types are listed as class constants in the
-	 * form DATA_xxxxx. Returns a 2-long array with [data, time]
-	 * If no data is found, data and count will be -1.
-	 * 
-	 * @param address
-	 *            The address of the user you are saving data about.
-	 * @param type
-	 *            The data type you wish to save. Use class constants
-	 *            (DATA_xxxxx)
-	 * 
-	 */
-	public long[] getData(Contact contact, int type) {
-		validDate(type);
-		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] { KEY_COUNT, KEY_DATE },
-				KEY_CONTACT_ID + "=" + contact.id() + " AND " + KEY_DATA_TYPE
-						+ "=" + type, null, null, null, null);
-		if (c.getCount() == 0) return new long[]{-1, -1};
-		else if (c.getCount() > 1) throw new dataException("getData producing multiple results.");
-		c.close();
-		return new long[]{c.getLong(0), c.getLong(1)};
-	}
-
-	/**
-	 * Loads all data about a user, returning anything found in a SparseArray,
-	 * with data mapped to its type. Data types are listed as class constants in
-	 * the form DATA_xxxxx. Returns -1 if no data is found. Data is in the typical
-	 * format of a 2-long array with [data, time].
-	 * 
-	 * @param address
-	 *            The address of the user you are saving data about.
-	 * 
-	 */
-
-	public SparseArray<long[]> getAllData(Contact contact) {
-		SparseArray<long[]> ret = new SparseArray<long[]>();
-		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.query(TABLE_DATA, new String[] { KEY_DATA_TYPE,
-				KEY_COUNT, KEY_DATE }, KEY_CONTACT_ID + "=" + contact.id(),
-				null, null, null, null);
-		while (c.moveToNext()) {
-			ret.put(c.getInt(0), new long[]{c.getLong(1), c.getLong(2)});
-		}
-		c.close();
-		return ret;
-
-	}
-
-	/**
-	 * Saves data of a given type about a user. Data types are listed as class
-	 * constants in the form DATA_xxxx. Also, data MUST BE SAVED IMMEDIATELY
-	 * after it is calculated so that the savedate is appropriate. Do not
-	 * preserve results and save them later.
-	 * 
-	 * @param address
-	 *            The address of the user you are saving data about.
-	 * @param type
-	 *            The data type you wish to save. Use class constants
-	 *            (DATA_xxxxx)
-	 * 
-	 */
-	public void saveData(Contact contact, int type, long data) {
-		validDate(type);
-		SQLiteDatabase db = getWritableDatabase();
-		ContentValues values = new ContentValues();
-		values.put(KEY_CONTACT_ID, contact.id());
-		values.put(KEY_DATA_TYPE, type);
-		values.put(KEY_DATE, new Date().getTime());
-		values.put(KEY_COUNT, data);
-		db.insert(TABLE_DATA, null, values);
-	}
 
 	// Message Section
 
@@ -429,7 +336,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		int sent = sentTable ? 1 : 0;
 		String table = managers.get(type).tableName(sentTable);
 
-		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = null;
 		if (contact != null)
 			addresses = new ArrayList<String>(
@@ -443,7 +349,6 @@ public class DataHandler extends SQLiteOpenHelper {
 			ret.add(Message.build(c, sent, type));
 		}
 		c.close();
-		db.close();
 		return ret;
 	}
 
@@ -455,7 +360,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
 		String table = managers.get(type).tableName(sentTable);
-		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
@@ -474,7 +378,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
 		String table = managers.get(type).tableName(sentTable);
-		SQLiteDatabase db = getReadableDatabase();
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
@@ -588,8 +491,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		int sent = sentTable ? 1 : 0;
 		String table = managers.get(type).tableName(sentTable);
 
-		SQLiteDatabase db = getReadableDatabase();
-
 		String selection = buildSelection(addresses, fromDate, untilDate, false);
 		Cursor c = db.query(table, keys, selection, null, null, null,
 				KEY_ADDRESS + ", " + KEY_DATE + " " + SORT_DIRECTION);
@@ -602,7 +503,6 @@ public class DataHandler extends SQLiteOpenHelper {
 		}
 
 		c.close();
-		db.close();
 		return ret;
 	}
 
@@ -642,7 +542,6 @@ public class DataHandler extends SQLiteOpenHelper {
 				Arrays.asList(contact.addresses()));
 
 		LinkedList<Message> res = new LinkedList<Message>();
-		SQLiteDatabase db = getReadableDatabase();
 
 		// Special case; this function needs to retrieve dates regardless of
 		// whether they're
