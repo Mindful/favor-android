@@ -54,14 +54,10 @@ public class DataHandler {
 		return address;
 	}
 	
-	private void open(){
+	private void open() throws SQLiteException{
 		if(db!=null) throw new dataException("Redundant open. Ensure database is closed before reopening");
 		db = new SQLiteConnection(new File(PlatformConstants.getDbName()));
-		try {
-			db.open(true);
-		} catch (SQLiteException e) {
-			Logger.exception("Failed to open database connection", e);
-		}
+		db.open(true);
 	}
 	
 	@SuppressWarnings("unused") //It should be unused though, as far as I can tell. TODO: or maybe we should close it on exit?
@@ -107,8 +103,14 @@ public class DataHandler {
 	 *            The main activity, or a valid activity
 	 */
 	public static DataHandler initialize(Activity mainActivity) {
-		if (singleton == null)
+		if (singleton == null){
 			singleton = new DataHandler(mainActivity);
+			try {
+				singleton.open();
+			} catch (SQLiteException e) {
+				throw new dataException("Unable to open database: "+e);
+			}
+		}
 		return singleton;
 	}
 
@@ -136,6 +138,17 @@ public class DataHandler {
 
 	private ArrayList<Contact> contactsList;
 
+	//TODO: When we replace the preferences with something else as well I don't think we'll even need to take an activity context
+	private DataHandler(Activity mainActivity) {
+		context = mainActivity.getApplicationContext();
+		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		edit = prefs.edit();
+		managers = new HashMap<Type, MessageManager>();
+		for (Type t: Type.values()){
+			managers.put(t, MessageManager.getManager(t, this));
+		}
+	}
+	
 
 	/**
 	 * Utility method that provides easy access to the global application context.
@@ -156,18 +169,6 @@ public class DataHandler {
 	 */
 	public List<Contact> contacts() {
 		return Collections.unmodifiableList(contactsList); 	// Not the prettiest, but people need not to be able to change it
-	}
-
-	//TODO: When we replace the preferences with something else as well I don't think we'll even need to take an activity context
-	private DataHandler(Activity mainActivity) {
-		context = mainActivity.getApplicationContext();
-		prefs = mainActivity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		edit = prefs.edit();
-		managers = new HashMap<Type, MessageManager>();
-		for (Type t: Type.values()){
-			managers.put(t, MessageManager.getManager(t, this));
-		}
-		open();
 	}
 	
 	/**
@@ -360,14 +361,18 @@ public class DataHandler {
 		if (fromDate > untilDate)
 			throw new dataException("fromDate must be <= untilDate.");
 		String table = managers.get(type).tableName(sentTable);
-		ArrayList<String> addresses = new ArrayList<String>(
-				Arrays.asList(contact.addresses()));
+		ArrayList<String> addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
-
-		Cursor c = db.rawQuery("SELECT AVG(" + key + ") from " + table + selection, null);
-		double ret = c.moveToFirst() ? c.getDouble(0) : 0.00d;
-		c.close();
-		return ret;
+		
+		String query = "SELECT AVG(" + key + ") from " + table + selection;
+		try{
+			SQLiteStatement s = db.prepare(query);
+			double ret = s.step() ? s.columnDouble(0) : 0.00d;
+			s.dispose();
+			return ret;
+		} catch (SQLiteException e) {
+			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
+		}
 	}
 
 	public long sum(Contact contact, String key, long fromDate, long untilDate,
@@ -382,11 +387,15 @@ public class DataHandler {
 				Arrays.asList(contact.addresses()));
 		String selection = buildSelection(addresses, fromDate, untilDate, true);
 
-		Cursor c = db.rawQuery("SELECT SUM(" + key + ") from " + table
-				+ selection, null);
-		long ret = c.moveToFirst() ? c.getLong(0) : 0l;
-		c.close();
-		return ret;
+		String query = "SELECT SUM(" + key + ") from " + table + selection;
+		try {
+			SQLiteStatement s = db.prepare(query);
+			long ret = s.step() ? s.columnLong(0) : 0l;
+			s.dispose();
+			return ret;
+		} catch (SQLiteException e) {
+			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
+		}
 	}
 
 	// The below method is an alternative way of running multiQueries. It
