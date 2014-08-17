@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -8,9 +8,9 @@ import java.util.TimeZone;
 
 import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
-import data.DataConstants.Type;
+import com.favor.data.DataConstants.Type;
 
-import static data.DataConstants.*;
+import static com.favor.data.DataConstants.*;
 
 public class Message {
 	private long date;

@@ -22,13 +22,13 @@ import android.support.v4.app.NavUtils;
 //import android.view.Menu;
 //import android.view.MenuItem;
 
+import com.favor.data.DataHandler;
+import com.favor.data.DataProcessor;
 import com.favor.ui.graph.Graph;
 import com.favor.ui.graph.GraphView;
 import com.favor.util.Contact;
 import com.favor.R;
 
-import data.DataProcessor;
-import data.DataHandler;
 
 public class GraphActivity extends SherlockActivity {
 

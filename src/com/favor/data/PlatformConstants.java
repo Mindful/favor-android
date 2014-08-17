@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 import com.favor.util.Logger;
 

@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 
-import static data.DataConstants.*;
+import static com.favor.data.DataConstants.*;
 
 class dataException extends RuntimeException {
 

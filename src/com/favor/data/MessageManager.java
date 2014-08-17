@@ -1,15 +1,11 @@
-package data;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+package com.favor.data;
 
 import com.almworks.sqlite4java.SQLiteException;
 import com.favor.util.Logger;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 
-import static data.DataConstants.*;
+import static com.favor.data.DataConstants.*;
 
 //TODO: Does java use the "final" keyweord (before public, its seems like) to disallow overwriting functions?
 //if so, a lot of these should be final
@@ -163,7 +159,6 @@ public abstract class MessageManager {
 		abstract long fetch();
 		
 		final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media){
-			if(db==null) throw new dataException("Cannot export messages to database without open transaction.");
 			ContentValues row = new ContentValues();
 			row.put(KEY_ID, id);
 			row.put(KEY_DATE, date);
@@ -171,7 +166,6 @@ public abstract class MessageManager {
 			row.put(KEY_CHARCOUNT, msg.length());
 			row.put(KEY_MEDIA, media);
 			String table = tableName(sent);
-			db.insert(table, null, row);
 		}
 		
 		abstract String formatAddress(String address);

@@ -2,10 +2,10 @@ package com.favor.develop;
 
 import java.lang.reflect.Method;
 
+import com.favor.data.DataHandler;
+import com.favor.data.Debug;
 import com.favor.util.Contact;
 
-import data.DataHandler;
-import data.Debug;
 
 
 public class Benchmark{

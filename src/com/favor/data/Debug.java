@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 //This would ideally be in the favor.develop package but then we couldn't get at some of the internal datahandler stuff...
 

@@ -1,11 +1,12 @@
-package data;
+package com.favor.data;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.favor.util.Contact;
-import static data.DataConstants.*;
+
+import static com.favor.data.DataConstants.*;
 
 
 

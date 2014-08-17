@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.jsoup.Jsoup;
 
-import static data.DataConstants.*;
+import static com.favor.data.DataConstants.*;
 
 
 public class EmailManager extends MessageManager {
@@ -172,7 +172,7 @@ public class EmailManager extends MessageManager {
 		//messages with messages in the same spot as their UIDs in the argument array, and the initial
 		//UID argument array is in ascending order.
 		javax.mail.Message[] messages = folder.getMessagesByUID(uidArray);
-		beginTransaction();
+//		beginTransaction();
 		try{
 			for(int i = 0; i < messages.length; i++) {
 				parseEmail(messages[i], uidArray[i], addresses, sent);
@@ -180,13 +180,13 @@ public class EmailManager extends MessageManager {
 			}
 			if (sent) putLong(SENT_UID, uidArray[uidArray.length-1]);
 			else putLong(RECEIVED_UID, uidArray[uidArray.length-1]); 
-			successfulTransaction();
+//			successfulTransaction();
 		} catch (MessagingException e){
 			Logger.exception("Problem importing mail", e);
 		} catch (IOException e){
 			Logger.exception("IO Problem importing mail", e);
 		}
-		endTransaction();
+//		endTransaction();
 		return count;
 	}
 		

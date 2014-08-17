@@ -1,4 +1,4 @@
-package data;
+package com.favor.data;
 
 
 
@@ -7,7 +7,7 @@ import android.net.Uri;
 
 import com.favor.util.Logger;
 
-import static data.DataConstants.*;
+import static com.favor.data.DataConstants.*;
 
 
 
@@ -41,7 +41,7 @@ public class TextManager extends MessageManager {
 		long count = 0;
 		//We can just use the lastFetch for this because we're going on time anyway
 		long lastFetchDate = getLastFetch();
-		beginTransaction();
+//		beginTransaction();
 		try {
 			Cursor c = dh.context().getContentResolver().query(SMS_IN, SMS_PROJECTION, 
 					KEY_DATE + " > " + lastFetchDate, null, KEY_DATE);
@@ -75,11 +75,11 @@ public class TextManager extends MessageManager {
 				++count;
 			}
 			c.close();
-			successfulTransaction();
+//			successfulTransaction();
 		} catch (Exception ex) {
 			throw new dataException(ex.toString());
 		} finally {
-			endTransaction();
+//			endTransaction();
 		}
 		return count; //This is a simple fetch with no internet connectivity, so we can just return true as long as nothing excepts
 	}
