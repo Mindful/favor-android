@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,16 +14,12 @@ import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
 import com.favor.ui.GraphActivity;
 import com.favor.util.Contact;
-import com.favor.util.Logger;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import android.util.SparseArray;
-import android.widget.Toast;
 
 import static data.DataConstants.*;
 
@@ -67,10 +62,13 @@ public class DataHandler {
 		db = null;
 	}
 	
+	//TODO: this should actually dump things in the job queue
 	void exec(String SQL) throws SQLiteException{
 		if(db==null) throw new dataException("Cannot execute SQL on closed database");
 		db.exec(SQL);
 	}
+	
+	
 	
 	
 //	private void exec(String SQL, int lo) throws SQLiteException{
@@ -274,44 +272,58 @@ public class DataHandler {
 		for (MessageManager m : managers.values()){
 			count += m.fetch();
 		}
-		if (count>0) Toast.makeText(context, "Fetched "+count+" new messages.", Toast.LENGTH_LONG).show();
-		else Toast.makeText(context, "No new messages found.", Toast.LENGTH_LONG).show();
+//		if (count>0) Toast.makeText(context, "Fetched "+count+" new messages.", Toast.LENGTH_LONG).show();
+//		else Toast.makeText(context, "No new messages found.", Toast.LENGTH_LONG).show();
 	}
 
 	
 
+	
+	private String buildQuery(String table, String keys[], ArrayList<String> addresses, long fromDate, long untilDate,
+			String[] sortKeys){
+		//TODO: this could generate a StringBuilder and pass to to the other two builds, then use it for the minor stuff
+		//as well and it would be very slightly more efficient
+		String selection = buildSelection(addresses, fromDate, untilDate);
+		String columns = buildColumns(keys);
+		String sortOrder = sortKeys!=null ? buildSort(sortKeys) : "";
+		return new StringBuilder().append(columns).append(" FROM ").append(table).append(" ").append(selection).
+				append(" ").append(sortOrder).toString(); //TODO: no idea if this is right, also with no sort it has a trailing space
+		
+	}
+	
+	private String buildSort(String sortKeys[]){
+		StringBuilder sortOrder = new StringBuilder("ORDER BY ");
+		for (int i = 0; i < sortKeys.length; i++) sortOrder.append(sortKeys[i]).append(",");
+		return sortOrder.deleteCharAt(sortOrder.length() - 1).append(" ").append(SORT_DIRECTION).toString();
+		
+	}
 
+	private String buildColumns(String keys[]){
+		StringBuilder columns = new StringBuilder("SELECT ");
+		for (int i = 0; i < keys.length; i++) columns.append(keys[i]).append(",");
+		return columns.deleteCharAt(columns.length() - 1).toString();
+	}
 
-	private String buildSelection(ArrayList<String> addresses, long fromDate,
-			long untilDate, boolean raw) {
-		StringBuilder selection = new StringBuilder();
+	private String buildSelection(ArrayList<String> addresses, long fromDate, long untilDate) {
+		StringBuilder selection = new StringBuilder("WHERE ");
 		if (addresses == null) {
 			// Nothing to do with addresses
 		} else if (addresses.size() == 1) {
-			if (raw)
-				selection.append(" WHERE ");
 			selection.append(KEY_ADDRESS).append("=").append(addresses.get(0));
 		} else {
-			if (raw)
-				selection.append(" WHERE ");
 			selection.append("(");
 			for (int i = 0; i < addresses.size(); i++) {
-				selection.append(KEY_ADDRESS).append("=")
-						.append(addresses.get(i));
-				if (i < addresses.size() - 1)
-					selection.append(" OR ");
-				else
-					selection.append(")");
+				selection.append(KEY_ADDRESS).append("=").append(addresses.get(i));
+				if (i < addresses.size() - 1) selection.append(" OR ");
+				else selection.append(")");
 			}
 		}
 		if (fromDate > -1) {
-			if (selection.length() > 0)
-				selection.append(" AND ");
+			if (selection.length() > 0) selection.append(" AND ");
 			selection.append(KEY_DATE).append(">=").append(fromDate);
 		}
 		if (untilDate > -1) {
-			if (selection.length() > 0)
-				selection.append(" AND ");
+			if (selection.length() > 0) selection.append(" AND ");
 			selection.append(KEY_DATE).append("<=").append(untilDate);
 		}
 		return selection.toString();
@@ -338,19 +350,32 @@ public class DataHandler {
 		String table = managers.get(type).tableName(sentTable);
 
 		ArrayList<String> addresses = null;
-		if (contact != null)
-			addresses = new ArrayList<String>(
-					Arrays.asList(contact.addresses()));
-		String selection = buildSelection(addresses, fromDate, untilDate, false);
+		if (contact != null) addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
+		
+		String query = buildQuery(table, keys, addresses, fromDate, untilDate, new String[] {KEY_DATE});
+		
+		SQLiteStatement s = null;
+		try {
+			s = db.prepare(query);
+			HashMap<String, Integer> columnMap = Message.buildColumnMap(s);
 
-		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE
-				+ " " + SORT_DIRECTION);
-		ArrayList<Message> ret = new ArrayList<Message>(c.getCount());
-		while (c.moveToNext()) {
-			ret.add(Message.build(c, sent, type));
+			//TODO: would be better if we could precompute a size here - but there's no good way to get
+			//the size of the result list except iterating all of it, I'm not certain that's faster than just
+			//letting the array resize. but maybe I should check that
+			ArrayList<Message> ret = new ArrayList<Message>();
+			while (s.step()) {
+				ret.add(Message.build(s, columnMap, sent, type));
+			}
+			s.dispose();
+			return ret;
+		} catch (SQLiteException e) {
+			if (s!=null) s.dispose();
+			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
 		}
-		c.close();
-		return ret;
+		
+
+//		Cursor c = db.query(table, keys, selection, null, null, null, KEY_DATE
+//				+ " " + SORT_DIRECTION);
 	}
 
 	public double average(Contact contact, String key, long fromDate,
@@ -362,15 +387,17 @@ public class DataHandler {
 			throw new dataException("fromDate must be <= untilDate.");
 		String table = managers.get(type).tableName(sentTable);
 		ArrayList<String> addresses = new ArrayList<String>(Arrays.asList(contact.addresses()));
-		String selection = buildSelection(addresses, fromDate, untilDate, true);
+		String selection = buildSelection(addresses, fromDate, untilDate);
 		
-		String query = "SELECT AVG(" + key + ") from " + table + selection;
+		String query = "SELECT AVG(" + key + ") from " + table + " " + selection;
+		SQLiteStatement s = null;
 		try{
-			SQLiteStatement s = db.prepare(query);
+			s = db.prepare(query);
 			double ret = s.step() ? s.columnDouble(0) : 0.00d;
 			s.dispose();
 			return ret;
 		} catch (SQLiteException e) {
+			if (s!=null) s.dispose();
 			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
 		}
 	}
@@ -385,15 +412,17 @@ public class DataHandler {
 		String table = managers.get(type).tableName(sentTable);
 		ArrayList<String> addresses = new ArrayList<String>(
 				Arrays.asList(contact.addresses()));
-		String selection = buildSelection(addresses, fromDate, untilDate, true);
+		String selection = buildSelection(addresses, fromDate, untilDate);
 
-		String query = "SELECT SUM(" + key + ") from " + table + selection;
+		String query = "SELECT SUM(" + key + ") from " + table + " " + selection;
+		SQLiteStatement s = null;
 		try {
-			SQLiteStatement s = db.prepare(query);
+			s = db.prepare(query);
 			long ret = s.step() ? s.columnLong(0) : 0l;
 			s.dispose();
 			return ret;
 		} catch (SQLiteException e) {
+			if (s!=null) s.dispose();
 			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
 		}
 	}
@@ -465,18 +494,19 @@ public class DataHandler {
 		// whether they're
 		// requested or not, so we add KEY_ADDRESS to keys if it's not there
 		// already
-		boolean addressesRequested = false;
+		//boolean addressesRequested = false;
+		int addressIndex = -1;
 		for (int i = 0; i < keys.length; i++) {
-			if (keys[i] == KEY_ADDRESS)
-				addressesRequested = true;
+			if (keys[i] == KEY_ADDRESS) addressIndex = i;
 		}
-		if (!addressesRequested) {
+		if (addressIndex==-1) {
 			String[] temp = new String[keys.length + 1];
 			temp[keys.length] = KEY_ADDRESS;
 			for (int i = 0; i < keys.length; i++) {
 				temp[i] = keys[i];
 			}
 			keys = temp;
+			addressIndex = keys.length;
 		}
 
 		// Get all addresses, and map all of each contact's numbers to its
@@ -499,20 +529,34 @@ public class DataHandler {
 
 		int sent = sentTable ? 1 : 0;
 		String table = managers.get(type).tableName(sentTable);
+		
+//		String sql = "SELECT " + columns + ", 1 as " + DataHandler.JOIN_KEY_SENT
+//				+ " FROM " + TABLE_SENT + selection + " UNION " + "SELECT "
+//				+ columns + ", 0 as " + DataHandler.JOIN_KEY_SENT + " FROM "
+//				+ TABLE_RECEIVED + selection + " ORDER BY " + KEY_DATE + " "
+//				+ SORT_DIRECTION;
+		
+		String query = buildQuery(table, keys, addresses, fromDate, untilDate, new String[] {KEY_ADDRESS, KEY_DATE});
+	
+		SQLiteStatement s = null;
+		try {
+			s = db.prepare(query);
+			HashMap<String, Integer> columnMap = Message.buildColumnMap(s);
 
-		String selection = buildSelection(addresses, fromDate, untilDate, false);
-		Cursor c = db.query(table, keys, selection, null, null, null,
-				KEY_ADDRESS + ", " + KEY_DATE + " " + SORT_DIRECTION);
-
-		int addressColumn = c.getColumnIndex(KEY_ADDRESS);
-
-		while (c.moveToNext()) {
-			lists.get(c.getString(addressColumn)).add(
-					Message.build(c, sent, type));
+			while (s.step()) {
+				lists.get(s.columnString(addressIndex)).add(Message.build(s, columnMap, sent, type));
+			}
+			s.dispose();
+			return ret;
+		} catch (SQLiteException e) {
+			if (s!=null) s.dispose();
+			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
 		}
+		//TODO: verify against old and delete this commented out stuff
+//		Cursor c = db.query(table, keys, selection, null, null, null,
+//				KEY_ADDRESS + ", " + KEY_DATE + " " + SORT_DIRECTION);
 
-		c.close();
-		return ret;
+		//int addressIndex = c.getColumnIndex(KEY_ADDRESS);
 	}
 
 	// basically, this returns the messages sent to and received by the user to
@@ -569,24 +613,28 @@ public class DataHandler {
 			keys = temp;
 		}
 		// The generated key/column "sent" is 1 for sent, 0 for received
-		String columns;
-		StringBuilder temp = new StringBuilder();
-		for (int i = 0; i < keys.length; i++) {
-			temp.append(keys[i] + ",");
-		}
-		columns = temp.deleteCharAt(temp.length() - 1).toString();
-		String selection = buildSelection(addresses, fromDate, untilDate, true);
-		String sql = "SELECT " + columns + ", 1 as " + DataHandler.JOIN_KEY_SENT
+		String columns = buildColumns(keys);
+		String selection = buildSelection(addresses, fromDate, untilDate);
+		
+		//TODO: we have helper methods for this now, we should just build two selections and UNION them
+		String query = "SELECT " + columns + ", 1 as " + DataHandler.JOIN_KEY_SENT
 				+ " FROM " + TABLE_SENT + selection + " UNION " + "SELECT "
 				+ columns + ", 0 as " + DataHandler.JOIN_KEY_SENT + " FROM "
 				+ TABLE_RECEIVED + selection + " ORDER BY " + KEY_DATE + " "
 				+ SORT_DIRECTION;
-
-		Cursor c = db.rawQuery(sql, null);
-		int sentColumn = c.getColumnIndex(DataHandler.JOIN_KEY_SENT);
-		while (c.moveToNext()) res.offer(Message.build(c, c.getInt(sentColumn), type));
-		c.close();
-		return res;
+		
+		SQLiteStatement s = null;
+		try {
+			s = db.prepare(query);
+			HashMap<String, Integer> columnMap = Message.buildColumnMap(s);
+			int sentColumn = s.columnCount()-1; //TODO: this might be one too few, it should definitely be the last column
+			while(s.step()) res.offer(Message.build(s, columnMap, s.columnInt(sentColumn), type));
+			s.dispose();
+			return res;
+		} catch (SQLiteException e) {
+			if (s!=null) s.dispose();
+			throw new dataException("SQLite Error on statement \""+query+"\":"+e);
+		}
 	}
 
 	/**

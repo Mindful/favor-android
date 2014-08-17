@@ -2,12 +2,15 @@ package data;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import com.almworks.sqlite4java.SQLiteException;
+import com.almworks.sqlite4java.SQLiteStatement;
 import data.DataConstants.Type;
 
-import android.database.Cursor;
+import static data.DataConstants.*;
 
 public class Message {
 	private long date;
@@ -16,31 +19,41 @@ public class Message {
 	private int media;
 	private int sent;
 	private Type type;
-	//TODO: update all of this to deal with message type
+	
+	//In a perfect world this would actually live inside SQLite statements, but extending the library
+	//is substantially more difficult than putting it here.
+	static HashMap<String, Integer> buildColumnMap(SQLiteStatement s) throws SQLiteException{
+		HashMap<String, Integer> ret = new HashMap<String, Integer>();
+		for (int i = 0; i < s.columnCount(); i++) ret.put(s.getColumnName(i), i);
+		for (int i = 0; i < KEYS_PUBLIC.length; i++){
+			if(!ret.containsKey(KEYS_PUBLIC[i])) ret.put(KEYS_PUBLIC[i], -1);
+		}
+		return ret;
+	}
 
 	private Message() {
 	};
 
-	public static Message build(Cursor c, int sent, Type type) {
+	public static Message build(SQLiteStatement s, HashMap<String, Integer> columnMap, int sent, Type type) throws SQLiteException {
 		Message ret = new Message();
-		int dateColumn = c.getColumnIndex(DataConstants.KEY_DATE), 
-			addressColumn = c.getColumnIndex(DataConstants.KEY_ADDRESS), 
-			charCountColumn = c.getColumnIndex(DataConstants.KEY_CHARCOUNT), 
-			mediaColumn = c.getColumnIndex(DataConstants.KEY_MEDIA);
+		int dateColumn = columnMap.get(KEY_DATE), 
+			addressColumn = columnMap.get(KEY_ADDRESS), 
+			charCountColumn = columnMap.get(KEY_CHARCOUNT), 
+			mediaColumn = columnMap.get(KEY_MEDIA);
 		
 		ret.sent = sent;
 		ret.type = type;
 		
-		if (dateColumn != -1) ret.date = c.getLong(dateColumn);
+		if (dateColumn != -1) ret.date = s.columnLong(dateColumn);
 		else ret.date = -1;
 		
-		if (addressColumn != -1) ret.address = c.getString(addressColumn);
+		if (addressColumn != -1) ret.address = s.columnString(addressColumn);
 		else ret.address = null;
 		
-		if (charCountColumn != -1) ret.charCount = c.getInt(charCountColumn);
+		if (charCountColumn != -1) ret.charCount = s.columnInt(charCountColumn);
 		else ret.charCount = -1;
 		
-		if (mediaColumn != -1) ret.media = c.getInt(mediaColumn);
+		if (mediaColumn != -1) ret.media = s.columnInt(mediaColumn);
 		else ret.media = -1;
 		
 		return ret;
