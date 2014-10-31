@@ -12,6 +12,7 @@ public class Core {
 
     //Public
 
+    public static enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
     public static native String helloWorld(); //This is just here for testing
 
 
