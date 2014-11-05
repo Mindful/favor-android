@@ -48,7 +48,7 @@ public class AccountManager {
 
 
 
-    private native AccountManager create(String name, int type, String detailsJson); //TODO
+    public static native AccountManager create(String name, int type, String detailsJson) throws FavorException;
 
     public static AccountManager createAndroidTextManager(String name){
         return new AndroidTextManager(name);

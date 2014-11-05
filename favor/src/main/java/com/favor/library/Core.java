@@ -1,6 +1,10 @@
 package com.favor.library;
 
 import android.app.Activity;
+import android.database.Cursor;
+import android.provider.ContactsContract;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 
 /**
  * Created by josh on 10/29/14.
@@ -8,6 +12,22 @@ import android.app.Activity;
 public class Core {
     //Private
     private static native void init(String databaseLocation, boolean first) throws FavorException;
+
+    private static void buildDefaultTextManager(Activity acc){
+        TelephonyManager tm = (TelephonyManager) acc.getSystemService(acc.getApplicationContext().TELEPHONY_SERVICE);
+        String phoneNumber = tm.getLine1Number();
+        if (phoneNumber != null){
+            try {
+                Log.v("FAVOR DEBUG OUTPUT", "Create with phone number "+phoneNumber);
+                AccountManager.create(phoneNumber, 1, "{}");
+            }
+            catch (FavorException e){
+             //Couldn't build default account
+            }
+        }
+        //Cursor c = acc.getContentResolver().query(ContactsContract.Profile.CONTENT_URI, null, null, null, null);
+
+    }
 
 
     //Public
@@ -21,6 +41,13 @@ public class Core {
         boolean first = true;
         try {
             init(acc.getFilesDir().getAbsolutePath(), first);
+            if (first) buildDefaultTextManager(acc);
+            //TODO: below this is test code
+            AccountManager[] test = Reader.accountManagers();
+            Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
+            for (int i = 0; i < test.length; ++i){
+                Log.v("FAVOR DEBUG OUTPUT", test[i].getAccountName());
+            }
         } catch (FavorException e) {
             e.printStackTrace();
             //TODO: log something or display something to the user

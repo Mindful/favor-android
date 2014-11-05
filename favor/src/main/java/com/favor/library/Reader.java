@@ -5,6 +5,6 @@ package com.favor.library;
  */
 public class Reader {
 
-        public static native AccountManager[] accountManagers(); //TODO:
+        public static native AccountManager[] accountManagers();
 
 }

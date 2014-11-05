@@ -5,17 +5,27 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import com.favor.library.AccountManager;
 import com.favor.library.Core;
+import com.favor.library.Reader;
 
 
 public class main extends ActionBarActivity {
+
+    //Must be declared in this activity to play nice with the XMl activity declaration
+    public void beginClick(View view){
+        String st = Core.helloWorld();
+        Core.initialize(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        String st = Core.helloWorld();
-        Core.initialize(this);
+        Button startButton = (Button) findViewById(R.id.begin);
+        //startButton.setOnClickListener();
 
     }
 
