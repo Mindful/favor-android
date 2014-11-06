@@ -6,11 +6,11 @@ import android.accounts.Account;
  * Created by josh on 10/31/14.
  */
 public class AccountManager {
-    private Core.MessageType type;
+    private int type;
     private String accountName;
     private AccountManager(){}
 
-    public Core.MessageType getType(){return type;}
+    public Core.MessageType getType(){return typeFromInt(type);}
     public String getAccountName(){return accountName;}
 
     public static Core.MessageType typeFromInt(int i){
@@ -34,14 +34,41 @@ public class AccountManager {
 
     public AccountManager(String name, int t){
         accountName = name;
-        type = typeFromInt(t);
+        type = t;
     }
 
 
+    //true if we want to updateContacts(), false otherwise. Two methods would've just been extra code
+    private native void _update(boolean contacts) throws FavorException;
 
-    public native void fetch() throws FavorException; //TODO: this is also overriden for AndroidTextManagers
+    private native void _destroy() throws FavorException;
 
-    public native void delete() throws FavorException; //TODO:
+    public void destroy() throws FavorException {
+        //Would be a substantial pain to translate the enumeration at the C++ layer, so we do it here
+        _destroy();
+    }
+
+    /*
+    VERY BLOCKING
+     */
+    public void updateContacts(){
+        try{
+            _update(true);
+        } catch (FavorException e){
+
+        }
+    }
+
+    /*
+    VERY BLOCKING
+     */
+    public void updateMessages(){
+        try{
+            _update(false);
+        } catch (FavorException e){
+
+        }
+    }
 
 
 
