@@ -24,3 +24,7 @@ proguard/
 
 # Log Files
 *.log
+
+#Favor specific additions
+.idea/workspace.xml
+favor/src/main/jniLibs/

@@ -16,7 +16,8 @@ public class main extends ActionBarActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
-        Core.testMethod(this);
+        Core.testMethod(this); //delete first because init makes a manager
+        //Core.buildDefaultTextManager(this);
     }
 
     @Override
@@ -25,7 +26,7 @@ public class main extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         Button startButton = (Button) findViewById(R.id.begin);
         //startButton.setOnClickListener();
-        Core.initialize(this);
+        Core.initialize(getApplicationContext());
 
     }
 

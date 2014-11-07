@@ -18,16 +18,17 @@ public class Core {
     private static boolean initDone = false;
     private static native void init(String databaseLocation, boolean first) throws FavorException;
 
-    private static void buildDefaultTextManager(Activity acc){
-        TelephonyManager tm = (TelephonyManager) acc.getSystemService(acc.getApplicationContext().TELEPHONY_SERVICE);
+    public static void buildDefaultTextManager(Context c){
+        TelephonyManager tm = (TelephonyManager) c.getSystemService(c.getApplicationContext().TELEPHONY_SERVICE);
         String phoneNumber = tm.getLine1Number();
         if (phoneNumber != null){
             try {
                 Log.v("FAVOR DEBUG OUTPUT", "Create with phone number "+phoneNumber);
-                AccountManager.create(phoneNumber, 1, "{}");
+                AccountManager.create("shiggy"+phoneNumber, 1, "{}");
             }
             catch (FavorException e){
-             //Couldn't build default account
+               // e.printStackTrace();
+                Logger.info("creation error");
             }
         }
         //Cursor c = acc.getContentResolver().query(ContactsContract.Profile.CONTENT_URI, null, null, null, null);
@@ -44,23 +45,31 @@ public class Core {
         AccountManager[] test = Reader.accountManagers();
         Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
         for (int i = 0; i < test.length; ++i){
-            Log.v("FAVOR DEBUG OUTPUT", "Deleting "+test[i].getAccountName());
-            try{
-                test[i].destroy();
-            } catch (FavorException e){
-                Log.v("FAVOR DEBUG EXCEPTION", e.getMessage());
-            }
+                test[i].updateContacts();
+                Logger.info("Has type "+test[i].getClass().getName());
+//            Log.v("FAVOR DEBUG OUTPUT", "Deleting "+test[i].getAccountName());
+//            try{
+//                test[i].updateContacts();
+//                test[i].destroy();
+//                Logger.info("Has type "+test[i].getClass().getName());
+//            } catch (FavorException e){
+//                Log.v("FAVOR DEBUG EXCEPTION", e.getMessage());
+//            }
         }
     }
 
-    public static void initialize(Activity acc){
+    /**
+     *     Input here should be the application context so we can use it whenever we want
+     */
+    public static void initialize(Context c){
         if (initDone) return;
-        SharedPreferences prefs = acc.getSharedPreferences(PREF_NAME, acc.MODE_PRIVATE);
+        AndroidTextManager.setContext(c);
+        SharedPreferences prefs = c.getSharedPreferences(PREF_NAME, c.MODE_PRIVATE);
         boolean first = prefs.getBoolean("first", true);
         try {
-            init(acc.getFilesDir().getAbsolutePath(), first);
-            if (first) buildDefaultTextManager(acc);
-            prefs.edit().putBoolean("first", false).commit();
+            init(c.getFilesDir().getAbsolutePath(), first);
+            if (first) buildDefaultTextManager(c);
+            prefs.edit().putBoolean("first", false).commit(); //TODO: is this saving properly?
             initDone = true;
         } catch (FavorException e) {
             e.printStackTrace();

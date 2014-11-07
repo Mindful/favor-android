@@ -37,6 +37,7 @@ public class AccountManager {
         type = t;
     }
 
+    private native String[] contactAddresses() throws FavorException;
 
     //true if we want to updateContacts(), false otherwise. Two methods would've just been extra code
     private native void _update(boolean contacts) throws FavorException;
