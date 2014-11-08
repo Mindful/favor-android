@@ -37,16 +37,16 @@ public class AccountManager {
         type = t;
     }
 
-    private native String[] contactAddresses() throws FavorException;
+    private native String[] contactAddresses(int type) throws FavorException;
 
     //true if we want to updateContacts(), false otherwise. Two methods would've just been extra code
-    private native void _update(boolean contacts) throws FavorException;
+    private native void _update(String name, int typ, boolean contacts) throws FavorException;
 
-    private native void _destroy() throws FavorException;
+    private native void _destroy(String name, int typ) throws FavorException;
 
     public void destroy() throws FavorException {
         //Would be a substantial pain to translate the enumeration at the C++ layer, so we do it here
-        _destroy();
+        _destroy(accountName, type);
     }
 
     /*
@@ -54,7 +54,7 @@ public class AccountManager {
      */
     public void updateContacts(){
         try{
-            _update(true);
+            _update(accountName, type, true);
         } catch (FavorException e){
 
         }
@@ -65,7 +65,7 @@ public class AccountManager {
      */
     public void updateMessages(){
         try{
-            _update(false);
+            _update(accountName, type, false);
         } catch (FavorException e){
 
         }

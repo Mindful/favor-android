@@ -8,6 +8,8 @@ import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import java.io.File;
+
 /**
  * Created by josh on 10/29/14.
  */
@@ -38,12 +40,24 @@ public class Core {
 
     //Public
 
+    public static String formatPhoneNumber(String number){
+        return number.replaceAll("[^0-9]", "");
+    }
+
     public static enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
     public static native String helloWorld(); //This is just here for testing
 
     public static void testMethod(Activity acc){
+        try{
+            AccountManager delme = AccountManager.create("DELME", 1, "{}");
+            delme.destroy();
+        } catch (FavorException e){
+            e.printStackTrace();
+        }
+
         AccountManager[] test = Reader.accountManagers();
         Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
+
         for (int i = 0; i < test.length; ++i){
                 test[i].updateContacts();
                 Logger.info("Has type "+test[i].getClass().getName());

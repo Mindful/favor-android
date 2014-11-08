@@ -3,6 +3,7 @@ package com.favor.library;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class AndroidTextManager extends AccountManager{
 
 
     private native void _saveMessages(boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException; //TODO:
+    private native void _saveContacts(String[] addresses, int[] counts, String[] names);//TODO:
 
     private void saveMessage(){
         //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
@@ -83,19 +85,42 @@ public class AndroidTextManager extends AccountManager{
      */
     @Override
     public void updateContacts(){
-        //TODO: pretty sure this is working properly but my new phone has all of 10 texts on it, so it's hard to test things at scale...
-        Logger.info("UPDATING CONTACTS FOR ANDROID TEXT MANAGER");
         try{
-            HashMap<String, Integer> addresses = new HashMap<String, Integer>();
+            HashMap<String, Integer> addressCounts = new HashMap<String, Integer>();
+            HashMap<String, String> addressNames = new HashMap<String, String>();
             Cursor c = context.getContentResolver().query(SMS_IN, SMS_CONTACTS_PROJECTION, null, null, KEY_DATE + " DESC LIMIT 500");
             while (c.moveToNext()){
-                Logger.info("Addr: <"+c.getString(0)+">");
-                addresses.put(c.getString(0), addresses.containsKey(c.getString(0)) ? addresses.get(c.getString(0))+1 : 1);
+                addressCounts.put(c.getString(0), addressCounts.containsKey(c.getString(0)) ? addressCounts.get(c.getString(0))+1 : 1);
             }
             c.close();
-            for (Map.Entry<String, Integer> entry : addresses.entrySet()){
-                Logger.info("Addr: "+entry.getKey()+" Count: "+entry.getValue());
+
+            //It'd be nice if we could filter this query, but phone number formatting is dangerously inconsistent
+            Cursor contacts = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[] {
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    null,
+                    null,
+                    null);
+            while (contacts.moveToNext()){
+                //if a number corresponds to two different addresses, we'll end up using the one we see later, but there's
+                //no good way to solve that problem anyway so...
+                Logger.info(contacts.getString(0)+" "+Core.formatPhoneNumber(contacts.getString(1)));
+                addressNames.put(Core.formatPhoneNumber(contacts.getString(1)), contacts.getString(0));
             }
+            String[] addresses = new String[addressCounts.size()];
+            int[] counts = new int[addressCounts.size()];
+            String[] names = new String[addressCounts.size()];
+
+            int counter = 0;
+            for (Map.Entry<String, Integer> entry : addressCounts.entrySet()){
+                Logger.info("Contact: "+entry.getKey()+" Count:"+entry.getValue()+" Sugg. Name: "+addressNames.get(entry.getKey()));
+                addresses[counter] = entry.getKey();
+                counts[counter] = entry.getValue();
+                names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
+                counter++;
+            }
+            _saveContacts(addresses, counts, names);
         } catch (Exception e){
             e.printStackTrace();
         }
