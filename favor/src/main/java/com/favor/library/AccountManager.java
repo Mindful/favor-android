@@ -6,8 +6,8 @@ import android.accounts.Account;
  * Created by josh on 10/31/14.
  */
 public class AccountManager {
-    private int type;
-    private String accountName;
+    protected int type;
+    protected String accountName;
     private AccountManager(){}
 
     public Core.MessageType getType(){return typeFromInt(type);}
@@ -39,46 +39,42 @@ public class AccountManager {
 
     private native String[] contactAddresses(int type) throws FavorException;
 
-    //true if we want to updateContacts(), false otherwise. Two methods would've just been extra code
-    private native void _update(String name, int typ, boolean contacts) throws FavorException;
 
-    private native void _destroy(String name, int typ) throws FavorException;
+    //Blocks
+    public void updateAddresses(){
+        try{
+            _update(accountName, type, true);
+        } catch (FavorException e){
+            e.printStackTrace(); //TODO: something else
+        }
+    }
+
+
+    //Blocks
+    public void updateMessages(){
+        try{
+            _update(accountName, type, false);
+        } catch (FavorException e){
+            e.printStackTrace(); //TODO: something else
+        }
+    }
+
+
+    //true if we want to updateAddresses(), false otherwise. Two methods would've just been extra code
+    private native void _update(String name, int typ, boolean addresses) throws FavorException;
 
     public void destroy() throws FavorException {
         //Would be a substantial pain to translate the enumeration at the C++ layer, so we do it here
         _destroy(accountName, type);
     }
 
-    /*
-    VERY BLOCKING
-     */
-    public void updateContacts(){
-        try{
-            _update(accountName, type, true);
-        } catch (FavorException e){
+    private native void _destroy(String name, int typ) throws FavorException;
 
-        }
+    public static AccountManager create(String name, Core.MessageType type, String detailsJson) throws FavorException {
+        _create(name, intFromType(type), detailsJson);
+        if (type==Core.MessageType.TYPE_ANDROIDTEXT) return new AndroidTextManager(name);
+        else return new AccountManager(name, intFromType(type));
     }
 
-    /*
-    VERY BLOCKING
-     */
-    public void updateMessages(){
-        try{
-            _update(accountName, type, false);
-        } catch (FavorException e){
-
-        }
-    }
-
-
-
-
-
-
-    public static native AccountManager create(String name, int type, String detailsJson) throws FavorException;
-
-    public static AccountManager createAndroidTextManager(String name){
-        return new AndroidTextManager(name);
-    }
+    private native static void _create(String name, int type, String detailsJson) throws FavorException;
 }

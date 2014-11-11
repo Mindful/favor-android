@@ -3,12 +3,8 @@ package com.favor.library;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
-import java.io.File;
 
 /**
  * Created by josh on 10/29/14.
@@ -59,11 +55,11 @@ public class Core {
         Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
 
         for (int i = 0; i < test.length; ++i){
-                test[i].updateContacts();
+                test[i].updateAddresses();
                 Logger.info("Has type "+test[i].getClass().getName());
 //            Log.v("FAVOR DEBUG OUTPUT", "Deleting "+test[i].getAccountName());
 //            try{
-//                test[i].updateContacts();
+//                test[i].updateAddresses();
 //                test[i].destroy();
 //                Logger.info("Has type "+test[i].getClass().getName());
 //            } catch (FavorException e){

@@ -49,8 +49,8 @@ public class AndroidTextManager extends AccountManager{
     }
 
 
-    private native void _saveMessages(boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException; //TODO:
-    private native void _saveContacts(String[] addresses, int[] counts, String[] names);//TODO:
+    private native void _saveMessages(int type, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException; //TODO:
+    private native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names);//TODO:
 
     private void saveMessage(){
         //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
@@ -70,7 +70,7 @@ public class AndroidTextManager extends AccountManager{
             msg[i] = messages.get(i).getMsg();
         }
         try{
-            _saveMessages(sent, id, date, address, media, msg);
+            _saveMessages(type, sent, id, date, address, media, msg);
         }
         catch (FavorException e){
             //TODO: we want to know if this failed, but most of the serious error recovery should probably be at the C++
@@ -84,7 +84,7 @@ public class AndroidTextManager extends AccountManager{
     VERY BLOCKING
      */
     @Override
-    public void updateContacts(){
+    public void updateAddresses(){
         try{
             HashMap<String, Integer> addressCounts = new HashMap<String, Integer>();
             HashMap<String, String> addressNames = new HashMap<String, String>();
@@ -120,7 +120,7 @@ public class AndroidTextManager extends AccountManager{
                 names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
                 counter++;
             }
-            _saveContacts(addresses, counts, names);
+            _saveAddresses(type, addresses, counts, names);
         } catch (Exception e){
             e.printStackTrace();
         }
