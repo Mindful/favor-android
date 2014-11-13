@@ -37,7 +37,21 @@ public class AccountManager {
         type = t;
     }
 
-    private native String[] contactAddresses(int type) throws FavorException;
+    protected native String[] contactAddresses(int type) throws FavorException;
+    protected native void _saveMessages(int type, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException;
+    protected native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names);
+
+    public void TESTMETHOD(){
+        try {
+            String[] t = contactAddresses(type);
+            Logger.info("Test method contact count:"+t.length);
+            for( String s: t){
+                Logger.info("Contact: "+t);
+            }
+        } catch (FavorException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     //Blocks

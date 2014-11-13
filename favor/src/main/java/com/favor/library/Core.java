@@ -16,13 +16,15 @@ public class Core {
     private static boolean initDone = false;
     private static native void init(String databaseLocation, boolean first) throws FavorException;
 
+
+
     public static void buildDefaultTextManager(Context c){
         TelephonyManager tm = (TelephonyManager) c.getSystemService(c.getApplicationContext().TELEPHONY_SERVICE);
         String phoneNumber = tm.getLine1Number();
         if (phoneNumber != null){
             try {
                 Log.v("FAVOR DEBUG OUTPUT", "Create with phone number "+phoneNumber);
-                AccountManager.create("shiggy"+phoneNumber, 1, "{}");
+                AccountManager.create("shiggy"+phoneNumber, MessageType.TYPE_ANDROIDTEXT, "{}");
             }
             catch (FavorException e){
                // e.printStackTrace();
@@ -44,8 +46,9 @@ public class Core {
     public static native String helloWorld(); //This is just here for testing
 
     public static void testMethod(Activity acc){
+        //Worker.exportDatabase(acc);
         try{
-            AccountManager delme = AccountManager.create("DELME", 1, "{}");
+            AccountManager delme = AccountManager.create("DELME", MessageType.TYPE_ANDROIDTEXT, "{}");
             delme.destroy();
         } catch (FavorException e){
             e.printStackTrace();
@@ -53,9 +56,9 @@ public class Core {
 
         AccountManager[] test = Reader.accountManagers();
         Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
-
         for (int i = 0; i < test.length; ++i){
-                test[i].updateAddresses();
+                //test[i].updateAddresses();
+                test[i].TESTMETHOD();
                 Logger.info("Has type "+test[i].getClass().getName());
 //            Log.v("FAVOR DEBUG OUTPUT", "Deleting "+test[i].getAccountName());
 //            try{

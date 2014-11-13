@@ -49,9 +49,6 @@ public class AndroidTextManager extends AccountManager{
     }
 
 
-    private native void _saveMessages(int type, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException; //TODO:
-    private native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names);//TODO:
-
     private void saveMessage(){
         //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
         //to handle at the C++ layer
