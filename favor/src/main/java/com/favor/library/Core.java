@@ -57,17 +57,7 @@ public class Core {
         AccountManager[] test = Reader.accountManagers();
         Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
         for (int i = 0; i < test.length; ++i){
-                //test[i].updateAddresses();
-                test[i].TESTMETHOD();
-                Logger.info("Has type "+test[i].getClass().getName());
-//            Log.v("FAVOR DEBUG OUTPUT", "Deleting "+test[i].getAccountName());
-//            try{
-//                test[i].updateAddresses();
-//                test[i].destroy();
-//                Logger.info("Has type "+test[i].getClass().getName());
-//            } catch (FavorException e){
-//                Log.v("FAVOR DEBUG EXCEPTION", e.getMessage());
-//            }
+            test[i].updateMessages();
         }
     }
 

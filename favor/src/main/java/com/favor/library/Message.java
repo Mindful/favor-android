@@ -44,6 +44,13 @@ public class Message {
         return msg;
     }
 
+    @Override
+    public String toString(){
+        String result = "[Message ID: "+id+" | Sent? " + sent+" | Date: "+date+" | Address: "+address;
+        result += " | Media? "+media+ " | Body Length: "+msg.length()+ "| Body: <<"+ msg+">>]";
+        return result;
+    }
+
 
 
 }

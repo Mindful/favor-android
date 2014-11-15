@@ -2,12 +2,15 @@ package com.favor.library;
 
 import android.accounts.Account;
 
+import java.util.ArrayList;
+
 /**
  * Created by josh on 10/31/14.
  */
 public class AccountManager {
     protected int type;
     protected String accountName;
+    protected ArrayList<Message> messages; //Unused in most cases, but should still live here
     private AccountManager(){}
 
     public Core.MessageType getType(){return typeFromInt(type);}
@@ -53,6 +56,40 @@ public class AccountManager {
         }
     }
 
+    protected void saveMessage(){
+        //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
+        //to handle at the C++ layer
+        boolean[] sent = new boolean[messages.size()];
+        long[] id = new long[messages.size()];
+        long[] date = new long[messages.size()];
+        String[] address = new String[messages.size()];
+        boolean[] media = new boolean[messages.size()];
+        String[] msg = new String[messages.size()];
+        for (int i = 0; i < messages.size(); ++i){
+            sent[i] = messages.get(i).isSent();
+            id[i] = messages.get(i).getId();
+            date[i] = messages.get(i).getDate(); //TODO: is this how should be passed in? This might need some looking at
+            address[i] = messages.get(i).getAddress();
+            media[i] = messages.get(i).isMedia();
+            msg[i] = messages.get(i).getMsg();
+        }
+        try{
+            _saveMessages(type, sent, id, date, address, media, msg);
+        }
+        catch (FavorException e){
+            //TODO: we want to know if this failed, but most of the serious error recovery should probably be at the C++
+            //layer
+        }
+
+    }
+
+    //The old export message definition, for the record:
+    //final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media)
+    //c++: holdMessage(bool sent, long int id, time_t date, string address, bool media, string msg)
+    protected void holdMessage(boolean sent, long id, long date, String address, boolean media, String msg){
+        messages.add(new Message(sent, id, date, address, media, msg));
+        Logger.info(new Message(sent, id, date, address, media, msg).toString());//TODO:TESTCODE
+    }
 
     //Blocks
     public void updateAddresses(){

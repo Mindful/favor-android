@@ -17,6 +17,7 @@ import java.util.Map;
 public class AndroidTextManager extends AccountManager{
     public AndroidTextManager(String name){
         super(name, 1);
+        messages = new ArrayList<Message>();
     }
 
     private static Context context;
@@ -38,43 +39,7 @@ public class AndroidTextManager extends AccountManager{
     private static final String MMS_FROM = "137"; // 0x89 in com.google.android.mms.pdu.PduHeaders
 
     private static final String KEY_DATE = "date"; //This is the name of the date column for texts
-
-    private ArrayList<Message> messages;
-
-    //The old export message definition, for the record:
-    //final protected void exportMessage(boolean sent, long id, long date, String address, String msg, int media)
-    //c++: holdMessage(bool sent, long int id, time_t date, string address, bool media, string msg)
-    private void holdMessage(boolean sent, long id, long date, String address, boolean media, String msg){
-        messages.add(new Message(sent, id, date, address, media, msg));
-    }
-
-
-    private void saveMessage(){
-        //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
-        //to handle at the C++ layer
-        boolean[] sent = new boolean[messages.size()];
-        long[] id = new long[messages.size()];
-        long[] date = new long[messages.size()];
-        String[] address = new String[messages.size()];
-        boolean[] media = new boolean[messages.size()];
-        String[] msg = new String[messages.size()];
-        for (int i = 0; i < messages.size(); ++i){
-            sent[i] = messages.get(i).isSent();
-            id[i] = messages.get(i).getId();
-            date[i] = messages.get(i).getDate(); //TODO: is this how should be passed in? This might need some looking at
-            address[i] = messages.get(i).getAddress();
-            media[i] = messages.get(i).isMedia();
-            msg[i] = messages.get(i).getMsg();
-        }
-        try{
-            _saveMessages(type, sent, id, date, address, media, msg);
-        }
-        catch (FavorException e){
-            //TODO: we want to know if this failed, but most of the serious error recovery should probably be at the C++
-            //layer
-        }
-
-    }
+    private static final String KEY_ADDRESS = "address";
 
 
     /*
@@ -102,7 +67,6 @@ public class AndroidTextManager extends AccountManager{
             while (contacts.moveToNext()){
                 //if a number corresponds to two different addresses, we'll end up using the one we see later, but there's
                 //no good way to solve that problem anyway so...
-                Logger.info(contacts.getString(0)+" "+Core.formatPhoneNumber(contacts.getString(1)));
                 addressNames.put(Core.formatPhoneNumber(contacts.getString(1)), contacts.getString(0));
             }
             String[] addresses = new String[addressCounts.size()];
@@ -111,7 +75,6 @@ public class AndroidTextManager extends AccountManager{
 
             int counter = 0;
             for (Map.Entry<String, Integer> entry : addressCounts.entrySet()){
-                Logger.info("Contact: "+entry.getKey()+" Count:"+entry.getValue()+" Sugg. Name: "+addressNames.get(entry.getKey()));
                 addresses[counter] = entry.getKey();
                 counts[counter] = entry.getValue();
                 names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
@@ -129,40 +92,54 @@ public class AndroidTextManager extends AccountManager{
     //TODO: needs serious testing. just copied from old favor. should probably be fine once we set up permissions and a method of keeping dates, though
     @Override
     public void updateMessages() {
-        //TODO: we need to worry about which addresses we're getting information for. We don't want info for everyone anymore,
-        //so like the emailManager, this needs to only pick up stuff from recognized addresses
-        //We can just use the lastFetch for this because we're going on time anyway
-        long lastFetchDate = 0; //TODO: get this, probably from prefs, since texts are a static issue anyway
+        Logger.info("updateMessages");
         try {
+            String[] addrs = contactAddresses(type);
+            String addressSelection = "(";
+            for (int i = 0; i < addrs.length; ++i){
+                addressSelection += KEY_ADDRESS +"="+addrs[i];
+                if (i == addrs.length -1) addressSelection += ")";
+                else addressSelection += " OR ";
+            }
+
+
+            long lastFetchDate = 0; //TODO: get this, probably from prefs, since texts are a static issue anyway. also need to save this as a time...
+
+            String normalSelection = addressSelection + " AND " + KEY_DATE + " > " + lastFetchDate;
+            String MMSSelection = addressSelection + " AND " + KEY_DATE + " > " + lastFetchDate/1000l;
+
             Cursor c = context.getContentResolver().query(SMS_IN, SMS_PROJECTION,
-                    KEY_DATE + " > " + lastFetchDate, null, KEY_DATE);
+                    normalSelection, null, KEY_DATE);
             while (c.moveToNext()) {
                 holdMessage(false, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
             }
             c.close();
 
             c = context.getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-                    KEY_DATE + " > " + lastFetchDate, null, KEY_DATE);
+                    normalSelection, null, KEY_DATE);
             while (c.moveToNext()) {
                 holdMessage(true, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
             }
             c.close();
 
             //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly
+            Debug.uriProperties("content://sms/inbox", context);
+            Debug.uriProperties("content://sms/sent", context);
             c = context.getContentResolver().query(MMS_IN, MMS_PROJECTION,
-                    KEY_DATE + " > " + lastFetchDate/1000l, null, KEY_DATE);
+                    MMSSelection, null, KEY_DATE);
             while (c.moveToNext()){
                 receivedMMS(c.getLong(0), c.getLong(1));
             }
             c.close();
 
             c = context.getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-                    KEY_DATE + " > " + lastFetchDate/1000l, null, KEY_DATE);
+                    MMSSelection, null, KEY_DATE);
             while (c.moveToNext()){
                 sentMMS(c.getLong(0), c.getLong(1));
             }
             c.close();
         } catch (Exception ex) {
+            ex.printStackTrace();
             //TODO: whatever we do when the native stuff fails for the default account manager
         }
     }
@@ -184,7 +161,7 @@ public class AndroidTextManager extends AccountManager{
             if (type.equals("text/plain")) {
                 data = c.getString(0);
                 if (data == null) data = c.getString(1); // fetch from the "text" column
-                else Logger.error("Unknown message data parsing sent MMS:" + data); // we have pure data
+                else Logger.error("Unknown message data parsing sent MMS:" + data); //TODO: we have pure data
             } else media = true;
         }
         c.close();
@@ -220,8 +197,7 @@ public class AndroidTextManager extends AccountManager{
                 if (data == null) {
                     data = c.getString(1); // fetch from the "text" column
                 } else {
-                    Logger.error("Unknown message data parsing receieved MMS:" + data); // we have
-                    // pure data
+                    Logger.error("Unknown message data parsing receieved MMS:" + data); //TODO: we have pure data
                 }
             } else
                 media = true;

@@ -20,26 +20,4 @@ public class Worker {
     public static void createContact(String address, Core.MessageType type, String displayName, boolean addressExists){
         _createContact(address, AccountManager.intFromType(type), displayName, addressExists);
     }
-
-    public static void exportDatabase(Context c){
-        try{
-            File currentDB = new File(c.getFilesDir().getAbsolutePath()+"/favor.db");
-            File backupDB = new File("/mnt/sdcard/favor_export.db");
-
-            if (currentDB.exists()){
-                FileChannel src = new FileInputStream(currentDB).getChannel();
-                FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                dst.transferFrom(src, 0, src.size());
-                src.close();
-                dst.close();
-                Toast.makeText(c, backupDB.toString(), Toast.LENGTH_LONG).show();
-            }
-            else {
-                Toast.makeText(c, "Could not find "+currentDB, Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(c, e.toString(), Toast.LENGTH_LONG).show();
-        }
-    }
 }
