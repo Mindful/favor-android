@@ -10,6 +10,7 @@ import android.widget.Button;
 import com.favor.library.AccountManager;
 import com.favor.library.Core;
 import com.favor.library.Reader;
+import com.favor.library.Debug;
 
 
 public class main extends ActionBarActivity {
@@ -46,6 +47,8 @@ public class main extends ActionBarActivity {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_dumpdb){
+           Debug.exportDatabase(this);
         }
         return super.onOptionsItemSelected(item);
     }

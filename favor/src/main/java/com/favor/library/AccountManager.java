@@ -41,8 +41,8 @@ public class AccountManager {
     }
 
     protected native String[] contactAddresses(int type) throws FavorException;
-    protected native void _saveMessages(int type, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException;
-    protected native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names);
+    protected native void _saveMessages(int type, String name, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException;
+    protected native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names) throws FavorException;
 
     public void TESTMETHOD(){
         try {
@@ -56,9 +56,10 @@ public class AccountManager {
         }
     }
 
-    protected void saveMessage(){
+    protected void saveMessages(){
         //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
         //to handle at the C++ layer
+        if (messages.size() == 0 ) return;
         boolean[] sent = new boolean[messages.size()];
         long[] id = new long[messages.size()];
         long[] date = new long[messages.size()];
@@ -73,10 +74,12 @@ public class AccountManager {
             media[i] = messages.get(i).isMedia();
             msg[i] = messages.get(i).getMsg();
         }
+        messages.clear();
         try{
-            _saveMessages(type, sent, id, date, address, media, msg);
+            _saveMessages(type, accountName, sent, id, date, address, media, msg);
         }
         catch (FavorException e){
+            e.printStackTrace();
             //TODO: we want to know if this failed, but most of the serious error recovery should probably be at the C++
             //layer
         }

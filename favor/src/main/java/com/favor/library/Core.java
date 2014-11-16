@@ -15,8 +15,12 @@ public class Core {
     //Private
     private static boolean initDone = false;
     private static native void init(String databaseLocation, boolean first) throws FavorException;
+    private static Context context;
 
 
+    public static Context getContext(){
+        return context;
+    }
 
     public static void buildDefaultTextManager(Context c){
         TelephonyManager tm = (TelephonyManager) c.getSystemService(c.getApplicationContext().TELEPHONY_SERVICE);
@@ -43,7 +47,6 @@ public class Core {
     }
 
     public static enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
-    public static native String helloWorld(); //This is just here for testing
 
     public static void testMethod(Activity acc){
         //Worker.exportDatabase(acc);
@@ -66,7 +69,7 @@ public class Core {
      */
     public static void initialize(Context c){
         if (initDone) return;
-        AndroidTextManager.setContext(c);
+        context = c;
         SharedPreferences prefs = c.getSharedPreferences(PREF_NAME, c.MODE_PRIVATE);
         boolean first = prefs.getBoolean("first", true);
         try {

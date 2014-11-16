@@ -13,11 +13,11 @@ import java.nio.channels.FileChannel;
  * Created by josh on 10/29/14.
  */
 public class Worker {
-    private static native void _createContact(String address, int type, String displayName, boolean addressExists);
-    public static void createContact(String address, Core.MessageType type, String displayName){
+    private static native void _createContact(String address, int type, String displayName, boolean addressExists) throws FavorException;
+    public static void createContact(String address, Core.MessageType type, String displayName) throws FavorException{
         _createContact(address, AccountManager.intFromType(type), displayName, false);
     }
-    public static void createContact(String address, Core.MessageType type, String displayName, boolean addressExists){
+    public static void createContact(String address, Core.MessageType type, String displayName, boolean addressExists) throws FavorException{
         _createContact(address, AccountManager.intFromType(type), displayName, addressExists);
     }
 }
