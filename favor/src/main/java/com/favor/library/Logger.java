@@ -7,15 +7,15 @@ import android.util.Log;
  */
 public class Logger {
 
-    static void error(String s){
+    public static void error(String s){
         Log.e("favor", s);
     }
 
-    static void warning(String s){
+    public static void warning(String s){
         Log.w("favor", s);
     }
 
-    static void info(String s){
+    public static void info(String s){
         Log.i("favor", s);
     }
 }

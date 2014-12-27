@@ -18,6 +18,20 @@ public class Core {
     private static Context context;
 
 
+    public static AccountManager getCurrentAccount() {
+        return currentAccount;
+    }
+
+    public static void setCurrentAccount(AccountManager currentAccount) {
+        currentAccount = currentAccount;
+        //TODO: this may mean we need to do lots of other things, depending on how/where it's called
+    }
+
+    private static AccountManager currentAccount;
+
+
+
+
     public static Context getContext(){
         return context;
     }
@@ -27,42 +41,42 @@ public class Core {
         String phoneNumber = tm.getLine1Number();
         if (phoneNumber != null){
             try {
-                Log.v("FAVOR DEBUG OUTPUT", "Create with phone number "+phoneNumber);
-                AccountManager.create("shiggy"+phoneNumber, MessageType.TYPE_ANDROIDTEXT, "{}");
+                AccountManager.create(phoneNumber, MessageType.TYPE_ANDROIDTEXT, "{}");
             }
             catch (FavorException e){
                // e.printStackTrace();
-                Logger.info("creation error");
+                Logger.info("Error creating default text manager");
             }
         }
-        //Cursor c = acc.getContentResolver().query(ContactsContract.Profile.CONTENT_URI, null, null, null, null);
-
     }
 
 
     //Public
+
+    public static Core.MessageType typeFromInt(int i){
+        switch(i) {
+            case 0: return Core.MessageType.TYPE_EMAIL;
+            case 1: return Core.MessageType.TYPE_ANDROIDTEXT;
+            case 2: return Core.MessageType.TYPE_LINE;
+            case 3: throw new IndexOutOfBoundsException("Type 3 (Skype) not supported on Android");
+            default: throw new IndexOutOfBoundsException("Invalid AccountManager type");
+        }
+    }
+    public static int intFromType(Core.MessageType t){
+        switch(t){
+            case TYPE_EMAIL: return 0;
+            case TYPE_ANDROIDTEXT: return 1;
+            case TYPE_LINE: return 2;
+            case TYPE_SKYPE: return 3;
+            default: throw new IndexOutOfBoundsException("Invalid AccountManager type");
+        }
+    }
 
     public static String formatPhoneNumber(String number){
         return number.replaceAll("[^0-9]", "");
     }
 
     public static enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
-
-    public static void testMethod(Activity acc){
-        //Worker.exportDatabase(acc);
-        try{
-            AccountManager delme = AccountManager.create("DELME", MessageType.TYPE_ANDROIDTEXT, "{}");
-            delme.destroy();
-        } catch (FavorException e){
-            e.printStackTrace();
-        }
-
-        AccountManager[] test = Reader.accountManagers();
-        Log.v("FAVOR DEBUG OUTPUT", "AccountManager count "+test.length);
-        for (int i = 0; i < test.length; ++i){
-            test[i].updateMessages();
-        }
-    }
 
     /**
      *     Input here should be the application context so we can use it whenever we want

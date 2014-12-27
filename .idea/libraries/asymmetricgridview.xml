@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="asymmetricgridview">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/favor/libs/asymmetricgridview.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

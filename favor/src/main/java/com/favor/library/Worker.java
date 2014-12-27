@@ -15,9 +15,9 @@ import java.nio.channels.FileChannel;
 public class Worker {
     private static native void _createContact(String address, int type, String displayName, boolean addressExists) throws FavorException;
     public static void createContact(String address, Core.MessageType type, String displayName) throws FavorException{
-        _createContact(address, AccountManager.intFromType(type), displayName, false);
+        _createContact(address, Core.intFromType(type), displayName, false);
     }
     public static void createContact(String address, Core.MessageType type, String displayName, boolean addressExists) throws FavorException{
-        _createContact(address, AccountManager.intFromType(type), displayName, addressExists);
+        _createContact(address, Core.intFromType(type), displayName, addressExists);
     }
 }
