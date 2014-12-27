@@ -53,6 +53,7 @@ public class Core {
         try{
             AccountManager delme = AccountManager.create("DELME", MessageType.TYPE_ANDROIDTEXT, "{}");
             delme.destroy();
+            Worker.createContact("9095695245", MessageType.TYPE_ANDROIDTEXT, "Test con");
         } catch (FavorException e){
             e.printStackTrace();
         }

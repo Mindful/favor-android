@@ -1,5 +1,6 @@
 package com.favor;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,7 +18,10 @@ public class main extends ActionBarActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
-        Core.testMethod(this); //delete first because init makes a manager
+        //Core.testMethod(this); //delete first because init makes a manager
+
+        //startActivity(new Intent(this, contacts.class));
+
         //Core.buildDefaultTextManager(this);
     }
 
