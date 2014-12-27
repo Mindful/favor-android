@@ -2,6 +2,8 @@ package com.favor;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Display;
+import android.view.Surface;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -32,8 +34,14 @@ public class contacts extends ActionBarActivity  {
 
 
 
-
         GridView gridview = (GridView) findViewById(R.id.gridview);
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270){
+            gridview.setNumColumns(3);
+        } else {
+            gridview.setNumColumns(2);
+        }
+
         gridview.setAdapter(new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(testd)));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
