@@ -27,6 +27,10 @@ public class AndroidHelper {
 
     //TODO: eventually this could be more generalizeable to any types of contacts we were looking for, and possibly more efficient
     public static void populateContacts() {
+        contactsHash = new HashMap<Core.MessageType, HashMap<String, AndroidContactData>>();
+        for (Core.MessageType type : Core.MessageType.values()){
+            contactsHash.put(type, new HashMap<String, AndroidContactData>());
+        }
         //Android Text type population
         Cursor contacts = Core.getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[] {

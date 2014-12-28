@@ -25,4 +25,11 @@ public class Address {
         this.contactId = contactId;
         this.type = type;
     }
+
+    //We need this to call from the C++ layer, because using types down there'd be a mess
+    public Address(String addr, long contactId, int type){
+        this.addr = addr;
+        this.contactId = contactId;
+        this.type = Core.typeFromInt(type);
+    }
 }

@@ -59,15 +59,6 @@ public class ContactDisplay {
             Logger.info(contacts.getString(0)+"-"+contacts.getString(1)+"-"+contacts.getString(2));
         }
 
-        contacts = Core.getContext().getContentResolver().query(ContactsContract.Profile.CONTENT_URI, new String[] {
-                ContactsContract.Profile._ID,
-                ContactsContract.Profile.DISPLAY_NAME_PRIMARY,
-                ContactsContract.Profile.LOOKUP_KEY,
-                ContactsContract.Profile.PHOTO_THUMBNAIL_URI},
-                null,
-                null,
-                null);
-
         for (int i = 0; i < input.length; ++i){
             long sent = Processor.totalCharcount(Core.getCurrentAccount(), input[i], -1, -1, true);
             long rec =  Processor.totalCharcount(Core.getCurrentAccount(), input[i], -1, -1, false);

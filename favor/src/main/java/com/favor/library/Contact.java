@@ -31,13 +31,10 @@ public class Contact {
         addresses = new ArrayList<Address>();
     }
 
-    public Contact(long id, String displayName, String[] addrs, long[] addrIds, int[] addrTypes) {
+    public Contact(long id, String displayName, ArrayList<Address> addrs) {
         this.id = id;
         this.displayName = displayName;
-        addresses = new ArrayList<Address>();
-        for (int i = 0; i < addrs.length; ++i){
-            addresses.add(new Address(addrs[i], addrIds[i], Core.typeFromInt(addrTypes[i])));
-        }
+        addresses = addrs;
     }
 
     //TODO: this'd be much cleaner just using flags like we do at the C++ level

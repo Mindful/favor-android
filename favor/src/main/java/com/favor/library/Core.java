@@ -45,7 +45,10 @@ public class Core {
 
     private static void buildDefaultPhoneContacts(AndroidTextManager account){
             account.updateAddresses();
-            //TODO: get addresses
+
+
+            //TODO: we need access to information about address' <count> attribute to write this method properly. ffs
+            //Address[] addrs =
     }
 
 
@@ -57,7 +60,7 @@ public class Core {
             case 1: return Core.MessageType.TYPE_ANDROIDTEXT;
             case 2: return Core.MessageType.TYPE_LINE;
             case 3: throw new IndexOutOfBoundsException("Type 3 (Skype) not supported on Android");
-            default: throw new IndexOutOfBoundsException("Invalid AccountManager type");
+            default: throw new IndexOutOfBoundsException("Attempted to convert invalid AccountManager type");
         }
     }
     public static int intFromType(Core.MessageType t){
@@ -66,7 +69,7 @@ public class Core {
             case TYPE_ANDROIDTEXT: return 1;
             case TYPE_LINE: return 2;
             case TYPE_SKYPE: return 3;
-            default: throw new IndexOutOfBoundsException("Invalid AccountManager type");
+            default: throw new IndexOutOfBoundsException("Attempted to convert invalid AccountManager type");
         }
     }
 

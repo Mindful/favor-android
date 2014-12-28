@@ -1,5 +1,6 @@
 package com.favor;
 
+import android.accounts.Account;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -8,16 +9,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import com.favor.library.AccountManager;
-import com.favor.library.Core;
-import com.favor.library.Reader;
-import com.favor.library.Debug;
+import com.favor.library.*;
 
 
 public class main extends ActionBarActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
+        Address[] addrs = Reader.allAddresses(false);
+        for (Address addr : addrs){
+            Logger.info("Address "+addr.getAddr());
+        }
+
+
         Intent intent = new Intent(this, contacts.class);
         startActivity(intent);
         //Core.buildDefaultTextManager(this);
