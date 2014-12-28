@@ -6,6 +6,7 @@ package com.favor.library;
 public class Address {
     private String addr;
     private long contactId;
+    private long count;
     private Core.MessageType type;
 
     public String getAddr() {
@@ -15,6 +16,8 @@ public class Address {
     public long getContactId() {
         return contactId;
     }
+
+    public long getCount() {return count; }
 
     public Core.MessageType getType() {
         return type;
@@ -27,9 +30,10 @@ public class Address {
     }
 
     //We need this to call from the C++ layer, because using types down there'd be a mess
-    public Address(String addr, long contactId, int type){
+    public Address(String addr, long count, long contactId, int type){
         this.addr = addr;
         this.contactId = contactId;
         this.type = Core.typeFromInt(type);
+        this.count = count;
     }
 }

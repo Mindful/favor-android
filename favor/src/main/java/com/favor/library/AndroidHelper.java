@@ -55,6 +55,14 @@ public class AndroidHelper {
     }
 
 
+    public static Bitmap contactPhoto(Contact contact){
+        for (Address addr : contact.getAddresses()){
+            Bitmap photo = contactPhoto(addr.getAddr(), addr.getType());
+            if (photo != null) return photo;
+        }
+        return null;
+    }
+
     public static Bitmap contactPhoto(String address, Core.MessageType type){
         if (contactsHash.get(type).containsKey(address)){
             return seekPhoto(address, contactsHash.get(type).get(address).id);

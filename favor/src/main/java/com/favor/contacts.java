@@ -24,16 +24,6 @@ public class contacts extends ActionBarActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
 
-
-        //TODO: testcode, thsi should actually be the real contacts
-        ArrayList<Contact> testData = new ArrayList<Contact>();
-        for (int i = 0; i < 15; ++i){
-            testData.add(new Contact(i, "Contact "+i));
-        }
-        Contact[] testd = testData.toArray(new Contact[testData.size()]);
-
-
-
         GridView gridview = (GridView) findViewById(R.id.gridview);
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270){
@@ -42,7 +32,7 @@ public class contacts extends ActionBarActivity  {
             gridview.setNumColumns(2);
         }
 
-        gridview.setAdapter(new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(testd)));
+        gridview.setAdapter(new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(Reader.contacts())));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Toast.makeText(contacts.this, "" + position, Toast.LENGTH_SHORT).show();

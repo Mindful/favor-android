@@ -6,6 +6,11 @@ import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 public class Core {
     public static final String PREF_NAME = "favor_prefs";
 
@@ -26,7 +31,14 @@ public class Core {
 
     private static AccountManager currentAccount;
 
-
+    static class AddressComparator implements Comparator<Address> {
+        @Override
+        public int compare(Address lhs, Address rhs){
+            if (lhs.getCount() > rhs.getCount()) return -1;
+            else if (lhs.getCount() == rhs.getCount()) return 0;
+            else return 1;
+        }
+    }
 
 
     public static Context getContext(){
@@ -44,11 +56,20 @@ public class Core {
     }
 
     private static void buildDefaultPhoneContacts(AndroidTextManager account){
-            account.updateAddresses();
+        account.updateAddresses();
+        ArrayList<Address> addrs = new ArrayList<Address>(Arrays.asList(Reader.allAddresses(false)));
+        Collections.sort(addrs, new AddressComparator());
 
-
-            //TODO: we need access to information about address' <count> attribute to write this method properly. ffs
-            //Address[] addrs =
+        try{
+            for (int i = 0; i < addrs.size() && i < 15; ++i){
+                String name = AndroidHelper.contactName(addrs.get(i).getAddr());
+                if (name == null) name = addrs.get(i).getAddr();
+                Worker.createContact(addrs.get(i).getAddr(), MessageType.TYPE_ANDROIDTEXT, name, true);
+            }
+        }
+        catch (FavorException e){
+            Logger.error("Error creating default contacts");
+        }
     }
 
 
@@ -90,11 +111,11 @@ public class Core {
         Logger.info("First: "+first); //TODO: testcode, just make sure it's saving properly
         try {
             init(c.getFilesDir().getAbsolutePath(), first);
+            AndroidHelper.populateContacts();
             if (first){
                 AndroidTextManager initial = buildDefaultTextManager(c);
                 buildDefaultPhoneContacts(initial);
             }
-            AndroidHelper.populateContacts();
             prefs.edit().putBoolean("first", false).commit();
             initDone = true;
         } catch (FavorException e) {

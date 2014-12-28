@@ -11,16 +11,23 @@ import android.view.View;
 import android.widget.Button;
 import com.favor.library.*;
 
+import java.util.ArrayList;
+
 
 public class main extends ActionBarActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
-        Address[] addrs = Reader.allAddresses(false);
-        for (Address addr : addrs){
-            Logger.info("Address "+addr.getAddr());
-        }
+//        Address[] addrs = Reader.allAddresses(false);
+//        for (int  i =0; i < addrs.length; ++i){
+//            Address addr = addrs[i];
+//            Logger.info("Address "+addr.getAddr()+" count:"+addr.getCount());
+//        }
 
+        ArrayList<Contact> contacts  = Reader.contacts();
+        for (Contact con : contacts){
+            Logger.info("Contact:"+con.getDisplayName()+" with # of addresses:"+con.getAddresses().size());
+        }
 
         Intent intent = new Intent(this, contacts.class);
         startActivity(intent);

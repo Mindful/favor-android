@@ -43,26 +43,13 @@ public class ContactDisplay {
         return img;
     }
 
-    public static ArrayList<ContactDisplay> buildDisplays(Contact[] input){
-        ArrayList<ContactDisplay> ret = new ArrayList<ContactDisplay>(input.length);
+    public static ArrayList<ContactDisplay> buildDisplays(ArrayList<Contact> input){
+        ArrayList<ContactDisplay> ret = new ArrayList<ContactDisplay>(input.size());
 
-        //TODO: Eventually this will need to look for associations with any other address types we support (aside from just email and phone #s)
-        Cursor contacts = Core.getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[] {
-                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                        ContactsContract.CommonDataKinds.Phone.NUMBER,
-                        ContactsContract.CommonDataKinds.Email.ADDRESS},
-                null,
-                null,
-                null);
-        while (contacts.moveToNext()){
-            Logger.info(contacts.getString(0)+"-"+contacts.getString(1)+"-"+contacts.getString(2));
-        }
-
-        for (int i = 0; i < input.length; ++i){
-            long sent = Processor.totalCharcount(Core.getCurrentAccount(), input[i], -1, -1, true);
-            long rec =  Processor.totalCharcount(Core.getCurrentAccount(), input[i], -1, -1, false);
-            ContactDisplay create = new ContactDisplay(input[i], sent, rec, null);
+        for (int i = 0; i < input.size(); ++i){
+            long sent = Processor.totalCharcount(Core.getCurrentAccount(), input.get(i), -1, -1, true);
+            long rec =  Processor.totalCharcount(Core.getCurrentAccount(), input.get(i), -1, -1, false);
+            ContactDisplay create = new ContactDisplay(input.get(i), sent, rec, AndroidHelper.contactPhoto(input.get(i)));
             ret.add(create);
         }
 
