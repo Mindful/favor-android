@@ -6,9 +6,6 @@ import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-/**
- * Created by josh on 10/29/14.
- */
 public class Core {
     public static final String PREF_NAME = "favor_prefs";
 
@@ -36,18 +33,19 @@ public class Core {
         return context;
     }
 
-    public static void buildDefaultTextManager(Context c){
-        TelephonyManager tm = (TelephonyManager) c.getSystemService(c.getApplicationContext().TELEPHONY_SERVICE);
-        String phoneNumber = tm.getLine1Number();
-        if (phoneNumber != null){
-            try {
-                AccountManager.create(phoneNumber, MessageType.TYPE_ANDROIDTEXT, "{}");
-            }
-            catch (FavorException e){
-               // e.printStackTrace();
-                Logger.info("Error creating default text manager");
-            }
+    private static AndroidTextManager buildDefaultTextManager(Context c){
+        try {
+            return (AndroidTextManager) AccountManager.create("Phone", MessageType.TYPE_ANDROIDTEXT, "{}");
         }
+        catch (FavorException e){
+            Logger.error("Error creating default text manager");
+            return null;
+        }
+    }
+
+    private static void buildDefaultPhoneContacts(AndroidTextManager account){
+            account.updateAddresses();
+            //TODO: get addresses
     }
 
 
@@ -86,10 +84,15 @@ public class Core {
         context = c;
         SharedPreferences prefs = c.getSharedPreferences(PREF_NAME, c.MODE_PRIVATE);
         boolean first = prefs.getBoolean("first", true);
+        Logger.info("First: "+first); //TODO: testcode, just make sure it's saving properly
         try {
             init(c.getFilesDir().getAbsolutePath(), first);
-            if (first) buildDefaultTextManager(c);
-            prefs.edit().putBoolean("first", false).commit(); //TODO: is this saving properly?
+            if (first){
+                AndroidTextManager initial = buildDefaultTextManager(c);
+                buildDefaultPhoneContacts(initial);
+            }
+            AndroidHelper.populateContacts();
+            prefs.edit().putBoolean("first", false).commit();
             initDone = true;
         } catch (FavorException e) {
             e.printStackTrace();
