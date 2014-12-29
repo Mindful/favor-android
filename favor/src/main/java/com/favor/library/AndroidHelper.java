@@ -10,6 +10,7 @@ import android.provider.ContactsContract;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 public class AndroidHelper {
     private static class AndroidContactData{
@@ -24,34 +25,42 @@ public class AndroidHelper {
 
 
     static HashMap<Core.MessageType, HashMap<String, AndroidContactData>> contactsHash;
+    static HashMap<Long, AndroidContactData> contactsByID;
 
-    //TODO: eventually this could be more generalizeable to any types of contacts we were looking for, and possibly more efficient
+    //TODO: eventually this could be more generalizeable to any types of contacts we were looking for, and possibly more efficient or even just less wonky
     public static void populateContacts() {
         contactsHash = new HashMap<Core.MessageType, HashMap<String, AndroidContactData>>();
+        contactsByID = new HashMap<Long, AndroidContactData>();
         for (Core.MessageType type : Core.MessageType.values()){
             contactsHash.put(type, new HashMap<String, AndroidContactData>());
         }
-        //Android Text type population
+        //Android Text type population, as well as contacts by ID
         Cursor contacts = Core.getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[] {
                         ContactsContract.CommonDataKinds.Phone.NUMBER,
-                        ContactsContract.CommonDataKinds.Phone._ID,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
                         ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME}, null, null, null);
         while (contacts.moveToNext()) {
-            contactsHash.get(Core.MessageType.TYPE_ANDROIDTEXT).put(Core.formatPhoneNumber(contacts.getString(0)),
-                    new AndroidContactData(contacts.getString(2), contacts.getLong(1)));
+            HashMap<String, AndroidContactData> targetHash = contactsHash.get(Core.MessageType.TYPE_ANDROIDTEXT);
+            AndroidContactData data = new AndroidContactData(contacts.getString(2), contacts.getLong(1));
+            targetHash.put(Core.formatPhoneNumber(contacts.getString(0)), data);
+            contactsByID.put(data.id, data);
         }
+        contacts.close();
 
         //Email population
         contacts = Core.getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
                 new String[] {
                         ContactsContract.CommonDataKinds.Email.ADDRESS,
-                        ContactsContract.CommonDataKinds.Email._ID,
+                        ContactsContract.CommonDataKinds.Email.CONTACT_ID,
                         ContactsContract.CommonDataKinds.Email.DISPLAY_NAME}, null, null, null);
         while (contacts.moveToNext()) {
-            contactsHash.get(Core.MessageType.TYPE_ANDROIDTEXT).put(Core.formatPhoneNumber(contacts.getString(0)),
-                    new AndroidContactData(contacts.getString(2), contacts.getLong(1)));
+            HashMap<String, AndroidContactData> targetHash = contactsHash.get(Core.MessageType.TYPE_EMAIL);
+            AndroidContactData data = new AndroidContactData(contacts.getString(2), contacts.getLong(1));
+            if (data.displayName == null && contactsByID.containsKey(data.id)) data.displayName = contactsByID.get(data.id).displayName;
+            targetHash.put(contacts.getString(0), data);
         }
+        contacts.close();
     }
 
 

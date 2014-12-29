@@ -62,7 +62,7 @@ public class Core {
 
         try{
             for (int i = 0; i < addrs.size() && i < 15; ++i){
-                String name = AndroidHelper.contactName(addrs.get(i).getAddr());
+                String name = AndroidHelper.contactName(addrs.get(i).getAddr(), MessageType.TYPE_ANDROIDTEXT);
                 if (name == null) name = addrs.get(i).getAddr();
                 Worker.createContact(addrs.get(i).getAddr(), MessageType.TYPE_ANDROIDTEXT, name, true);
             }
@@ -108,7 +108,6 @@ public class Core {
         context = c;
         SharedPreferences prefs = c.getSharedPreferences(PREF_NAME, c.MODE_PRIVATE);
         boolean first = prefs.getBoolean("first", true);
-        Logger.info("First: "+first); //TODO: testcode, just make sure it's saving properly
         try {
             init(c.getFilesDir().getAbsolutePath(), first);
             AndroidHelper.populateContacts();

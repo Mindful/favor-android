@@ -62,6 +62,7 @@ public class AndroidTextManager extends AccountManager{
                 //no good way to solve that problem anyway so...
                 addressNames.put(Core.formatPhoneNumber(contacts.getString(1)), contacts.getString(0));
             }
+            contacts.close();
             String[] addresses = new String[addressCounts.size()];
             int[] counts = new int[addressCounts.size()];
             String[] names = new String[addressCounts.size()];

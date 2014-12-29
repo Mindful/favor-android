@@ -8,9 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
-import com.favor.library.Contact;
-import com.favor.library.Logger;
-import com.favor.library.Reader;
+import com.favor.library.*;
 import com.favor.ui.ContactDisplay;
 import com.favor.ui.ContactDisplayAdapter;
 
@@ -23,6 +21,7 @@ public class contacts extends ActionBarActivity  {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
+        AndroidHelper.populateContacts();
 
         GridView gridview = (GridView) findViewById(R.id.gridview);
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
