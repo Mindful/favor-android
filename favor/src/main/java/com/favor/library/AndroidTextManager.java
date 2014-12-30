@@ -96,7 +96,7 @@ public class AndroidTextManager extends AccountManager{
             for (int i = 0; i < addrs.length; ++i){
                 addrSet.add(addrs[i]);
 
-                addressSelection += KEY_ADDRESS +"="+addrs[i];
+                addressSelection += KEY_ADDRESS +"=\""+addrs[i]+"\"";
                 if (i == addrs.length -1) addressSelection += ")";
                 else addressSelection += " OR ";
             }

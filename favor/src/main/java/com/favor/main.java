@@ -24,11 +24,12 @@ public class main extends ActionBarActivity {
 //            Logger.info("Address "+addr.getAddr()+" count:"+addr.getCount());
 //        }
 
-        ArrayList<Contact> contacts  = Reader.contacts();
-        for (Contact con : contacts){
-            Logger.info("Contact:"+con.getDisplayName()+" with # of addresses:"+con.getAddresses().size());
-        }
 
+        //TODO: this shouldn't be here, it should be somewhere else
+        AccountManager[] accounts = Reader.accountManagers();
+        for (int i = 0; i < accounts.length; ++i){
+            accounts[i].updateMessages();
+        }
         Intent intent = new Intent(this, contacts.class);
         startActivity(intent);
         //Core.buildDefaultTextManager(this);

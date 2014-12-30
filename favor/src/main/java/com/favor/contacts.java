@@ -31,10 +31,12 @@ public class contacts extends ActionBarActivity  {
             gridview.setNumColumns(2);
         }
 
-        gridview.setAdapter(new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(Reader.contacts())));
+        final ContactDisplayAdapter adapter = new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(Reader.contacts()));
+        gridview.setAdapter(adapter);
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Toast.makeText(contacts.this, "" + position, Toast.LENGTH_SHORT).show();
+                ContactDisplay disp = (ContactDisplay) adapter.getItem(position);
+                Toast.makeText(contacts.this, "Click "+disp.getName()+". Rec: "+disp.getCharCountReceived()+ " Sent: "+disp.getCharCountSent(), Toast.LENGTH_SHORT).show();
             }
         });
     }

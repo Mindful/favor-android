@@ -46,10 +46,11 @@ public class ContactDisplay {
     public static ArrayList<ContactDisplay> buildDisplays(ArrayList<Contact> input){
         ArrayList<ContactDisplay> ret = new ArrayList<ContactDisplay>(input.size());
 
+        long[] sentCharCounts = Processor.batchMessageCount(Core.getCurrentAccount(), input, -1, -1, true);
+        long[] recCharCounts = Processor.batchMessageCount(Core.getCurrentAccount(), input, -1, -1, false);
+
         for (int i = 0; i < input.size(); ++i){
-            long sent = Processor.totalCharcount(Core.getCurrentAccount(), input.get(i), -1, -1, true);
-            long rec =  Processor.totalCharcount(Core.getCurrentAccount(), input.get(i), -1, -1, false);
-            ContactDisplay create = new ContactDisplay(input.get(i), sent, rec, AndroidHelper.contactPhoto(input.get(i)));
+            ContactDisplay create = new ContactDisplay(input.get(i), sentCharCounts[i], recCharCounts[i], AndroidHelper.contactPhoto(input.get(i)));
             ret.add(create);
         }
 

@@ -25,7 +25,7 @@ public class Core {
     }
 
     public static void setCurrentAccount(AccountManager currentAccount) {
-        currentAccount = currentAccount;
+        Core.currentAccount = currentAccount;
         //TODO: this may mean we need to do lots of other things, depending on how/where it's called
     }
 
@@ -113,7 +113,11 @@ public class Core {
             AndroidHelper.populateContacts();
             if (first){
                 AndroidTextManager initial = buildDefaultTextManager(c);
+                setCurrentAccount(initial);
                 buildDefaultPhoneContacts(initial);
+            } else {
+                //TODO: this should be pulled up from saved state, we're just working with testcode right now
+                setCurrentAccount(Reader.accountManagers()[0]);
             }
             prefs.edit().putBoolean("first", false).commit();
             initDone = true;
