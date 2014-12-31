@@ -36,7 +36,8 @@
                 android:name=".settings"
                 android:label="Settings"
                 android:parentActivityName=".main" >
-        <!-- Parent activity meta-data to support 4.0 and lower -->
+        <!-- This is what lets us navigate "back" out of settings using the actionbar. Also,
+        parent activity meta-data to support 4.0 and lower below -->
         <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".main" />

@@ -17,7 +17,7 @@ import java.util.ArrayList;
 /**
  * Created by josh on 12/27/14.
  */
-public class contacts extends ActionBarActivity  {
+public class contacts extends FavorActivity  {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);

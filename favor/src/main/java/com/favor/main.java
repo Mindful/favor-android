@@ -15,22 +15,10 @@ import com.favor.library.*;
 import java.util.ArrayList;
 
 
-public class main extends ActionBarActivity {
+public class main extends FavorActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
-//        Address[] addrs = Reader.allAddresses(false);
-//        for (int  i =0; i < addrs.length; ++i){
-//            Address addr = addrs[i];
-//            Logger.info("Address "+addr.getAddr()+" count:"+addr.getCount());
-//        }
-
-
-        //TODO: this shouldn't be here, it should be somewhere else
-        AccountManager[] accounts = Reader.accountManagers();
-        for (int i = 0; i < accounts.length; ++i){
-            accounts[i].updateMessages();
-        }
         Intent intent = new Intent(this, contacts.class);
         startActivity(intent);
         //Core.buildDefaultTextManager(this);
@@ -46,27 +34,4 @@ public class main extends ActionBarActivity {
 
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, settings.class));
-        } else if (id == R.id.action_dumpdb){
-           Debug.exportDatabase(this);
-        } else if (id == R.id.action_refresh){
-            Toast.makeText(this, "Refreshing...", Toast.LENGTH_LONG);
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }
