@@ -29,7 +29,7 @@
         </activity>
 
         <activity
-            android:name=".contacts"
+            android:name=".core"
             android:label="Favor" >
         </activity>
         <activity

@@ -1,10 +1,9 @@
 package com.favor;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Display;
-import android.view.Surface;
-import android.view.View;
+import android.view.*;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -17,27 +16,31 @@ import java.util.ArrayList;
 /**
  * Created by josh on 12/27/14.
  */
-public class contacts extends FavorActivity  {
-    public void onCreate(Bundle savedInstanceState) {
+public class contacts extends Fragment {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_contacts);
         AndroidHelper.populateContacts();
 
-        GridView gridview = (GridView) findViewById(R.id.gridview);
-        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        View view = inflater.inflate(R.layout.activity_contacts, container, false);
+
+        GridView gridview = (GridView) view.findViewById(R.id.gridview);
+        int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
+
         if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270){
             gridview.setNumColumns(3);
         } else {
             gridview.setNumColumns(2);
         }
 
-        final ContactDisplayAdapter adapter = new ContactDisplayAdapter(this, ContactDisplay.buildDisplays(Reader.contacts()));
+        final ContactDisplayAdapter adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()));
         gridview.setAdapter(adapter);
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 ContactDisplay disp = (ContactDisplay) adapter.getItem(position);
-                Toast.makeText(contacts.this, "Click "+disp.getName()+". Rec: "+disp.getCharCountReceived()+ " Sent: "+disp.getCharCountSent(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Click "+disp.getName()+". Rec: "+disp.getCharCountReceived()+ " Sent: "+disp.getCharCountSent(), Toast.LENGTH_SHORT).show();
             }
         });
+        return view;
     }
 }

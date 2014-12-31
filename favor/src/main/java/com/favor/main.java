@@ -19,7 +19,7 @@ public class main extends FavorActivity {
 
     //Must be declared in this activity to play nice with the XMl activity declaration
     public void beginClick(View view){
-        Intent intent = new Intent(this, contacts.class);
+        Intent intent = new Intent(this, core.class);
         startActivity(intent);
         //Core.buildDefaultTextManager(this);
     }
