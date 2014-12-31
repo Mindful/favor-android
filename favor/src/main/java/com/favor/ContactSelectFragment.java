@@ -2,7 +2,6 @@ package com.favor;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.*;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -11,18 +10,16 @@ import com.favor.library.*;
 import com.favor.ui.ContactDisplay;
 import com.favor.ui.ContactDisplayAdapter;
 
-import java.util.ArrayList;
-
 /**
  * Created by josh on 12/27/14.
  */
-public class contacts extends Fragment {
+public class ContactSelectFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AndroidHelper.populateContacts();
 
-        View view = inflater.inflate(R.layout.activity_contacts, container, false);
+        View view = inflater.inflate(R.layout.contact_select, container, false);
 
         GridView gridview = (GridView) view.findViewById(R.id.gridview);
         int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();

@@ -5,13 +5,8 @@ import java.util.ArrayList;
 /**
  * Created by josh on 12/31/14.
  */
-public class BasicLongResult implements GraphableResult {
-    long[] data;
-
-    @Override
-    public Object getData(){
-        return data;
-    }
+public class BasicResult<T> implements GraphableResult {
+    T[] data;
 
     @Override
     public ArrayList<Graph.GraphTypes> getSupportedGraphs(){
@@ -27,7 +22,7 @@ public class BasicLongResult implements GraphableResult {
     public Graph buildDefaultGraph(){
         String values[] = new String[data.length];
         for (int i = 0; i < data.length; ++i){
-            values[i] = Long.toString(data[i]);
+            values[i] = ""+data[i];
         }
         return new BarGraph(values);
     }

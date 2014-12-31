@@ -5,17 +5,9 @@ import java.util.ArrayList;
 /**
  * Created by josh on 12/31/14.
  */
-public class PairLongResult implements GraphableResult {
-    long[] sentData;
-    long[] recData;
-
-    @Override
-    public Object getData(){
-        long ret[][] = new long[2][];
-        ret[0] = sentData;
-        ret[1] = recData;
-        return ret;
-    }
+public class PairResult<T> implements GraphableResult {
+    T[] sentData;
+    T[] recData;
 
     @Override
     public ArrayList<Graph.GraphTypes> getSupportedGraphs(){
@@ -33,8 +25,8 @@ public class PairLongResult implements GraphableResult {
         String recValues[] = new String[recData.length];
 
         for (int i = 0; i < sentData.length; ++i){
-            sentValues[i] = Long.toString(sentData[i]);
-            recValues[i] = Long.toString(recData[i]);
+            sentValues[i] = "" + sentData[i];
+            recValues[i] = "" + recData[i];
         }
         return new DoubleBarGraph(sentValues, recValues);
     }

@@ -9,20 +9,18 @@ public class DoubleBarGraph implements Graph {
     private String recValues[];
     private String graphHtml;
 
-    DoubleBarGraph(String sentValues[], String recValues[]){
+    DoubleBarGraph(String sentValues[], String recValues[]) {
         this.sentValues = sentValues;
         this.recValues = recValues;
-        if (sentValues.length != recValues.length) throw new IllegalArgumentException("Sent and received values must be equal lengths");
         computeHtml();
     }
 
-    private void computeHtml(){
+    private void computeHtml() {
 
     }
 
     @Override
-    public String html(){
+    public String html() {
         return graphHtml;
     }
-
 }

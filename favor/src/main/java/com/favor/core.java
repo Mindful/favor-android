@@ -39,7 +39,7 @@ public class core extends FragmentActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return new contacts();
+            return new ContactSelectFragment();
         }
     }
 }
