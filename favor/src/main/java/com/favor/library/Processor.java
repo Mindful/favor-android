@@ -40,7 +40,7 @@ public class Processor {
         for (int i = 0; i < contacts.size(); ++i){
             contactIds[i] = contacts.get(i).getId();
         }
-        return longMultiQuery(2, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
+        return longMultiQuery(1, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
     }
 
     private static native long longQuery(int query, String accountName, int accountType, long contactId, long fromDate, long untilDate, boolean sent);

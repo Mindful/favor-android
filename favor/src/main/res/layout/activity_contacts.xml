@@ -7,4 +7,5 @@
           android:horizontalSpacing="0dp"
           android:stretchMode="columnWidth"
           android:numColumns="2"
+          android:choiceMode="multipleChoice"
 />
