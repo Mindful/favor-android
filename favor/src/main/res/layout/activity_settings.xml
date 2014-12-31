@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+            android:key="test_pref"
+            android:title="Test Preference"
+            android:summary="A testing preference"
+            android:defaultValue="true" />
+    <ListPreference
+            android:dependency="test_pref"
+            android:key="test_pref_2"
+            android:title="Second test preference"
+            android:dialogTitle="Dialogue title"
+            android:entries="@array/listentries"
+            android:entryValues="@array/listvalues"
+            android:defaultValue="1" />
+</PreferenceScreen>

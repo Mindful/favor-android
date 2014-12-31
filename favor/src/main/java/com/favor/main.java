@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 import com.favor.library.*;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class main extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -60,9 +61,11 @@ public class main extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            return true;
+            startActivity(new Intent(this, settings.class));
         } else if (id == R.id.action_dumpdb){
            Debug.exportDatabase(this);
+        } else if (id == R.id.action_refresh){
+            Toast.makeText(this, "Refreshing...", Toast.LENGTH_LONG);
         }
         return super.onOptionsItemSelected(item);
     }

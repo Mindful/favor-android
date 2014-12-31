@@ -32,6 +32,15 @@
             android:name=".contacts"
             android:label="Favor" >
         </activity>
+        <activity
+                android:name=".settings"
+                android:label="Settings"
+                android:parentActivityName=".main" >
+        <!-- Parent activity meta-data to support 4.0 and lower -->
+        <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".main" />
+        </activity>
     </application>
 
 </manifest>

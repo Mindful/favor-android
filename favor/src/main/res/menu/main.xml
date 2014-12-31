@@ -1,13 +1,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:favor="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".main" >
+    <item android:id="@+id/action_refresh"
+      android:title="Refresh"
+      android:icon="@drawable/refresh"
+      android:orderInCategory="1"
+      favor:showAsAction="always" />
+    />
     <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
+        android:title="Settings"
+        android:orderInCategory="2"
+        favor:showAsAction="never" />
     <item android:id="@+id/action_dumpdb"
           android:title="Dump Database"
           android:orderInCategory="100"
-          app:showAsAction="never" />
+          favor:showAsAction="never" />
 </menu>
+
+        <!--If your app is using the Support Library for compatibility on versions as low as
+         Android 2.1, the showAsAction attribute is not available from the android: namespace.
+         Instead this attribute is provided by the Support Library and you must define your own
+         XML namespace and use that namespace as the attribute prefix. -->
