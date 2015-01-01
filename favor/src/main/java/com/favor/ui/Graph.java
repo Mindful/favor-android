@@ -6,5 +6,5 @@ package com.favor.ui;
 public interface Graph {
     public static enum GraphTypes {Bar, DoubleBar, Doughnut};
 
-    String html();
+    public String html();
 }

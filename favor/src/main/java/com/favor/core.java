@@ -37,9 +37,12 @@ public class core extends FragmentActivity {
             return 3;
         }
 
+        //TODO: is it worth caching fragments? I want to assume getItem isn't called every time we scroll, but if it is
+        //we should definitely save the application some work and cache
         @Override
         public Fragment getItem(int position) {
-            return new ContactSelectFragment();
+            if (position == 0) return new ContactSelectFragment();
+            else return new VisualizeFragment();
         }
     }
 }
