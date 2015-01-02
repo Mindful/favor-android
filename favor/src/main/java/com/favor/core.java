@@ -13,7 +13,7 @@ import java.util.ArrayList;
 /**
  * Created by josh on 12/31/14.
  */
-public class core extends FragmentActivity {
+public class core extends FavorActivity {
     FavorPager mDemoCollectionPagerAdapter;
     ViewPager mViewPager;
 
