@@ -6,6 +6,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import com.favor.library.Contact;
+
+import java.util.ArrayList;
 
 /**
  * Created by josh on 12/31/14.
@@ -13,6 +16,7 @@ import android.support.v4.view.ViewPager;
 public class core extends FragmentActivity {
     FavorPager mDemoCollectionPagerAdapter;
     ViewPager mViewPager;
+
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

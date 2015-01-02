@@ -15,6 +15,8 @@ public class ContactDisplay {
     public String getName() {
         return contact.getDisplayName();
     }
+    public long getId() {return contact.getId(); }
+    public Contact getContact() {return contact; }
 
     @Override
     public String toString() {
