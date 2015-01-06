@@ -12,6 +12,7 @@ import com.favor.library.*;
 import com.favor.ui.ContactDisplay;
 import com.favor.ui.ContactDisplayAdapter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -57,5 +58,11 @@ public class ContactSelectFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putSerializable("SELECTED", adapter.getSelected());
+    }
+
+    public ArrayList<Contact> selectedContacts(){
+        //This is written this way because it can end up being called when activites are created, apparently before onCreateView
+        if (adapter != null ) return adapter.getSelectedContacts();
+        else return null;
     }
 }
