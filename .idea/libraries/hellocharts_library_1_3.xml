@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="hellocharts-library-1.3">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/favor/build/intermediates/exploded-aar/lecho.lib.hellocharts/hellocharts-library/1.3/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/favor/build/intermediates/exploded-aar/lecho.lib.hellocharts/hellocharts-library/1.3/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

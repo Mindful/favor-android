@@ -2,13 +2,22 @@ package com.favor.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import lecho.lib.hellocharts.model.Line;
+import lecho.lib.hellocharts.model.LineChartData;
+import lecho.lib.hellocharts.model.PointValue;
+import lecho.lib.hellocharts.view.LineChartView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 //Largely copied from the previous favor iteration
-public class GraphView extends WebView {
+public class GraphView extends LineChartView {
 
 
 //    @Override
@@ -20,29 +29,37 @@ public class GraphView extends WebView {
 
     public GraphView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
+        init(context);
     }
 
     public GraphView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
     public GraphView(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private void init()
+    private void init(Context context)
     {
-        loadDataWithBaseURL("file:///android_asset/", new BarGraph(new String[] {"2"}).html(), "text/html", "UTF-8", null);
-        WebSettings webSettings = getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        setBackgroundColor(0x808080);
-        setClickable(false); //Not sure this does anything, but it certainly doesn't hurt
-        setVerticalScrollBarEnabled(false);
+        List<PointValue> values = new ArrayList<PointValue>();
+        values.add(new PointValue(0, 2));
+        values.add(new PointValue(1, 4));
+        values.add(new PointValue(2, 3));
+        values.add(new PointValue(3, 4));
+
+        //In most cased you can call data model methods in builder-pattern-like manner.
+        Line line = new Line(values).setColor(Color.BLUE).setCubic(true);
+        List<Line> lines = new ArrayList<Line>();
+        lines.add(line);
+
+        LineChartData data = new LineChartData();
+        data.setLines(lines);
+
+        setLineChartData(data);
     }
 
 
