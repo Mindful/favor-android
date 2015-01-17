@@ -46,6 +46,7 @@ public class GraphView extends LineChartView {
     private void init(Context context)
     {
         List<PointValue> values = new ArrayList<PointValue>();
+        new PointValue(3.5f, 4.5f);
         values.add(new PointValue(0, 2));
         values.add(new PointValue(1, 4));
         values.add(new PointValue(2, 3));

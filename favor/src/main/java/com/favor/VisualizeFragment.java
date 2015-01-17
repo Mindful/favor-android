@@ -10,6 +10,7 @@ import com.favor.library.Contact;
 import com.favor.library.Logger;
 import com.favor.ui.GraphView;
 import com.favor.ui.GraphableResult;
+import com.favor.ui.LongResult;
 
 import java.util.ArrayList;
 
@@ -27,10 +28,13 @@ public class VisualizeFragment extends Fragment {
             Logger.info(c.getDisplayName());
         }
 
-        View view = inflater.inflate(R.layout.visualize, container, false);
-        GraphView gview = (GraphView) view.findViewById(R.id.graph_view);
+        LongResult res = new LongResult(new long[] {3,9,10,25,37,35,25});
 
-        return view;
+
+//        View view = inflater.inflate(R.layout.visualize, container, false);
+//        GraphView gview = (GraphView) view.findViewById(R.id.graph_view);
+
+        return res.buildDefaultGraph(getActivity());
     }
 
     public void setContacts(ArrayList<Contact> input){
