@@ -8,9 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.favor.library.Contact;
 import com.favor.library.Logger;
-import com.favor.ui.GraphView;
-import com.favor.ui.GraphableResult;
-import com.favor.ui.LongResult;
+import com.favor.ui.DoubleResult;
+import com.favor.ui.SingleResult;
 
 import java.util.ArrayList;
 
@@ -28,13 +27,15 @@ public class VisualizeFragment extends Fragment {
             Logger.info(c.getDisplayName());
         }
 
-        LongResult res = new LongResult(new long[] {3,9,10,25,37,35,25});
+        //SingleResult res = new SingleResult(new long[] {3,9,10,25,37,35,25});
+        DoubleResult res = new DoubleResult(new long[] {3,9,10,25,37,35,25}, new long[] {46,29,10,8,22,8,15});
+        
 
-
-//        View view = inflater.inflate(R.layout.visualize, container, false);
-//        GraphView gview = (GraphView) view.findViewById(R.id.graph_view);
-
-        return res.buildDefaultGraph(getActivity());
+        /*
+        Note: THIS IS VERY IMPORTANT - using the context from the container and not somewhere else so the graph is the
+        correct size
+         */
+        return res.buildDefaultGraph(container.getContext());
     }
 
     public void setContacts(ArrayList<Contact> input){

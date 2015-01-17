@@ -23,12 +23,8 @@ public abstract class GraphableResult {
     abstract ArrayList<GraphTypes> getSupportedGraphs();
     abstract View buildGraph(GraphTypes type, Context context);
 
-    protected ColumnChartView columnChart(ColumnChartData data, Context context){
+    protected ColumnChartView columnChart(ColumnChartData data, List<AxisValue> names, Context context){
         Axis x = new Axis().setName("Contact");
-        List<AxisValue> names = new ArrayList<AxisValue>();
-        for (int i = 0; i < data.getColumns().size(); ++i){
-            names.add(new AxisValue(i, ("G"+i).toCharArray()));
-        }
         x.setValues(names);
         Axis y = new Axis().setHasLines(true).setName(metricName);
         data.setAxisXBottom(x);

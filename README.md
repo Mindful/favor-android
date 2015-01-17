@@ -7,3 +7,4 @@ Todo:
  tracking what addresses we're looking out for on any given fetch, and running a specific fetch to catch up when we find a new one.
  Should be pretty straightforward if we model it just like the EmailManager does.
  - Contact images might be too small the way we're getting them right now, but this should be decided after we finalize our listing UI.
+ - Our results store everything as doubles right now, which eventually might be undesireable if we lose precision at high integer values

@@ -2,10 +2,7 @@ package com.favor.ui;
 
 import android.content.Context;
 import android.view.View;
-import lecho.lib.hellocharts.model.ChartData;
-import lecho.lib.hellocharts.model.Column;
-import lecho.lib.hellocharts.model.ColumnChartData;
-import lecho.lib.hellocharts.model.SubcolumnValue;
+import lecho.lib.hellocharts.model.*;
 import lecho.lib.hellocharts.util.ChartUtils;
 import lecho.lib.hellocharts.view.Chart;
 
@@ -15,10 +12,17 @@ import java.util.List;
 /**
  * Created by josh on 12/31/14.
  */
-public class LongResult extends GraphableResult {
-    long[] data;
+public class SingleResult extends GraphableResult {
+    double[] data;
 
-    public LongResult(long[] data){
+    public SingleResult(long[] data){
+        this.data = new double[data.length];
+        for (int i = 0; i < data.length; ++i){
+            this.data[i] = (double)data[i];
+        }
+    }
+
+    public SingleResult(double[] data){
         this.data = data;
     }
 
@@ -38,14 +42,21 @@ public class LongResult extends GraphableResult {
         List<SubcolumnValue> values;
         for (int i = 0; i < data.length; ++i) {
             values = new ArrayList<SubcolumnValue>();
-            values.add(new SubcolumnValue(data[i]));
+            values.add(new SubcolumnValue((float)data[i]));
 
             Column column = new Column(values);
             column.setHasLabels(true);
             columns.add(column);
         }
+
+
         ColumnChartData data = new ColumnChartData(columns);
-        return columnChart(data, context);
+        List<AxisValue> names = new ArrayList<AxisValue>();
+        for (int i = 0; i < data.getColumns().size(); ++i){
+            names.add(new AxisValue(i, ("G"+i).toCharArray()));
+        }
+
+        return columnChart(data, names, context);
 
     }
 
