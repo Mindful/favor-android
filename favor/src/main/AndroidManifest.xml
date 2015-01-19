@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".main"
+            android:name=".StartActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,18 +29,18 @@
         </activity>
 
         <activity
-            android:name=".core"
+            android:name=".CoreActivity"
             android:label="Favor" >
         </activity>
         <activity
-                android:name=".settings"
+                android:name=".SettingsActivity"
                 android:label="Settings"
-                android:parentActivityName=".main" >
+                android:parentActivityName=".StartActivity" >
         <!-- This is what lets us navigate "back" out of settings using the actionbar. Also,
         parent activity meta-data to support 4.0 and lower below -->
         <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".main" />
+                android:value=".StartActivity" />
         </activity>
     </application>
 

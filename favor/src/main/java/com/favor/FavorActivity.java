@@ -27,7 +27,7 @@ public class FavorActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            startActivity(new Intent(this, settings.class));
+            startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.action_dumpdb){
             Debug.exportDatabase(this);
         } else if (id == R.id.action_refresh){

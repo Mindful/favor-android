@@ -9,7 +9,7 @@ import com.favor.library.Core;
 /**
  * Created by josh on 12/31/14.
  */
-public class settings extends PreferenceActivity {
+public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

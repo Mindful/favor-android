@@ -20,6 +20,10 @@ import java.util.HashMap;
  */
 public class ContactSelectFragment extends Fragment {
     ContactDisplayAdapter adapter;
+    private final static String SELECTEDNAME = "SELECTED";
+
+    //TODO: the problem here is the fact that if we get too far out this can be recreated apparently without having its
+    //oncreateview called
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -42,7 +46,7 @@ public class ContactSelectFragment extends Fragment {
             this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
         } else {
             this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()),
-                    (HashMap<Long, Boolean>)savedInstanceState.getSerializable("SELECTED"));
+                    (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME));
         }
         gridview.setAdapter(adapter);
 
@@ -57,12 +61,13 @@ public class ContactSelectFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putSerializable("SELECTED", adapter.getSelected());
+        if (adapter != null) savedInstanceState.putSerializable(SELECTEDNAME, adapter.getSelected());
+        else savedInstanceState.putSerializable(SELECTEDNAME, new ArrayList<Contact>());
     }
 
     public ArrayList<Contact> selectedContacts(){
         //This is written this way because it can end up being called when activites are created, apparently before onCreateView
         if (adapter != null ) return adapter.getSelectedContacts();
-        else return null;
+        else return new ArrayList<Contact>();
     }
 }

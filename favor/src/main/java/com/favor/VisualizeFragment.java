@@ -6,40 +6,52 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.favor.library.Contact;
+import com.favor.library.Core;
 import com.favor.library.Logger;
-import com.favor.ui.DoubleResult;
-import com.favor.ui.SingleResult;
+import com.favor.library.Reader;
+import com.favor.ui.ContactDisplay;
+import com.favor.ui.ContactDisplayAdapter;
+import com.favor.ui.GraphableResult;
+import lecho.lib.hellocharts.view.Chart;
+import org.parceler.Parcels;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class VisualizeFragment extends Fragment {
 
-    private ArrayList<Contact> contacts;
+    private GraphableResult data;
+    private Chart chart;
+    private final static String DATANAME = "DATA";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (contacts == null) contacts = new ArrayList<Contact>();
-
-        for (Contact c: contacts){
-            Logger.info(c.getDisplayName());
+        if (savedInstanceState != null){
+            data = Parcels.unwrap(savedInstanceState.getParcelable(DATANAME));
         }
 
-        //SingleResult res = new SingleResult(new long[] {3,9,10,25,37,35,25});
-        DoubleResult res = new DoubleResult(new long[] {3,9,10,25,37,35,25}, new long[] {46,29,10,8,22,8,15});
-        
-
-        /*
+         /*
         Note: THIS IS VERY IMPORTANT - using the context from the container and not somewhere else so the graph is the
         correct size
          */
-        return res.buildDefaultGraph(container.getContext());
+
+        chart = data.buildDefaultGraph(container.getContext());
+
+        return (View) chart;
     }
 
-    public void setContacts(ArrayList<Contact> input){
-        contacts = input;
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelable(DATANAME, Parcels.wrap(data));
+    }
+
+    public void setData(GraphableResult result) {
+        if (result != data && chart != null){
+            chart.startDataAnimation();
+        }
+        this.data = result;
     }
 
 }
