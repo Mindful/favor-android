@@ -2,12 +2,13 @@ package com.favor.library;
 
 import com.favor.ui.ContactDisplay;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by josh on 12/27/14.
  */
-public class Contact {
+public class Contact implements Serializable {
 
     private long id;
     private String displayName;

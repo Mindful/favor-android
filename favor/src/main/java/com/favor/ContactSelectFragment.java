@@ -28,6 +28,9 @@ public class ContactSelectFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //For first time initialization
+        if (this.adapter == null) this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
+
 
         AndroidHelper.populateContacts(); //TODO: necessary? I don't think so...
 
@@ -42,17 +45,12 @@ public class ContactSelectFragment extends Fragment {
             gridview.setNumColumns(2);
         }
 
-        if (savedInstanceState == null) {
-            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
-        } else {
-            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()),
-                    (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME));
-        }
         gridview.setAdapter(adapter);
 
 
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                Logger.info("Click item");
                 adapter.toggleItem(position);
             }
         });
@@ -62,8 +60,19 @@ public class ContactSelectFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         if (adapter != null) savedInstanceState.putSerializable(SELECTEDNAME, adapter.getSelected());
-        else savedInstanceState.putSerializable(SELECTEDNAME, new ArrayList<Contact>());
     }
+
+
+//    @Override
+//    public void onViewStateRestored(Bundle savedInstanceState){
+//        super.onViewStateRestored(savedInstanceState);
+//        if (savedInstanceState == null || !savedInstanceState.containsKey(SELECTEDNAME) ) {
+//            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
+//        } else {
+//            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()),
+//                    (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME));
+//        }
+//    }
 
     public ArrayList<Contact> selectedContacts(){
         //This is written this way because it can end up being called when activites are created, apparently before onCreateView

@@ -1,9 +1,11 @@
 package com.favor.library;
 
+import java.io.Serializable;
+
 /**
  * Created by josh on 12/27/14.
  */
-public class Address {
+public class Address implements Serializable {
     private String addr;
     private long contactId;
     private long count;

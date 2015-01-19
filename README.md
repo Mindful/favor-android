@@ -1,7 +1,7 @@
 Just getting things set up right now.
 
 Todo:
- - __Code apparently broken until contacts are serialized__
+ - Move selected contact state out of the adapter and into the actual fragment, because moving state around needs to happen before/independent of adapter initialization.
  - Licenses in this repo as well, just like the core Favor repo
  - Activities need to know how to reload themselves on refresh, and almost every activity should reload itself on refresh.
  - The android text manager needs to be smart about additions of new addresses, like the email manager is - done by

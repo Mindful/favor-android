@@ -79,6 +79,7 @@ public class ContactDisplayAdapter extends BaseAdapter {
     }
 
     public void toggleItem(int position){
+        Logger.info("Toggle item "+position);
         selected.put(contacts.get(position).getId(), !selected.get(contacts.get(position).getId()));
         notifyDataSetChanged();
     }
@@ -96,8 +97,10 @@ public class ContactDisplayAdapter extends BaseAdapter {
 
         ImageView picture = (ImageView)imv.getTag(R.id.picture);
         if (selected.get(contacts.get(position).getId())) {
+            Logger.info("Drawpink");
             picture.setColorFilter(Color.argb(200, 255, 50, 255));
         } else {
+            Logger.info("Drawnorm");
             picture.clearColorFilter();
         }
         TextView name = (TextView)imv.getTag(R.id.text);
