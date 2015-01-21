@@ -40,17 +40,6 @@ public class ContactDisplayAdapter extends BaseAdapter {
         return selected;
     }
 
-    //TODO: untested, though should be super straightforward
-    public ArrayList<Contact> getSelectedContacts(){
-        ArrayList<Contact> ret = new ArrayList<Contact>();
-        for (ContactDisplay disp : contacts){
-            if (selected.get(disp.getId())){
-                ret.add(disp.getContact());
-            }
-        }
-        return ret;
-    }
-
     @Override
     public int getCount(){
         return contacts.size();

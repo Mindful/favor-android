@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.favor.library.Contact;
 import com.favor.library.Core;
 import com.favor.library.Logger;
 import com.favor.library.Reader;
@@ -28,8 +29,12 @@ public class VisualizeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (savedInstanceState != null){
+        if (savedInstanceState != null && data == null){
             data = Parcels.unwrap(savedInstanceState.getParcelable(DATANAME));
+        }
+
+        for (Contact c : data.getContacts()){
+            Logger.info("Graph with contact:"+c.getDisplayName());
         }
 
          /*
@@ -52,6 +57,10 @@ public class VisualizeFragment extends Fragment {
             chart.startDataAnimation();
         }
         this.data = result;
+    }
+
+    public void redrawChart(){
+
     }
 
 }

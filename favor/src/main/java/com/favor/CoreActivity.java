@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
+import com.favor.library.Contact;
 import com.favor.library.Core;
 import com.favor.library.Logger;
 import com.favor.library.Processor;
@@ -43,7 +44,7 @@ public class CoreActivity extends FavorActivity {
             }
             @Override public void onPageSelected(int position){
                 if (position != SELECT_PAGE){
-                    mPagerAdapter.propagateContactData();
+                    //mPagerAdapter.propagateContactData();
                 }
             }
         });
@@ -65,8 +66,11 @@ public class CoreActivity extends FavorActivity {
         }
 
         public void propagateContactData(){
-            Logger.info("Propagate");
+            Logger.info("Propagate with vizfrag:"+visualizationFrag);
             if (visualizationFrag != null){
+                for (Contact c: contactFrag.selectedContacts()){
+                    Logger.info("Contact "+c.getDisplayName());
+                }
                 GraphableResult res = new GraphableResult(contactFrag.selectedContacts(), Processor.batchMessageCount(Core.getCurrentAccount(), contactFrag.selectedContacts(), -1, -1, true),
                         Processor.batchMessageCount(Core.getCurrentAccount(), contactFrag.selectedContacts(), -1, -1, false));
                 visualizationFrag.setData(res);

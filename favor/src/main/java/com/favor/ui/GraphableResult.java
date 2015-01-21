@@ -22,6 +22,11 @@ public class GraphableResult {
     double[] data1;
     double[] data2; //Will frequently be left unused.
     String metricName; //TODO: fill the name in
+
+    public ArrayList<Contact> getContacts() {
+        return contacts;
+    }
+
     ArrayList<Contact> contacts;
 
     public GraphableResult(ArrayList<Contact> contacts){

@@ -18,38 +18,41 @@ import java.util.HashMap;
 /**
  * Created by josh on 12/27/14.
  */
+
+//TODO: handling new contacts - they'll have to be added to the list, but also added to selected and marked as false
 public class ContactSelectFragment extends Fragment {
     private ContactDisplayAdapter adapter;
-    private HashMap<Long, Boolean> selected;
-    private final static String SELECTEDNAME = "SELECTED";
 
-    //TODO: the problem here is that when this fragment is at 2 offscreen, it never loads its bundle so if it saves more than once we lose all the info
+    //The HashMap and ArrayList are both shared with the adapter, but need to exist independently so that they stay alive
+    //when we lose the adapter (for example when the fragment is torn down)
+    private HashMap<Long, Boolean> selected;
+    private ArrayList<ContactDisplay> contacts = ContactDisplay.buildDisplays(Reader.contacts());
+    public final static String SELECTEDNAME = "SELECTED";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //For first time initialization
-        processBundle(savedInstanceState);
-        this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), selected);
+//        processBundle(savedInstanceState); previously used, but pretty sure this is redundant. TODO: delete with confidence
+
+        this.adapter = new ContactDisplayAdapter(Core.getContext(), contacts, selected);
 
         View view = inflater.inflate(R.layout.contact_select, container, false);
 
         GridView gridview = (GridView) view.findViewById(R.id.gridview);
         int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
 
-        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270){
-            gridview.setNumColumns(3);
-        } else {
-            gridview.setNumColumns(2);
-        }
+        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) gridview.setNumColumns(3);
+        else gridview.setNumColumns(2);
 
         gridview.setAdapter(adapter);
-
-
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Logger.info("Click item");
                 adapter.toggleItem(position);
+
+                CoreActivity parentAct = (CoreActivity) getActivity();
+                parentAct.mPagerAdapter.propagateContactData();
             }
         });
         return view;
@@ -59,7 +62,7 @@ public class ContactSelectFragment extends Fragment {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         Logger.info("Save contact instance state");
         if (selected != null) savedInstanceState.putSerializable(SELECTEDNAME, selected);
-        else Logger.warning("Warning, null selected, possible data loss");
+        //else Logger.warning("Warning, null selected, possible data loss");
     }
 
     private void freshSelection(){
@@ -74,13 +77,13 @@ public class ContactSelectFragment extends Fragment {
         //The PagerAdapater sometimes gives us empty bundles but we still have variable state in cases of scrolling
         if (selected == null){
             if (savedInstanceState == null || !savedInstanceState.containsKey(SELECTEDNAME) ) {
-                Logger.info("Generating fresh selection for no bundle");
+                //Logger.info("Generating fresh selection for no bundle");
                 freshSelection();
             } else {
-                Logger.info("Using from bundle");
+               // Logger.info("Using from bundle");
                 selected = (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME);
             }
-        } else Logger.info("using from variable");
+        } //else Logger.info("using from variable");
 
     }
 
@@ -91,13 +94,22 @@ public class ContactSelectFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onViewStateRestored(savedInstanceState);
-        Logger.info("onCreate");
         processBundle(savedInstanceState);
     }
 
     public ArrayList<Contact> selectedContacts(){
-        //This is written this way because it can end up being called when activites are created, apparently before onCreateView
-        if (adapter != null ) return adapter.getSelectedContacts();
-        else return new ArrayList<Contact>();
+        ArrayList<Contact> ret = new ArrayList<Contact>();
+        if (selected == null){
+            Logger.info("Null selected");
+            return ret;
+        } else Logger.info("Selected size "+selected.size());
+
+
+        for (ContactDisplay disp : contacts){
+            if (selected.get(disp.getId())){
+                ret.add(disp.getContact());
+            }
+        }
+        return ret;
     }
 }

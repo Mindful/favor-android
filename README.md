@@ -1,7 +1,8 @@
 Just getting things set up right now.
 
 Todo:
- - Move selected contact state out of the adapter and into the actual fragment, because moving state around needs to happen before/independent of adapter initialization.
+ - Propagation of data isn't in the core activity working because somehow our pointer to the visualization fragment is getting nulled out on screen rotation
+ (activity recreation).
  - Licenses in this repo as well, just like the core Favor repo
  - Activities need to know how to reload themselves on refresh, and almost every activity should reload itself on refresh.
  - The android text manager needs to be smart about additions of new addresses, like the email manager is - done by
