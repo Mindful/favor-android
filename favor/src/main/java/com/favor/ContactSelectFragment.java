@@ -19,20 +19,18 @@ import java.util.HashMap;
  * Created by josh on 12/27/14.
  */
 public class ContactSelectFragment extends Fragment {
-    ContactDisplayAdapter adapter;
+    private ContactDisplayAdapter adapter;
+    private HashMap<Long, Boolean> selected;
     private final static String SELECTEDNAME = "SELECTED";
 
-    //TODO: the problem here is the fact that if we get too far out this can be recreated apparently without having its
-    //oncreateview called
+    //TODO: the problem here is that when this fragment is at 2 offscreen, it never loads its bundle so if it saves more than once we lose all the info
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //For first time initialization
-        if (this.adapter == null) this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
-
-
-        AndroidHelper.populateContacts(); //TODO: necessary? I don't think so...
+        processBundle(savedInstanceState);
+        this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), selected);
 
         View view = inflater.inflate(R.layout.contact_select, container, false);
 
@@ -59,20 +57,43 @@ public class ContactSelectFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        if (adapter != null) savedInstanceState.putSerializable(SELECTEDNAME, adapter.getSelected());
+        Logger.info("Save contact instance state");
+        if (selected != null) savedInstanceState.putSerializable(SELECTEDNAME, selected);
+        else Logger.warning("Warning, null selected, possible data loss");
+    }
+
+    private void freshSelection(){
+        selected = new HashMap<Long, Boolean>();
+        for (Contact c : Reader.contacts()){
+            selected.put(c.getId(), false);
+        }
+    }
+
+    private void processBundle(Bundle savedInstanceState){
+        //If this looks strange it's because the fragment is torn down to varying degrees at various points;
+        //The PagerAdapater sometimes gives us empty bundles but we still have variable state in cases of scrolling
+        if (selected == null){
+            if (savedInstanceState == null || !savedInstanceState.containsKey(SELECTEDNAME) ) {
+                Logger.info("Generating fresh selection for no bundle");
+                freshSelection();
+            } else {
+                Logger.info("Using from bundle");
+                selected = (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME);
+            }
+        } else Logger.info("using from variable");
+
     }
 
 
-//    @Override
-//    public void onViewStateRestored(Bundle savedInstanceState){
-//        super.onViewStateRestored(savedInstanceState);
-//        if (savedInstanceState == null || !savedInstanceState.containsKey(SELECTEDNAME) ) {
-//            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()), null);
-//        } else {
-//            this.adapter = new ContactDisplayAdapter(Core.getContext(), ContactDisplay.buildDisplays(Reader.contacts()),
-//                    (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME));
-//        }
-//    }
+    //This is necessary in addition to the processing we do in onCreateView for cases where the phone is turned while
+    //the fragment is far enough offscreen to have already been destroyed (and also not viewed. obviously). Also it
+    //MUST be the "onCreate" method as none of the other methods are called early enough in the lifecycle
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onViewStateRestored(savedInstanceState);
+        Logger.info("onCreate");
+        processBundle(savedInstanceState);
+    }
 
     public ArrayList<Contact> selectedContacts(){
         //This is written this way because it can end up being called when activites are created, apparently before onCreateView

@@ -33,14 +33,7 @@ public class ContactDisplayAdapter extends BaseAdapter {
         context = c;
         contacts = input;
         inflater = LayoutInflater.from(context);
-        if (selected == null){
-            this.selected = new HashMap<Long, Boolean>();
-            for (ContactDisplay contactd : input){
-                this.selected.put(contactd.getId(), false);
-            }
-        } else {
-            this.selected = selected;
-        }
+        this.selected = selected;
     }
 
     public HashMap<Long, Boolean> getSelected(){
@@ -97,10 +90,8 @@ public class ContactDisplayAdapter extends BaseAdapter {
 
         ImageView picture = (ImageView)imv.getTag(R.id.picture);
         if (selected.get(contacts.get(position).getId())) {
-            Logger.info("Drawpink");
             picture.setColorFilter(Color.argb(200, 255, 50, 255));
         } else {
-            Logger.info("Drawnorm");
             picture.clearColorFilter();
         }
         TextView name = (TextView)imv.getTag(R.id.text);

@@ -34,10 +34,7 @@ public class CoreActivity extends FavorActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_core);
 
-        // ViewPager and its adapters use support library
-        // fragments, so use getSupportFragmentManager.
-        mPagerAdapter =
-                new FavorPager(getSupportFragmentManager());
+        mPagerAdapter = new FavorPager(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener(){
             @Override public void onPageScrollStateChanged(int arg0){
@@ -80,6 +77,7 @@ public class CoreActivity extends FavorActivity {
         //we should definitely save the application some work and cache
         @Override
         public Fragment getItem(int position) {
+            Logger.info("Get item "+position);
             switch (position){
                 case SELECT_PAGE:
                     contactFrag =  new ContactSelectFragment();
