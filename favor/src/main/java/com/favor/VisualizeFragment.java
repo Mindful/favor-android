@@ -29,9 +29,13 @@ public class VisualizeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        CoreActivity parentAct = (CoreActivity) getActivity();
+        data = parentAct.currentResult;
+
         if (savedInstanceState != null && data == null){
             data = Parcels.unwrap(savedInstanceState.getParcelable(DATANAME));
-        }
+            Logger.info("Unwrap data with length "+data.getContacts().size());
+        } else Logger.info("Use data with length"+data.getContacts().size());
 
         for (Contact c : data.getContacts()){
             Logger.info("Graph with contact:"+c.getDisplayName());

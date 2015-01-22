@@ -11,7 +11,7 @@ import com.favor.library.Debug;
 /**
  * Created by josh on 12/31/14.
  */
-public class FavorActivity extends ActionBarActivity {
+public abstract class FavorActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

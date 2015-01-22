@@ -52,7 +52,7 @@ public class ContactSelectFragment extends Fragment {
                 adapter.toggleItem(position);
 
                 CoreActivity parentAct = (CoreActivity) getActivity();
-                parentAct.mPagerAdapter.propagateContactData();
+                parentAct.propagateContactData(selectedContacts());
             }
         });
         return view;

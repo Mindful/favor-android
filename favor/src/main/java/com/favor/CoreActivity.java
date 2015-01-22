@@ -11,6 +11,9 @@ import com.favor.library.Core;
 import com.favor.library.Logger;
 import com.favor.library.Processor;
 import com.favor.ui.GraphableResult;
+import org.parceler.Parcels;
+
+import java.util.ArrayList;
 
 /**
  * Created by josh on 12/31/14.
@@ -35,6 +38,9 @@ public class CoreActivity extends FavorActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_core);
 
+        if (savedInstanceState != null) currentResult = Parcels.unwrap(savedInstanceState.getParcelable("RESULT"));
+        else currentResult =  new GraphableResult(new ArrayList<Contact>(), new long[]{}, new long[]{});
+
         mPagerAdapter = new FavorPager(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener(){
@@ -51,31 +57,34 @@ public class CoreActivity extends FavorActivity {
         mViewPager.setAdapter(mPagerAdapter);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState){
+        savedInstanceState.putParcelable("RESULT", Parcels.wrap(currentResult));
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+
+    GraphableResult currentResult;
+
+    public void propagateContactData(ArrayList<Contact> selectedContacts){
+        Logger.info("propagate "+selectedContacts.size()+"contacts");
+        currentResult = new GraphableResult(selectedContacts, Processor.batchMessageCount(Core.getCurrentAccount(),selectedContacts, -1, -1, true),
+                Processor.batchMessageCount(Core.getCurrentAccount(), selectedContacts, -1, -1, false));
+    }
+
 
     public static class FavorPager extends FragmentPagerAdapter {
+
+
         public FavorPager(FragmentManager fm) {
             super(fm);
         }
-
-        private ContactSelectFragment contactFrag;
-        private VisualizeFragment visualizationFrag;
 
         @Override
         public int getCount() {
             return 3;
         }
 
-        public void propagateContactData(){
-            Logger.info("Propagate with vizfrag:"+visualizationFrag);
-            if (visualizationFrag != null){
-                for (Contact c: contactFrag.selectedContacts()){
-                    Logger.info("Contact "+c.getDisplayName());
-                }
-                GraphableResult res = new GraphableResult(contactFrag.selectedContacts(), Processor.batchMessageCount(Core.getCurrentAccount(), contactFrag.selectedContacts(), -1, -1, true),
-                        Processor.batchMessageCount(Core.getCurrentAccount(), contactFrag.selectedContacts(), -1, -1, false));
-                visualizationFrag.setData(res);
-            }
-        }
 
         //TODO: is it worth caching fragments? I want to assume getItem isn't called every time we scroll, but if it is
         //we should definitely save the application some work and cache
@@ -84,12 +93,9 @@ public class CoreActivity extends FavorActivity {
             Logger.info("Get item "+position);
             switch (position){
                 case SELECT_PAGE:
-                    contactFrag =  new ContactSelectFragment();
-                    return contactFrag;
+                    return new ContactSelectFragment();
                 case VISUALIZE_PAGE:
-                    visualizationFrag = new VisualizeFragment();
-                    propagateContactData();
-                    return visualizationFrag;
+                    return new VisualizeFragment();
                 default:
                     return new ListFragment();
             }
