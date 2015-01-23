@@ -15,7 +15,7 @@ import java.util.List;
  */
 @org.parceler.Parcel
 public class GraphableResult {
-    static enum GraphTypes {Column, Doughnut}
+    public static enum GraphTypes {Column, Doughnut}
 
 
     GraphTypes defaultType = GraphTypes.Column;
@@ -28,6 +28,10 @@ public class GraphableResult {
     }
 
     ArrayList<Contact> contacts;
+
+    public GraphTypes getDefaultGraphType() {
+        return defaultType;
+    }
 
     public GraphableResult(ArrayList<Contact> contacts){
         this.contacts = contacts;
@@ -89,13 +93,13 @@ public class GraphableResult {
         }
     }
 
-    private ColumnChartView columnChart(Context context){
+    public ColumnChartData columnData(){
         List<Column> columns = new ArrayList<Column>();
         List<SubcolumnValue> values;
         for (int i = 0; i < data1.length; ++i) {
             values = new ArrayList<SubcolumnValue>();
             values.add(new SubcolumnValue((float)data1[i]));
-             if (data2 != null) values.add(new SubcolumnValue((float)data2[i]));
+            if (data2 != null) values.add(new SubcolumnValue((float)data2[i]));
 
             Column column = new Column(values);
             column.setHasLabels(true);
@@ -114,6 +118,12 @@ public class GraphableResult {
         Axis y = new Axis().setHasLines(true).setName(metricName);
         data.setAxisXBottom(x);
         data.setAxisYLeft(y);
+
+        return data;
+    }
+
+    private ColumnChartView columnChart(Context context){
+        ColumnChartData data = columnData();
 
         ColumnChartView chart = new ColumnChartView(context);
         chart.setColumnChartData(data);

@@ -6,6 +6,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
+import android.view.View;
+import android.view.ViewGroup;
 import com.favor.library.Contact;
 import com.favor.library.Core;
 import com.favor.library.Logger;
@@ -14,6 +16,7 @@ import com.favor.ui.GraphableResult;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by josh on 12/31/14.
@@ -49,8 +52,9 @@ public class CoreActivity extends FavorActivity {
             @Override public void onPageScrolled(int arg0,float arg1, int arg2){
             }
             @Override public void onPageSelected(int position){
-                if (position != SELECT_PAGE){
-                    //mPagerAdapter.propagateContactData();
+                //TODO: for some reason the visualize fragment's data is null when we do this..
+                if (position == VISUALIZE_PAGE) {
+                    mPagerAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -73,7 +77,9 @@ public class CoreActivity extends FavorActivity {
     }
 
 
-    public static class FavorPager extends FragmentPagerAdapter {
+    public class FavorPager extends FragmentPagerAdapter {
+
+        HashMap<Integer, Fragment> fragments = new HashMap<Integer, Fragment>();
 
 
         public FavorPager(FragmentManager fm) {
@@ -100,5 +106,30 @@ public class CoreActivity extends FavorActivity {
                     return new ListFragment();
             }
         }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            super.destroyItem(container, position, object);
+            fragments.remove(position);
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position){
+            Fragment f = (Fragment) super.instantiateItem(container, position);
+            fragments.put(position, f);
+            return f;
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            if (object instanceof VisualizeFragment) {
+                ((VisualizeFragment) object).data = currentResult; //TODO: this is why the class can't be static, need to ge this
+                ((VisualizeFragment) object).redrawChart();
+            }
+            //don't return POSITION_NONE, avoid fragment recreation.
+            return super.getItemPosition(object);
+        }
     }
+
+
 }
