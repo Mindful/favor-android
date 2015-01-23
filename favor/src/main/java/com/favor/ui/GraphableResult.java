@@ -6,8 +6,12 @@ import lecho.lib.hellocharts.model.*;
 import lecho.lib.hellocharts.view.Chart;
 import lecho.lib.hellocharts.view.ColumnChartView;
 import org.parceler.ParcelConstructor;
+import org.parceler.apache.commons.lang.ArrayUtils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,7 +42,7 @@ public class GraphableResult {
     }
 
     public GraphableResult(ArrayList<Contact> contacts, long[] data1, long[] data2){
-        this.contacts = contacts;
+        this.contacts = (ArrayList<Contact>) contacts.clone();
         this.data1 = new double[data1.length];
         this.data2 = new double[data2.length];
         for (int i = 0; i < data1.length; ++i){
@@ -48,7 +52,7 @@ public class GraphableResult {
     }
 
     public GraphableResult(ArrayList<Contact> contacts, long[] data){
-        this.contacts = contacts;
+        this.contacts = (ArrayList<Contact>) contacts.clone();
         this.data1 = new double[data.length];
         for (int i = 0; i < data.length; ++i){
             this.data1[i] = (double)data[i];
@@ -57,13 +61,13 @@ public class GraphableResult {
 
     @ParcelConstructor
     public GraphableResult(ArrayList<Contact> contacts, double[] data1, double[] data2){
-        this.contacts = contacts;
+        this.contacts = (ArrayList<Contact>) contacts.clone();
         this.data1 = data1;
         this.data2 = data2;
-    } //TODO: exception here relating to parcellation (presumably from generated parcel code in some capacity)
+    }
 
     public GraphableResult(ArrayList<Contact> contacts, double[] data){
-        this.contacts = contacts;
+        this.contacts = (ArrayList<Contact>) contacts.clone();
         this.data1 = data;
     }
 
@@ -93,13 +97,31 @@ public class GraphableResult {
         }
     }
 
-    public ColumnChartData columnData(){
+    public ColumnChartData columnData(boolean forAnimation){
         List<Column> columns = new ArrayList<Column>();
         List<SubcolumnValue> values;
+
+        float max = 0;
+        if (forAnimation){
+            for (int i = 0; i < data1.length; ++i){
+                if (data1[i] > max) max = (float)data1[i];
+                if (data2 != null){
+                    if (data2[i] > max) max = (float)data2[i];
+                }
+            }
+        }
+
         for (int i = 0; i < data1.length; ++i) {
             values = new ArrayList<SubcolumnValue>();
-            values.add(new SubcolumnValue((float)data1[i]));
-            if (data2 != null) values.add(new SubcolumnValue((float)data2[i]));
+
+
+            if (forAnimation){
+                values.add(new SubcolumnValue((float)Math.random() * max).setTarget((float)data1[i]));
+                if (data2 != null) values.add(new SubcolumnValue(((float)Math.random() * max)).setTarget((float) data2[i]));
+            } else {
+                values.add(new SubcolumnValue((float)data1[i]));
+                if (data2 != null) values.add(new SubcolumnValue((float)data2[i]));
+            }
 
             Column column = new Column(values);
             column.setHasLabels(true);
@@ -123,7 +145,8 @@ public class GraphableResult {
     }
 
     private ColumnChartView columnChart(Context context){
-        ColumnChartData data = columnData();
+        //TODO; animate this
+        ColumnChartData data = columnData(false);
 
         ColumnChartView chart = new ColumnChartView(context);
         chart.setColumnChartData(data);

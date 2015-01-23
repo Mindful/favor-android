@@ -1,13 +1,10 @@
 package com.favor;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.*;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.Toast;
 import com.favor.library.*;
 import com.favor.ui.ContactDisplay;
 import com.favor.ui.ContactDisplayAdapter;
@@ -52,7 +49,7 @@ public class ContactSelectFragment extends Fragment {
                 adapter.toggleItem(position);
 
                 CoreActivity parentAct = (CoreActivity) getActivity();
-                parentAct.propagateContactData(selectedContacts());
+                parentAct.updateData(selectedContacts());
             }
         });
         return view;
