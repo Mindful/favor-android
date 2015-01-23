@@ -45,11 +45,8 @@ public class ContactSelectFragment extends Fragment {
         gridview.setAdapter(adapter);
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Logger.info("Click item");
                 adapter.toggleItem(position);
-
-                CoreActivity parentAct = (CoreActivity) getActivity();
-                parentAct.updateData(selectedContacts());
+                ((CoreActivity) getActivity()).setContacts(selectedContacts());
             }
         });
         return view;
@@ -57,9 +54,7 @@ public class ContactSelectFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        Logger.info("Save contact instance state");
         if (selected != null) savedInstanceState.putSerializable(SELECTEDNAME, selected);
-        //else Logger.warning("Warning, null selected, possible data loss");
     }
 
     private void freshSelection(){
@@ -74,13 +69,11 @@ public class ContactSelectFragment extends Fragment {
         //The PagerAdapater sometimes gives us empty bundles but we still have variable state in cases of scrolling
         if (selected == null){
             if (savedInstanceState == null || !savedInstanceState.containsKey(SELECTEDNAME) ) {
-                //Logger.info("Generating fresh selection for no bundle");
                 freshSelection();
             } else {
-               // Logger.info("Using from bundle");
                 selected = (HashMap<Long, Boolean>)savedInstanceState.getSerializable(SELECTEDNAME);
             }
-        } //else Logger.info("using from variable");
+        }
 
     }
 
@@ -96,11 +89,7 @@ public class ContactSelectFragment extends Fragment {
 
     public ArrayList<Contact> selectedContacts(){
         ArrayList<Contact> ret = new ArrayList<Contact>();
-        if (selected == null){
-            Logger.info("Null selected");
-            return ret;
-        } else Logger.info("Selected size "+selected.size());
-
+        if (selected == null) return ret; //TODO: this might possibly be redundant
 
         for (ContactDisplay disp : contacts){
             if (selected.get(disp.getId())){

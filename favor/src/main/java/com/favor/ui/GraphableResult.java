@@ -82,18 +82,18 @@ public class GraphableResult {
         return result;
     }
 
-    public Chart buildDefaultGraph(Context context){
-        return buildGraph(defaultType, context);
+    public Chart buildDefaultGraph(Context context, boolean animate){
+        return buildGraph(defaultType, context, animate);
     }
 
 
-    public Chart buildGraph(GraphTypes type, Context context){
+    public Chart buildGraph(GraphTypes type, Context context, boolean animate){
         switch (type){
             case Column:
-                return columnChart(context);
-            //TODO: dougnut graph
+                return columnChart(context, animate);
+            case Doughnut: //TODO: dougnut graph
             default:
-                return columnChart(context);
+                return columnChart(context, animate);
         }
     }
 
@@ -144,12 +144,12 @@ public class GraphableResult {
         return data;
     }
 
-    private ColumnChartView columnChart(Context context){
-        //TODO; animate this
-        ColumnChartData data = columnData(false);
+    private ColumnChartView columnChart(Context context, boolean animate){
+        ColumnChartData data = columnData(animate);
 
         ColumnChartView chart = new ColumnChartView(context);
         chart.setColumnChartData(data);
+        if (animate) chart.startDataAnimation();
 
 
         //chart.setOnValueTouchListener

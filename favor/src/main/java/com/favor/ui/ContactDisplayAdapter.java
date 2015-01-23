@@ -61,7 +61,6 @@ public class ContactDisplayAdapter extends BaseAdapter {
     }
 
     public void toggleItem(int position){
-        Logger.info("Toggle item "+position);
         selected.put(contacts.get(position).getId(), !selected.get(contacts.get(position).getId()));
         notifyDataSetChanged();
     }
