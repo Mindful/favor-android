@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference
+                android:key="metric"
+                android:title="Metric"
+                android:dialogTitle="Metric"
+                android:entries="@array/metrics"
+                android:entryValues="@array/metrics"/>
+
+    <ListPreference
+            android:key="graph_type"
+            android:title="Visualization Type"
+            android:dialogTitle="Visualization Type"
+            android:entries="@array/viztypes"
+            android:entryValues="@array/viztypes"/>
+</PreferenceScreen>

@@ -19,7 +19,7 @@ public class StartActivity extends FavorActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_start);
         Button startButton = (Button) findViewById(R.id.begin);
         //startButton.setOnClickListener();
         Core.initialize(getApplicationContext());
