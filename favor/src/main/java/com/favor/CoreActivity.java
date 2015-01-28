@@ -1,18 +1,19 @@
 package com.favor;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.*;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
+import android.widget.DatePicker;
 import android.widget.Toast;
 import com.favor.library.*;
 import com.favor.ui.GraphableResult;
@@ -20,12 +21,78 @@ import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 /**
  * Created by josh on 12/31/14.
  */
 public class CoreActivity extends ActionBarActivity {
+
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+
+        public void setStartTime(boolean startTime) {
+            //TODO: fetch min and max date based on the first and last received/sent message
+            if (startTime){
+                Logger.info("Selecting start time");
+                saveKey = START_SAVE_KEY;
+            } else {
+                Logger.info("Selecting end time");
+                saveKey = END_SAVE_KEY;
+            }
+
+        }
+
+        private static final String START_SAVE_KEY = "STARTDATE";
+        private static final String END_SAVE_KEY = "ENDDATE";
+
+
+        private long minDate;
+        private long maxDate;
+        private String saveKey;
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            DatePickerDialog ret = new DatePickerDialog(getActivity(), this, year, month, day);
+
+            //TODO: this needs to be calculated based on the first and last received or sent message; may influence the default
+//            ret.getDatePicker().setMaxDate();
+//            ret.getDatePicker().setMinDate();
+
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            // Do something with the date chosen by the user
+        }
+    }
+
+    public void showDatePickerDialog(View v) {
+
+        DatePickerFragment frag = new DatePickerFragment();
+
+        switch (v.getId()){
+            case R.id.start_date:
+                frag.setStartTime(true);
+                break;
+            case R.id.end_date:
+                frag.setStartTime(false);
+                break;
+        }
+
+        frag.show(getSupportFragmentManager(), "datePicker");
+    }
+
     private FavorPager mPagerAdapter;
     private ViewPager mViewPager;
     private SlidingMenu.CanvasTransformer mTransformer;
