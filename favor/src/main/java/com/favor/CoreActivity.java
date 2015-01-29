@@ -12,7 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Interpolator;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
 import com.favor.library.*;
@@ -20,6 +20,7 @@ import com.favor.ui.GraphableResult;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import org.parceler.Parcels;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -34,35 +35,42 @@ public class CoreActivity extends ActionBarActivity {
             implements DatePickerDialog.OnDateSetListener {
 
         public void setStartTime(boolean startTime) {
+            this.startTime = startTime;
             //TODO: fetch min and max date based on the first and last received/sent message
             if (startTime){
                 Logger.info("Selecting start time");
-                saveKey = START_SAVE_KEY;
             } else {
                 Logger.info("Selecting end time");
-                saveKey = END_SAVE_KEY;
             }
 
         }
 
-        private static final String START_SAVE_KEY = "STARTDATE";
-        private static final String END_SAVE_KEY = "ENDDATE";
+        private CoreActivity getParentAct(){
+            return (CoreActivity) getActivity();
+        }
 
 
         private long minDate;
         private long maxDate;
-        private String saveKey;
+        private boolean startTime;
 
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // Use the current date as the default date in the picker
+
+
             final Calendar c = Calendar.getInstance();
+            long date = -1;
+            if (startTime) date = getParentAct().getStartDate();
+            else date = getParentAct().getEndDate();
+
+            if (date != -1) c.setTimeInMillis(date);
+
             int year = c.get(Calendar.YEAR);
             int month = c.get(Calendar.MONTH);
             int day = c.get(Calendar.DAY_OF_MONTH);
 
-            // Create a new instance of DatePickerDialog and return it
             DatePickerDialog ret = new DatePickerDialog(getActivity(), this, year, month, day);
 
             //TODO: this needs to be calculated based on the first and last received or sent message; may influence the default
@@ -73,6 +81,12 @@ public class CoreActivity extends ActionBarActivity {
         }
 
         public void onDateSet(DatePicker view, int year, int month, int day) {
+            final Calendar c = Calendar.getInstance();
+            c.set(Calendar.YEAR, year);
+            c.set(Calendar.MONTH, month);
+            c.set(Calendar.DAY_OF_MONTH, day);
+            if (startTime) getParentAct().setStartDate(c.getTimeInMillis());
+            else getParentAct().setEndDate(c.getTimeInMillis());
             // Do something with the date chosen by the user
         }
     }
@@ -93,6 +107,28 @@ public class CoreActivity extends ActionBarActivity {
         frag.show(getSupportFragmentManager(), "datePicker");
     }
 
+    public void clearDate(View v){
+        Button b = null;
+        switch(v.getId()){
+            case R.id.start_date_clear:
+                startDate = -1;
+                b = (Button) menu.getMenu().findViewById(R.id.start_date);
+                break;
+            case R.id.end_date_clear:
+                endDate = -1;
+                b = (Button) menu.getMenu().findViewById(R.id.end_date);
+                break;
+        }
+
+        final Button fb = b;
+        fb.post(new Runnable() {
+            @Override
+            public void run() {
+                fb.setText("None");
+            }
+        });
+    }
+
     private FavorPager mPagerAdapter;
     private ViewPager mViewPager;
     private SlidingMenu.CanvasTransformer mTransformer;
@@ -100,13 +136,59 @@ public class CoreActivity extends ActionBarActivity {
     private GraphableResult result;
     private ArrayList<Contact> contacts;
 
+
+    private long startDate = -1;
+    private long endDate = -1;
+    private GraphableResult.GraphTypes graphType;
+    private GraphableResult.AnalyticType analyticType;
+
+
     private SlidingMenu menu;
 
     private static final String RESULTNAME = "RESULT";
     private static final String CONTACTNAME = "CONTACTS";
+    private static final String STARTDATENAME = "STARTDATE";
+    private static final String ENDDATENAME = "ENDDATE";
+    public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
+
+    public void setEndDate(long endDate) {
+        this.endDate = endDate;
+        final long date = endDate;
+        final Button t = (Button) menu.getMenu().findViewById(R.id.end_date);
+
+        //Has to be run in the UI thread, not the event response thread
+        t.post(new Runnable() {
+            @Override
+            public void run() {
+                t.setText(dateFormatter.format(date));
+            }
+        });
+    }
+
+    public void setStartDate(long startDate) {
+        this.startDate = startDate;
+        final long date = startDate;
+        final Button t = (Button) menu.getMenu().findViewById(R.id.start_date);
+
+        //Has to be run in the UI thread, not the event response thread
+        t.post(new Runnable() {
+            @Override
+            public void run() {
+                t.setText(dateFormatter.format(date));
+            }
+        });
+    }
 
     public void setContacts(ArrayList<Contact> in){
         contacts = in;
+    }
+
+    public long getEndDate() {
+        return endDate;
+    }
+
+    public long getStartDate() {
+        return startDate;
     }
 
 
@@ -123,6 +205,8 @@ public class CoreActivity extends ActionBarActivity {
         if (savedInstanceState != null){
             result = Parcels.unwrap(savedInstanceState.getParcelable(RESULTNAME));
             contacts = (ArrayList<Contact>) savedInstanceState.getSerializable(CONTACTNAME);
+            startDate = savedInstanceState.getLong(STARTDATENAME);
+            endDate = savedInstanceState.getLong(ENDDATENAME);
         }
         else result =  new GraphableResult(new ArrayList<Contact>(), new long[]{}, new long[]{});
 
@@ -187,6 +271,8 @@ public class CoreActivity extends ActionBarActivity {
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putParcelable(RESULTNAME, Parcels.wrap(result));
         savedInstanceState.putSerializable(CONTACTNAME, contacts);
+        savedInstanceState.putLong(STARTDATENAME, startDate);
+        savedInstanceState.putLong(ENDDATENAME, endDate);
         super.onSaveInstanceState(savedInstanceState);
     }
 

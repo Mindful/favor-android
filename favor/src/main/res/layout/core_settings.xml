@@ -73,16 +73,33 @@
             android:text="Start Date"
             android:id="@+id/start_date_text"/>
 
-
-    <Button
-            style="?android:attr/borderlessButtonStyle"
+    <RelativeLayout
+            android:id="@+id/start_date_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="left|center_vertical"
-            android:text="Select Date"
-            android:id="@+id/start_date"
-            android:minHeight="@dimen/setting_minwidth"
-            android:onClick="showDatePickerDialog"/>
+            android:layout_height="wrap_content" >
+
+        <Button
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="left|center_vertical"
+                android:text="None"
+                android:id="@+id/start_date"
+                android:minHeight="@dimen/setting_minwidth"
+                android:onClick="showDatePickerDialog"/>
+
+        <Button
+                android:id="@+id/start_date_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/setting_minwidth"
+                android:minWidth="10dp"
+                android:text="X"
+                android:layout_alignParentRight="true"
+                android:onClick="clearDate"
+                android:textColor="#D3D3D3"/>
+
+    </RelativeLayout>
 
 
     <View style="@style/Divider"/>
@@ -95,15 +112,33 @@
             android:text="End Date"
             android:id="@+id/end_date_text"/>
 
-    <Button
-            style="?android:attr/borderlessButtonStyle"
+    <RelativeLayout
+            android:id="@+id/end_date_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="left|center_vertical"
-            android:text="Select Date"
-            android:id="@+id/end_date"
-            android:minHeight="@dimen/setting_minwidth"
-            android:onClick="showDatePickerDialog"/>
+            android:layout_height="wrap_content" >
+
+        <Button
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="left|center_vertical"
+                android:text="None"
+                android:id="@+id/end_date"
+                android:minHeight="@dimen/setting_minwidth"
+                android:onClick="showDatePickerDialog"/>
+
+        <Button
+                android:id="@+id/end_date_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/setting_minwidth"
+                android:minWidth="10dp"
+                android:text="X"
+                android:layout_alignParentRight="true"
+                android:onClick="clearDate"
+                android:textColor="#D3D3D3"/>
+
+    </RelativeLayout>
 
     <View style="@style/Divider"/>
 

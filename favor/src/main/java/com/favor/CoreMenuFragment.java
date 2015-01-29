@@ -6,7 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.Spinner;
+import com.favor.library.Core;
 import com.favor.library.Logger;
 
 
@@ -36,6 +38,10 @@ public class CoreMenuFragment extends Fragment implements AdapterView.OnItemSele
         spinner.setOnItemSelectedListener(this);
         spinner = (Spinner) view.findViewById(R.id.graph);
         spinner.setOnItemSelectedListener(this);
+
+        CoreActivity act = (CoreActivity) getActivity();
+        if (act.getEndDate() != -1) ((Button) view.findViewById(R.id.end_date)).setText(CoreActivity.dateFormatter.format(act.getEndDate()));
+        if (act.getStartDate() != -1) ((Button) view.findViewById(R.id.start_date)).setText(CoreActivity.dateFormatter.format(act.getStartDate()));
 
         return view;
     }

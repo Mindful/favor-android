@@ -20,18 +20,21 @@ import java.util.List;
 @org.parceler.Parcel
 public class GraphableResult {
     public static enum GraphTypes {Column, Doughnut}
+    public static enum AnalyticType {Charcount, Messagecount, ResponseTime}
 
 
     GraphTypes defaultType = GraphTypes.Column;
     double[] data1;
     double[] data2; //Will frequently be left unused.
-    String metricName; //TODO: fill the name in
+
+    private long startDate;
+    private long endDate;
+    private GraphableResult.AnalyticType analyticType;
+    ArrayList<Contact> contacts;
 
     public ArrayList<Contact> getContacts() {
         return contacts;
     }
-
-    ArrayList<Contact> contacts;
 
     public GraphTypes getDefaultGraphType() {
         return defaultType;
@@ -137,7 +140,7 @@ public class GraphableResult {
             names.add(new AxisValue(i, contacts.get(i).getDisplayName().toCharArray()));
         }
         x.setValues(names);
-        Axis y = new Axis().setHasLines(true).setName(metricName);
+        Axis y = new Axis().setHasLines(true).setName("Metric Name Here"); //TODO: metric name
         data.setAxisXBottom(x);
         data.setAxisYLeft(y);
 
