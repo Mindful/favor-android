@@ -17,6 +17,8 @@ import android.widget.DatePicker;
 import android.widget.Toast;
 import com.favor.library.*;
 import com.favor.ui.GraphableResult;
+import com.favor.util.Querier;
+import com.favor.util.QueryDetails;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import org.parceler.Parcels;
 
@@ -111,11 +113,11 @@ public class CoreActivity extends ActionBarActivity {
         Button b = null;
         switch(v.getId()){
             case R.id.start_date_clear:
-                startDate = -1;
+                this.queryDetails.resetStartDate();
                 b = (Button) menu.getMenu().findViewById(R.id.start_date);
                 break;
             case R.id.end_date_clear:
-                endDate = -1;
+                this.queryDetails.resetStartDate();
                 b = (Button) menu.getMenu().findViewById(R.id.end_date);
                 break;
         }
@@ -134,25 +136,18 @@ public class CoreActivity extends ActionBarActivity {
     private SlidingMenu.CanvasTransformer mTransformer;
 
     private GraphableResult result;
-    private ArrayList<Contact> contacts;
 
-
-    private long startDate = -1;
-    private long endDate = -1;
     private GraphableResult.GraphTypes graphType;
-    private GraphableResult.AnalyticType analyticType;
-
+    private QueryDetails queryDetails;
 
     private SlidingMenu menu;
 
     private static final String RESULTNAME = "RESULT";
-    private static final String CONTACTNAME = "CONTACTS";
-    private static final String STARTDATENAME = "STARTDATE";
-    private static final String ENDDATENAME = "ENDDATE";
+    private static final String QUERYDETAILSNAME = "QUERYDETAILS";
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
 
     public void setEndDate(long endDate) {
-        this.endDate = endDate;
+        this.queryDetails.setEndDate(endDate);
         final long date = endDate;
         final Button t = (Button) menu.getMenu().findViewById(R.id.end_date);
 
@@ -166,7 +161,7 @@ public class CoreActivity extends ActionBarActivity {
     }
 
     public void setStartDate(long startDate) {
-        this.startDate = startDate;
+        this.queryDetails.setStartDate(startDate);
         final long date = startDate;
         final Button t = (Button) menu.getMenu().findViewById(R.id.start_date);
 
@@ -179,16 +174,20 @@ public class CoreActivity extends ActionBarActivity {
         });
     }
 
+    public void setAnalytic(Querier.AnalyticType type){
+        this.queryDetails.setAnalyticType(type);
+    }
+
     public void setContacts(ArrayList<Contact> in){
-        contacts = in;
+        queryDetails.setContacts(in);
     }
 
     public long getEndDate() {
-        return endDate;
+        return queryDetails.getEndDate();
     }
 
     public long getStartDate() {
-        return startDate;
+        return queryDetails.getStartDate();
     }
 
 
@@ -204,11 +203,12 @@ public class CoreActivity extends ActionBarActivity {
 
         if (savedInstanceState != null){
             result = Parcels.unwrap(savedInstanceState.getParcelable(RESULTNAME));
-            contacts = (ArrayList<Contact>) savedInstanceState.getSerializable(CONTACTNAME);
-            startDate = savedInstanceState.getLong(STARTDATENAME);
-            endDate = savedInstanceState.getLong(ENDDATENAME);
+            queryDetails = (QueryDetails) savedInstanceState.getSerializable(QUERYDETAILSNAME);
         }
-        else result =  new GraphableResult(new ArrayList<Contact>(), new long[]{}, new long[]{});
+        else {
+            queryDetails = new QueryDetails();
+            result =  new GraphableResult(queryDetails, new long[]{}, new long[]{});
+        }
 
         mPagerAdapter = new FavorPager(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -270,17 +270,16 @@ public class CoreActivity extends ActionBarActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putParcelable(RESULTNAME, Parcels.wrap(result));
-        savedInstanceState.putSerializable(CONTACTNAME, contacts);
-        savedInstanceState.putLong(STARTDATENAME, startDate);
-        savedInstanceState.putLong(ENDDATENAME, endDate);
+        savedInstanceState.putSerializable(QUERYDETAILSNAME, queryDetails);
         super.onSaveInstanceState(savedInstanceState);
     }
 
 
     public GraphableResult getResult(){
-         if (contacts != null && !result.getContacts().equals(contacts)) {
-            result = new GraphableResult(contacts, Processor.batchMessageCount(Core.getCurrentAccount(),contacts, -1, -1, true),
-            Processor.batchMessageCount(Core.getCurrentAccount(), contacts, -1, -1, false));
+        Logger.info("QUERY DETAILS"+queryDetails);
+         if (queryDetails!= null && !result.queryDetailsEquals(queryDetails)) {
+             Logger.info("GET NEW RESULT");
+            result = Querier.launchQuery(queryDetails);
         }
         return result;
     }

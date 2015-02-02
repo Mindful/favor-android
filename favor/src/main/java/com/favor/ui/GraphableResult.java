@@ -2,16 +2,13 @@ package com.favor.ui;
 
 import android.content.Context;
 import com.favor.library.Contact;
+import com.favor.util.QueryDetails;
 import lecho.lib.hellocharts.model.*;
 import lecho.lib.hellocharts.view.Chart;
 import lecho.lib.hellocharts.view.ColumnChartView;
 import org.parceler.ParcelConstructor;
-import org.parceler.apache.commons.lang.ArrayUtils;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,20 +17,16 @@ import java.util.List;
 @org.parceler.Parcel
 public class GraphableResult {
     public static enum GraphTypes {Column, Doughnut}
-    public static enum AnalyticType {Charcount, Messagecount, ResponseTime}
 
 
     GraphTypes defaultType = GraphTypes.Column;
     double[] data1;
     double[] data2; //Will frequently be left unused.
 
-    private long startDate;
-    private long endDate;
-    private GraphableResult.AnalyticType analyticType;
-    ArrayList<Contact> contacts;
+    private QueryDetails queryDetails;
 
     public ArrayList<Contact> getContacts() {
-        return contacts;
+        return queryDetails.getContacts();
     }
 
     public GraphTypes getDefaultGraphType() {
@@ -41,11 +34,11 @@ public class GraphableResult {
     }
 
     public GraphableResult(ArrayList<Contact> contacts){
-        this.contacts = contacts;
+        this.queryDetails.setContacts(contacts);
     }
 
-    public GraphableResult(ArrayList<Contact> contacts, long[] data1, long[] data2){
-        this.contacts = (ArrayList<Contact>) contacts.clone();
+    public GraphableResult(QueryDetails queryDetails, long[] data1, long[] data2){
+        this.queryDetails = (QueryDetails) queryDetails.clone();
         this.data1 = new double[data1.length];
         this.data2 = new double[data2.length];
         for (int i = 0; i < data1.length; ++i){
@@ -54,8 +47,8 @@ public class GraphableResult {
         }
     }
 
-    public GraphableResult(ArrayList<Contact> contacts, long[] data){
-        this.contacts = (ArrayList<Contact>) contacts.clone();
+    public GraphableResult(QueryDetails queryDetails, long[] data){
+        this.queryDetails = (QueryDetails) queryDetails.clone();
         this.data1 = new double[data.length];
         for (int i = 0; i < data.length; ++i){
             this.data1[i] = (double)data[i];
@@ -63,14 +56,14 @@ public class GraphableResult {
     }
 
     @ParcelConstructor
-    public GraphableResult(ArrayList<Contact> contacts, double[] data1, double[] data2){
-        this.contacts = (ArrayList<Contact>) contacts.clone();
+    public GraphableResult(QueryDetails queryDetails, double[] data1, double[] data2){
+        this.queryDetails = (QueryDetails) queryDetails.clone();
         this.data1 = data1;
         this.data2 = data2;
     }
 
-    public GraphableResult(ArrayList<Contact> contacts, double[] data){
-        this.contacts = (ArrayList<Contact>) contacts.clone();
+    public GraphableResult(QueryDetails queryDetails, double[] data){
+        this.queryDetails = (QueryDetails) queryDetails.clone();
         this.data1 = data;
     }
 
@@ -87,6 +80,10 @@ public class GraphableResult {
 
     public Chart buildDefaultGraph(Context context, boolean animate){
         return buildGraph(defaultType, context, animate);
+    }
+
+    public boolean queryDetailsEquals(QueryDetails rhs){
+        return queryDetails.equals(rhs);
     }
 
 
@@ -136,8 +133,8 @@ public class GraphableResult {
 
         Axis x = new Axis().setName("Contact");
         List<AxisValue> names = new ArrayList<AxisValue>();
-        for (int i = 0; i < contacts.size(); ++i){
-            names.add(new AxisValue(i, contacts.get(i).getDisplayName().toCharArray()));
+        for (int i = 0; i < queryDetails.getContacts().size(); ++i){
+            names.add(new AxisValue(i, queryDetails.getContacts().get(i).getDisplayName().toCharArray()));
         }
         x.setValues(names);
         Axis y = new Axis().setHasLines(true).setName("Metric Name Here"); //TODO: metric name

@@ -10,15 +10,37 @@ import android.widget.Button;
 import android.widget.Spinner;
 import com.favor.library.Core;
 import com.favor.library.Logger;
+import com.favor.util.Querier;
 
 
 public class CoreMenuFragment extends Fragment implements AdapterView.OnItemSelectedListener  {
 
+
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id) {
         // An item was selected. You can retrieve the selected item using
+
+        CoreActivity act = (CoreActivity) getActivity();
+
         String selected = (String) parent.getItemAtPosition(pos);
-        //TODO: save this information somewhere
+        if (view.getId() == R.id.metric){
+            switch (selected){
+                case "Character Count":
+                    act.setAnalytic(Querier.AnalyticType.Charcount);
+                    break;
+                case "Response Time":
+                    act.setAnalytic(Querier.AnalyticType.ResponseTime);
+                    break;
+                case "Message Count":
+                    act.setAnalytic(Querier.AnalyticType.Messagecount);
+                    break;
+            }
+        } else if (view.getId() == R.id.graph){
+            switch (selected){
+                case "Bar Graph":
+                case "Doughnut Graph":
+            }
+        }
         Logger.info(selected);
     }
 
