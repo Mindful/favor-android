@@ -21,9 +21,11 @@ public class CoreMenuFragment extends Fragment implements AdapterView.OnItemSele
         // An item was selected. You can retrieve the selected item using
 
         CoreActivity act = (CoreActivity) getActivity();
+        Logger.info("ONITEMSELECTED");
 
         String selected = (String) parent.getItemAtPosition(pos);
-        if (view.getId() == R.id.metric){
+        if (parent.getId() == R.id.metric){
+            Logger.info("Metric Selected");
             switch (selected){
                 case "Character Count":
                     act.setAnalytic(Querier.AnalyticType.Charcount);
@@ -35,7 +37,8 @@ public class CoreMenuFragment extends Fragment implements AdapterView.OnItemSele
                     act.setAnalytic(Querier.AnalyticType.Messagecount);
                     break;
             }
-        } else if (view.getId() == R.id.graph){
+        } else if (parent.getId() == R.id.graph){
+            Logger.info("Graph Selected");
             switch (selected){
                 case "Bar Graph":
                 case "Doughnut Graph":

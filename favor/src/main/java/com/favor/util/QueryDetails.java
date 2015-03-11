@@ -12,6 +12,16 @@ public class QueryDetails implements Serializable {
 
     public static final long DEFAULT_DATE = -1;
 
+    @Override
+    public String toString() {
+        return "QueryDetails{" +
+                "startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", analyticType=" + analyticType +
+                ", contacts=" + contacts +
+                '}';
+    }
+
     public long getStartDate() { return startDate; }
     public long getEndDate() {
         return endDate;
@@ -65,7 +75,7 @@ public class QueryDetails implements Serializable {
     public QueryDetails(){
         startDate = -1;
         endDate = -1;
-        analyticType = Querier.AnalyticType.None;
+        analyticType = Querier.DEFAULT_ANALYTIC;
         contacts = new ArrayList<Contact>();
     }
 

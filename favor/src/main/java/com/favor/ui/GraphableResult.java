@@ -2,6 +2,7 @@ package com.favor.ui;
 
 import android.content.Context;
 import com.favor.library.Contact;
+import com.favor.util.Querier;
 import com.favor.util.QueryDetails;
 import lecho.lib.hellocharts.model.*;
 import lecho.lib.hellocharts.view.Chart;
@@ -9,6 +10,7 @@ import lecho.lib.hellocharts.view.ColumnChartView;
 import org.parceler.ParcelConstructor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -18,6 +20,15 @@ import java.util.List;
 public class GraphableResult {
     public static enum GraphTypes {Column, Doughnut}
 
+    @Override
+    public String toString() {
+        return "GraphableResult{" +
+                "defaultType=" + defaultType +
+                ", data1=" + Arrays.toString(data1) +
+                ", data2=" + Arrays.toString(data2) +
+                ", queryDetails=" + queryDetails +
+                '}';
+    }
 
     GraphTypes defaultType = GraphTypes.Column;
     double[] data1;
@@ -137,7 +148,7 @@ public class GraphableResult {
             names.add(new AxisValue(i, queryDetails.getContacts().get(i).getDisplayName().toCharArray()));
         }
         x.setValues(names);
-        Axis y = new Axis().setHasLines(true).setName("Metric Name Here"); //TODO: metric name
+        Axis y = new Axis().setHasLines(true).setName(Querier.analyticName(queryDetails.getAnalyticType()));
         data.setAxisXBottom(x);
         data.setAxisYLeft(y);
 

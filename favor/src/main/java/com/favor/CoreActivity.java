@@ -175,6 +175,7 @@ public class CoreActivity extends ActionBarActivity {
     }
 
     public void setAnalytic(Querier.AnalyticType type){
+        Logger.info("SET ANALYTIC TYPE "+type);
         this.queryDetails.setAnalyticType(type);
     }
 
@@ -276,11 +277,11 @@ public class CoreActivity extends ActionBarActivity {
 
 
     public GraphableResult getResult(){
-        Logger.info("QUERY DETAILS"+queryDetails);
+        Logger.info("GET RESULT QUERY DETAILS"+queryDetails);
          if (queryDetails!= null && !result.queryDetailsEquals(queryDetails)) {
-             Logger.info("GET NEW RESULT");
             result = Querier.launchQuery(queryDetails);
         }
+        Logger.info("Result:"+result.toString());
         return result;
     }
 
