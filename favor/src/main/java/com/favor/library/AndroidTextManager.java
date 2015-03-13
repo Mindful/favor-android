@@ -34,6 +34,8 @@ public class AndroidTextManager extends AccountManager{
 
     private static final String LAST_FETCH = "androidtext_last_fetch";
 
+    private static final String TRACKED_ADDRESSES = "TRACKED_ADDRESSES";
+
 
     /*
     VERY BLOCKING
@@ -83,68 +85,88 @@ public class AndroidTextManager extends AccountManager{
     /*
     VERY BLOCKING
      */
-    //TODO: needs serious testing. just copied from old favor. should probably be fine once we set up permissions and a method of keeping dates, though
+    private void scanPhoneMessages(ArrayList<String> addrs, boolean catchup){
+        if (addrs.size() == 0 ) return; //Nothing to do if no addresses to read
+        HashSet<String> addrSet = new HashSet<String>();
+
+        String addressSelection = "(";
+        for (int i = 0; i < addrs.size(); ++i){
+            addrSet.add(addrs.get(i));
+
+            addressSelection += KEY_ADDRESS +"=\""+addrs.get(i)+"\"";
+            if (i == addrs.size() -1) addressSelection += ")";
+            else addressSelection += " OR ";
+        }
+
+
+        long lastFetchDate = Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).getLong(LAST_FETCH, 0);
+
+        String normalSelection = addressSelection + " AND ";
+        if (catchup) normalSelection += KEY_DATE + " <= " + lastFetchDate;
+        else normalSelection += KEY_DATE + " > " + lastFetchDate;
+        //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly. Also, we can't filter our initial search on
+        //addresses, so we just have to look at every MMS and immediately give up if it's not to/from someone we want.
+        String MMSSelection =  KEY_DATE + " > " + lastFetchDate/1000l;
+
+        Cursor c = Core.getContext().getContentResolver().query(SMS_IN, SMS_PROJECTION,
+                normalSelection, null, KEY_DATE);
+        while (c.moveToNext()) {
+            holdMessage(false, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+        }
+        c.close();
+
+        c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
+                normalSelection, null, KEY_DATE);
+        while (c.moveToNext()) {
+            holdMessage(true, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+        }
+        c.close();
+
+        //TODO: Hopefully people don't have thousands upon thousands of MMS messages, because all we can do right now
+        //is crawl them and check every one for the right address. Eventually, this might be worth rewriting
+
+        //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly
+        c = Core.getContext().getContentResolver().query(MMS_IN, MMS_PROJECTION,
+                MMSSelection, null, KEY_DATE);
+        while (c.moveToNext()){
+            receivedMMS(c.getLong(0), c.getLong(1), addrSet);
+        }
+        c.close();
+
+        c = Core.getContext().getContentResolver().query(MMS_OUT, MMS_PROJECTION,
+                MMSSelection, null, KEY_DATE);
+        while (c.moveToNext()){
+            sentMMS(c.getLong(0), c.getLong(1), addrSet);
+        }
+        c.close();
+        saveMessages();
+
+        Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().
+                putLong(LAST_FETCH, new Date().getTime()).commit();
+    }
+
+
     @Override
     public void updateMessages() {
         Logger.info("updateMessages");
         try {
-            String[] addrs = contactAddresses(type);
-            if (addrs.length == 0 ) return; //Nothing to do if no addresses to read
-            HashSet<String> addrSet = new HashSet<String>();
-
-            String addressSelection = "(";
-            for (int i = 0; i < addrs.length; ++i){
-                addrSet.add(addrs[i]);
-
-                addressSelection += KEY_ADDRESS +"=\""+addrs[i]+"\"";
-                if (i == addrs.length -1) addressSelection += ")";
-                else addressSelection += " OR ";
+            ArrayList<String> addrs = new ArrayList<String>(Arrays.asList(contactAddresses(type)));
+            ArrayList<String> newAddrs = new ArrayList<String>();
+            HashSet<String> trackedAddresses = new HashSet<String>(Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).getStringSet(TRACKED_ADDRESSES, new HashSet<String>()));
+            for (int i = 0; i < addrs.size(); ++i){
+                if (!trackedAddresses.contains(addrs.get(i))){
+                    newAddrs.add(addrs.get(i));
+                }
             }
-
-
             long lastFetchDate = Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).getLong(LAST_FETCH, 0);
-
-            String normalSelection = addressSelection + " AND " + KEY_DATE + " > " + lastFetchDate;
-            //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly. Also, we can't filter our initial search on
-            //addresses, so we just have to look at every MMS and immediately give up if it's not to/from someone we want.
-            String MMSSelection =  KEY_DATE + " > " + lastFetchDate/1000l;
-
-            Cursor c = Core.getContext().getContentResolver().query(SMS_IN, SMS_PROJECTION,
-                    normalSelection, null, KEY_DATE);
-            while (c.moveToNext()) {
-                holdMessage(false, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+            if (newAddrs.size() > 0 && lastFetchDate != 0){
+                scanPhoneMessages(newAddrs, true);
             }
-            c.close();
-
-            c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
-                    normalSelection, null, KEY_DATE);
-            while (c.moveToNext()) {
-                holdMessage(true, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+            scanPhoneMessages(addrs, false);
+            for (int i = 0; i < addrs.size(); ++i){
+                trackedAddresses.add(addrs.get(i));
             }
-            c.close();
-
-            //TODO: Hopefully people don't have thousands upon thousands of MMS messages, because all we can do right now
-            //is crawl them and check every one for the right address. Eventually, this might be worth rewriting
-
-            //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly
-            c = Core.getContext().getContentResolver().query(MMS_IN, MMS_PROJECTION,
-                    MMSSelection, null, KEY_DATE);
-            while (c.moveToNext()){
-                receivedMMS(c.getLong(0), c.getLong(1), addrSet);
-            }
-            c.close();
-
-            c = Core.getContext().getContentResolver().query(MMS_OUT, MMS_PROJECTION,
-                    MMSSelection, null, KEY_DATE);
-            while (c.moveToNext()){
-                sentMMS(c.getLong(0), c.getLong(1), addrSet);
-            }
-            c.close();
-            saveMessages();
-
-            Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().
-                    putLong(LAST_FETCH, new Date().getTime()).commit();
-
+            Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().putStringSet(TRACKED_ADDRESSES, trackedAddresses);
         } catch (Exception ex) {
             ex.printStackTrace();
             //TODO: whatever we do when the native stuff fails for the default account manager
