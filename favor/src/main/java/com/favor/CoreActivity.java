@@ -30,7 +30,7 @@ import java.util.HashMap;
 /**
  * Created by josh on 12/31/14.
  */
-public class CoreActivity extends ActionBarActivity {
+public class CoreActivity extends ActionBarActivity implements RefreshResponse {
 
 
     public static class DatePickerFragment extends DialogFragment
@@ -275,6 +275,11 @@ public class CoreActivity extends ActionBarActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
+    @Override
+    public void refreshResponse(){
+        mPagerAdapter.refreshResponse();
+    }
+
 
     public GraphableResult getResult(){
         Logger.info("GET RESULT QUERY DETAILS"+queryDetails);
@@ -316,13 +321,23 @@ public class CoreActivity extends ActionBarActivity {
     }
 
 
-    private class FavorPager extends FragmentPagerAdapter {
+    private class FavorPager extends FragmentPagerAdapter implements RefreshResponse {
 
         static final int SELECT_PAGE = 0;
         static final int VISUALIZE_PAGE = 1;
         static final int METRICS_PAGE = 2;
 
         HashMap<Integer, Fragment> fragments = new HashMap<Integer, Fragment>();
+
+        @Override
+        public void refreshResponse(){
+            //TODO: recompute the possible start and end dates for selection here based on any new info we have
+            //about fetched messages
+
+            ((ContactSelectFragment)fragments.get(SELECT_PAGE)).refreshResponse();
+            ((MetricsFragment)fragments.get(METRICS_PAGE)).refreshResponse();
+            ((VisualizeFragment)fragments.get(VISUALIZE_PAGE)).refreshResponse();
+        }
 
 
         public FavorPager(FragmentManager fm) {

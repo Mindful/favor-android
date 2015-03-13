@@ -140,9 +140,6 @@ public class AndroidTextManager extends AccountManager{
         }
         c.close();
         saveMessages();
-
-        Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().
-                putLong(LAST_FETCH, new Date().getTime()).commit();
     }
 
 
@@ -161,12 +158,14 @@ public class AndroidTextManager extends AccountManager{
             long lastFetchDate = Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).getLong(LAST_FETCH, 0);
             if (newAddrs.size() > 0 && lastFetchDate != 0){
                 scanPhoneMessages(newAddrs, true);
+                Logger.info("backfetch for "+newAddrs.size()+"new addresses");
             }
             scanPhoneMessages(addrs, false);
             for (int i = 0; i < addrs.size(); ++i){
                 trackedAddresses.add(addrs.get(i));
             }
-            Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().putStringSet(TRACKED_ADDRESSES, trackedAddresses);
+            Core.getContext().getSharedPreferences(Core.PREF_NAME, Context.MODE_PRIVATE).edit().
+                    putLong(LAST_FETCH, new Date().getTime()).putStringSet(TRACKED_ADDRESSES, trackedAddresses).commit();
         } catch (Exception ex) {
             ex.printStackTrace();
             //TODO: whatever we do when the native stuff fails for the default account manager

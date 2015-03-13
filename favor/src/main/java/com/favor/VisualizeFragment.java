@@ -12,7 +12,7 @@ import lecho.lib.hellocharts.view.Chart;
 import lecho.lib.hellocharts.view.ColumnChartView;
 import org.parceler.Parcels;
 
-public class VisualizeFragment extends Fragment {
+public class VisualizeFragment extends Fragment implements RefreshResponse {
 
     private GraphableResult data;
     private Chart chart;
