@@ -10,9 +10,8 @@ import com.favor.library.Logger;
 import com.favor.ui.GraphableResult;
 import lecho.lib.hellocharts.view.Chart;
 import lecho.lib.hellocharts.view.ColumnChartView;
-import org.parceler.Parcels;
 
-public class VisualizeFragment extends Fragment implements RefreshResponse {
+public class VisualizeFragment extends Fragment {
 
     private GraphableResult data;
     private Chart chart;
@@ -32,6 +31,7 @@ public class VisualizeFragment extends Fragment implements RefreshResponse {
 
     public void redrawChart(GraphableResult newData){
         if (!newData.equals(data)){
+            Logger.info("Redraw chart because of change in data");
             data = newData;
             //TODO: this should really be current graph type, not default
             switch(data.getDefaultGraphType()){

@@ -22,6 +22,21 @@ public class QueryDetails implements Serializable {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        QueryDetails that = (QueryDetails) o;
+
+        if (endDate != that.endDate) return false;
+        if (startDate != that.startDate) return false;
+        if (analyticType != that.analyticType) return false;
+        if (contacts != null ? !contacts.equals(that.contacts) : that.contacts != null) return false;
+
+        return true;
+    }
+
     public long getStartDate() { return startDate; }
     public long getEndDate() {
         return endDate;

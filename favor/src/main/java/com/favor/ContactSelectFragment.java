@@ -17,14 +17,7 @@ import java.util.HashMap;
  */
 
 //TODO: handling new contacts - they'll have to be added to the list, but also added to selected and marked as false
-public class ContactSelectFragment extends Fragment implements RefreshResponse {
-
-    @Override
-    public void refreshResponse() {
-        /*
-        This is empty for now, which is intentional - this doesn't need to do anything on most normal refreshes
-         */
-    }
+public class ContactSelectFragment extends Fragment {
 
 
     private ContactDisplayAdapter adapter;

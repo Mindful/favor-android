@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import com.favor.RefreshResponder;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -30,7 +30,7 @@ import java.util.HashMap;
 /**
  * Created by josh on 12/31/14.
  */
-public class CoreActivity extends ActionBarActivity implements RefreshResponse {
+public class CoreActivity extends FavorActivity {
 
 
     public static class DatePickerFragment extends DialogFragment
@@ -276,25 +276,28 @@ public class CoreActivity extends ActionBarActivity implements RefreshResponse {
     }
 
     @Override
-    public void refreshResponse(){
-        mPagerAdapter.refreshResponse();
+    public void messageRefreshResponse(){
+        //TODO: recompute the possible start and end dates for selection here based on any new info we have
+        //about fetched messages
+        Logger.info("RESPOND TO REFRESH");
+        result = Querier.launchQuery(queryDetails); //Recompute current result
+        mPagerAdapter.messageRefreshUpdateFragments();
+    }
+
+    @Override
+    public void addressRefreshResponse() {
+        //TODO: this
     }
 
 
     public GraphableResult getResult(){
         Logger.info("GET RESULT QUERY DETAILS"+queryDetails);
          if (queryDetails!= null && !result.queryDetailsEquals(queryDetails)) {
+             Logger.info("Launch new query to get result");
             result = Querier.launchQuery(queryDetails);
         }
         Logger.info("Result:"+result.toString());
         return result;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -308,10 +311,7 @@ public class CoreActivity extends ActionBarActivity implements RefreshResponse {
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             case R.id.action_refresh:
-                Toast.makeText(this, "Refreshing...", Toast.LENGTH_LONG);
-                //TODO: this should be more complex, and display more to the user (like a loading swirl), it should also reload the activity in most cases
-                //or call some sort of method that must be overriden so activties know how to reload themselves on refresh
-                Core.getCurrentAccount().updateMessages();
+                refreshMessages();
                 return true;
             case android.R.id.home:
                 menu.toggle();
@@ -321,7 +321,7 @@ public class CoreActivity extends ActionBarActivity implements RefreshResponse {
     }
 
 
-    private class FavorPager extends FragmentPagerAdapter implements RefreshResponse {
+    private class FavorPager extends FragmentPagerAdapter {
 
         static final int SELECT_PAGE = 0;
         static final int VISUALIZE_PAGE = 1;
@@ -329,14 +329,15 @@ public class CoreActivity extends ActionBarActivity implements RefreshResponse {
 
         HashMap<Integer, Fragment> fragments = new HashMap<Integer, Fragment>();
 
-        @Override
-        public void refreshResponse(){
-            //TODO: recompute the possible start and end dates for selection here based on any new info we have
-            //about fetched messages
+        public void messageRefreshUpdateFragments(){
+            //((ContactSelectFragment)fragments.get(SELECT_PAGE)).messageRefreshResponse(); //necessary if we start listing data about contacts on their tiles
+            //((MetricsFragment)fragments.get(METRICS_PAGE)).messageRefreshResponse();
+            ((VisualizeFragment)fragments.get(VISUALIZE_PAGE)).redrawChart(getResult());
+        }
 
-            ((ContactSelectFragment)fragments.get(SELECT_PAGE)).refreshResponse();
-            ((MetricsFragment)fragments.get(METRICS_PAGE)).refreshResponse();
-            ((VisualizeFragment)fragments.get(VISUALIZE_PAGE)).refreshResponse();
+        public void addressRefreshResponse(){
+            //((ContactSelectFragment)fragments.get(SELECT_PAGE)).messageRefreshResponse();
+            //((MetricsFragment)fragments.get(METRICS_PAGE)).messageRefreshResponse(); //necessary if this lists more than queried contacts
         }
 
 

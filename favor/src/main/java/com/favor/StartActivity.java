@@ -26,4 +26,12 @@ public class StartActivity extends FavorActivity {
 
     }
 
+    @Override
+    public void messageRefreshResponse(){
+    }
+
+    @Override
+    public void addressRefreshResponse() {
+    }
+
 }
