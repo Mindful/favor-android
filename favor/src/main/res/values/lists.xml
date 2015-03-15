@@ -41,5 +41,6 @@
         <item>Character Count</item>
         <item>Message Count</item>
         <item>Response Time</item>
+        <item>Conversational Response Time</item>
     </string-array>
 </resources>

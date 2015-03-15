@@ -53,6 +53,9 @@ public class CoreMenuFragment extends Fragment implements AdapterView.OnItemSele
                 case "Message Count":
                     act.setAnalytic(Querier.AnalyticType.Messagecount);
                     break;
+                case "Conversational Response Time":
+                    act.setAnalytic(Querier.AnalyticType.ConversationalResponseTime);
+                    break;
             }
         } else if (parent.getId() == R.id.graph){
             Logger.info("Graph Selected");

@@ -26,8 +26,11 @@ import com.favor.ui.GraphableResult;
  * Created by josh on 2/2/15.
  */
 public class Querier {
-    public static enum AnalyticType {None, Charcount, Messagecount, ResponseTime}
+    public static enum AnalyticType {None, Charcount, Messagecount, ResponseTime, ConversationalResponseTime}
     public static final AnalyticType DEFAULT_ANALYTIC = AnalyticType.Charcount;
+
+    public static final long DIVISOR_FOR_SECONDS = 1000;
+    public static final long DIVISOR_FOR_MINUTES = DIVISOR_FOR_SECONDS * 60;
 
 
     public static String analyticName(AnalyticType t){
@@ -58,9 +61,14 @@ public class Querier {
                         Processor.batchMessageCount(Core.getCurrentAccount(), input.getContacts(), input.getStartDate(), input.getEndDate(), false));
             case ResponseTime:
                 Logger.info("Responsetime");
-                return new GraphableResult(input,
-                        Processor.batchCharCount(Core.getCurrentAccount(), input.getContacts(), input.getStartDate(), input.getEndDate(), true),
-                        Processor.batchCharCount(Core.getCurrentAccount(), input.getContacts(), input.getStartDate(), input.getEndDate(), false));
+                long[] sentTimes = Processor.batchResponseTimeNintieth(Core.getCurrentAccount(), input.getContacts(), input.getStartDate(), input.getEndDate(), true);
+                long[] recTimes = Processor.batchResponseTimeNintieth(Core.getCurrentAccount(), input.getContacts(), input.getStartDate(), input.getEndDate(), false);
+                for (int i = 0; i < sentTimes.length; ++i) sentTimes[i] /= DIVISOR_FOR_MINUTES;
+                for (int i = 0; i < recTimes.length; ++i) recTimes[i] /= DIVISOR_FOR_MINUTES;
+                return new GraphableResult(input, sentTimes, recTimes);
+//            case ConversationalResponseTime:
+//                break;
+
             default:
                 Logger.info("Default result type - empty");
                 return new GraphableResult(new QueryDetails(), new long[]{}, new long[]{});
