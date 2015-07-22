@@ -84,6 +84,8 @@ public class Processor {
         return doubleMultiQuery(MESSAGECOUNT_TOTAL, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
     }
 
+    public static native void clearCache();
+
     private static native long longQuery(int query, String accountName, int accountType, long contactId, long fromDate, long untilDate, boolean sent);
     private static native double doubleQuery(int query, String accountName, int accountType, long contactId, long fromDate, long untilDate, boolean sent);
     private static native long[] longMultiQuery(int query, String accountName, int accountType, long[] contactIds, long fromDate, long untilDate, boolean sent);

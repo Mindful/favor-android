@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import com.favor.library.Core;
 import com.favor.library.Debug;
+import com.favor.library.Processor;
 
 /**
  * Created by josh on 12/31/14.
@@ -43,6 +44,7 @@ public abstract class FavorActivity extends ActionBarActivity implements Refresh
         //or call some sort of method that must be overriden so activties know how to reload themselves on refresh
         Core.getCurrentAccount().updateMessages();
         messageRefreshResponse();
+        Processor.clearCache();
     }
 
     @Override
