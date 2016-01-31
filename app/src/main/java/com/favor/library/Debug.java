@@ -17,11 +17,9 @@
 
 package com.favor.library;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -93,5 +91,11 @@ public class Debug {
             e.printStackTrace();
             Toast.makeText(c, e.toString(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    public static void debugToast(String s, Context context){
+        Toast.makeText(context, s, Toast.LENGTH_LONG).show();;
+        Logger.info(s);
+
     }
 }

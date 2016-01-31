@@ -16,7 +16,8 @@
             android:id="@+id/contact_select"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true"
+            android:onClick="launchContacts"/>
 
     <Button
             android:layout_width="wrap_content"
@@ -34,5 +35,6 @@
             android:id="@+id/export_database"
             android:layout_below="@+id/sync_texts"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true"
+            android:onClick="dumpDatabase"/>
 </RelativeLayout>

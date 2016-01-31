@@ -17,7 +17,6 @@
 
 package com.favor.library;
 
-import com.favor.ui.ContactDisplay;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -63,5 +62,11 @@ public class Contact implements Serializable {
         return false;
     }
 
-
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "displayName='" + displayName + '\'' +
+                ", id=" + id +
+                '}';
+    }
 }

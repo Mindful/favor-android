@@ -17,8 +17,6 @@
 
 package com.favor.library;
 
-import android.accounts.Account;
-
 import java.util.ArrayList;
 
 /**

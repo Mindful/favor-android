@@ -27,7 +27,6 @@ import android.provider.ContactsContract;
 
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Map;
 
 public class AndroidHelper {
     private static class AndroidContactData{

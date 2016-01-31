@@ -17,12 +17,9 @@
 
 package com.favor.library;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import com.favor.RefreshResponder;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,17 +34,7 @@ public class Core {
     private static native void init(String databaseLocation, boolean first) throws FavorException;
     private static Context context;
 
-
-    public static AccountManager getCurrentAccount() {
-        return currentAccount;
-    }
-
-    public static void setCurrentAccount(AccountManager currentAccount) {
-        Core.currentAccount = currentAccount;
-        //TODO: this may mean we need to do lots of other things, depending on how/where it's called
-    }
-
-    private static AccountManager currentAccount;
+    private static ArrayList<AccountManager> accounts = new ArrayList<AccountManager>();
 
     static class AddressComparator implements Comparator<Address> {
         @Override
@@ -131,11 +118,11 @@ public class Core {
             AndroidHelper.populateContacts();
             if (first){
                 AndroidTextManager initial = buildDefaultTextManager(c);
-                setCurrentAccount(initial);
+                accounts.add(initial);
                 buildDefaultPhoneContacts(initial);
             } else {
                 //TODO: this should be pulled up from saved state, we're just working with testcode right now
-                setCurrentAccount(Reader.accountManagers()[0]);
+                accounts.add(Reader.accountManagers()[0]);
             }
             prefs.edit().putBoolean("first", false).commit();
             initDone = true;

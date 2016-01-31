@@ -21,7 +21,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 import java.util.*;
 
@@ -62,7 +61,7 @@ public class AndroidTextManager extends AccountManager{
         try{
             HashMap<String, Integer> addressCounts = new HashMap<String, Integer>();
             HashMap<String, String> addressNames = new HashMap<String, String>();
-            Cursor c = Core.getContext().getContentResolver().query(SMS_IN, SMS_CONTACTS_PROJECTION, null, null, KEY_DATE + " DESC LIMIT 500");
+            Cursor c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_CONTACTS_PROJECTION, null, null, KEY_DATE + " DESC LIMIT 500");
             while (c.moveToNext()){
                 addressCounts.put(c.getString(0), addressCounts.containsKey(c.getString(0)) ? addressCounts.get(c.getString(0))+1 : 1);
             }
