@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.favor.app.dummy.DummyContent;
 import com.favor.library.Contact;
 import com.favor.library.Debug;
 import com.favor.library.Reader;
@@ -41,7 +40,7 @@ public class ContactSelectFragment extends ListFragment {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Debug.debugToast("LONG CLICK", getActivity().getApplicationContext());
-                return false;
+                return true;
             }
         });
     }
