@@ -19,6 +19,7 @@ package com.favor.library;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.favor.app.R;
 
 
 import java.util.ArrayList;
@@ -99,11 +100,21 @@ public class Core {
         }
     }
 
+    public static String stringFromType(Core.MessageType t){
+        switch(t){
+            case TYPE_EMAIL: return context.getString(R.string.msg_type_email_display);
+            case TYPE_ANDROIDTEXT: return context.getString(R.string.msg_type_android_display);
+            case TYPE_LINE: return context.getString(R.string.msg_type_line_display);
+            case TYPE_SKYPE: throw new IndexOutOfBoundsException("Type 3 (Skype) not supported on Android");
+            default: throw new IndexOutOfBoundsException("Attempted to convert invalid AccountManager type");
+        }
+    }
+
     public static String formatPhoneNumber(String number){
         return number.replaceAll("[^0-9]", "");
     }
 
-    public static enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
+    public enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
 
     /**
      *     Input here should be the application context so we can use it whenever we want

@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class ContactSelectActivity extends AppCompatActivity {
+public class ContactSelectActivity extends FavorActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

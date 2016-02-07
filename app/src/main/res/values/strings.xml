@@ -2,7 +2,18 @@
     <string name="app_name">Favor</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="showing_contact_type">Showing: </string>
+    <string name="change_contact_type">Change</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_contact_select">ContactSelectActivity</string>
-    <string name="title_activity_contact_stats">ContactStatsActivity</string>
+    <string name="title_activity_contact_select">Select Contacts</string>
+    <string name="title_activity_contact_stats">Contact Info</string>
+    <string name="unknown_contact">Unknown Contact</string>
+
+    <string name="msg_type_android_display">Local Text Messages</string>
+    <string name="msg_type_line_display">Line</string>
+    <string name="msg_type_email_display">Email</string>
+
+
+    <string name="sent">Sent</string>
+    <string name="received">Received</string>
 </resources>
