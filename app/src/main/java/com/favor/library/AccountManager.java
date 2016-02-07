@@ -40,18 +40,6 @@ public class AccountManager {
     protected native void _saveMessages(int type, String name, boolean[] sent, long[] id, long[] date, String[] address, boolean[] media, String[] msg) throws FavorException;
     protected native void _saveAddresses(int type, String[] addresses, int[] counts, String[] names) throws FavorException;
 
-    public void TESTMETHOD(){
-        try {
-            String[] t = contactAddresses(type);
-            Logger.info("Test method contact count:"+t.length);
-            for( String s: t){
-                Logger.info("Contact: "+t);
-            }
-        } catch (FavorException e) {
-            e.printStackTrace();
-        }
-    }
-
     protected void saveMessages(){
         //Yeah, it's weird to split them up into all these different arrays, but this involves fewer JNI calls and is easier
         //to handle at the C++ layer

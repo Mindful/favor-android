@@ -33,8 +33,18 @@
             android:layout_height="wrap_content"
             android:text="Export Database"
             android:id="@+id/export_database"
+            android:onClick="dumpDatabase"
+            android:layout_below="@+id/button"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update Messages"
+            android:id="@+id/button"
             android:layout_below="@+id/sync_texts"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:onClick="dumpDatabase"/>
+            android:onClick="updateMessages"/>
 </RelativeLayout>

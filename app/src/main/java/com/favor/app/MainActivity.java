@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import com.favor.library.Core;
 import com.favor.library.Debug;
+import com.favor.library.Reader;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,5 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void dumpDatabase(View view){
         Debug.exportDatabase(getApplicationContext());
+    }
+
+    public void updateMessages(View view){
+        Reader.accountManagers()[0].updateMessages();
     }
 }
