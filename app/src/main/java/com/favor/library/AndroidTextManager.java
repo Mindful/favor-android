@@ -17,10 +17,13 @@
 
 package com.favor.library;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 
 import java.util.*;
 
@@ -33,25 +36,84 @@ public class AndroidTextManager extends AccountManager{
         messages = new ArrayList<Message>();
     }
 
-    private static final Uri SMS_IN = Uri.parse("content://sms/inbox");
-    private static final Uri SMS_OUT = Uri.parse("content://sms/sent");
-    private static final Uri MMS_IN = Uri.parse("content://mms/inbox");
-    private static final Uri MMS_OUT = Uri.parse("content://mms/sent");
-    private static final String[] SMS_PROJECTION = { "_id", "date", "address","body" };
-    private static final String[] MMS_PROJECTION = { "_id", "date" };
-    private static final String[] SMS_CONTACTS_PROJECTION = {"address"};
+    private static final boolean TELEPHONY_API_AVAILABLE = android.os.Build.VERSION.SDK_INT >= 19;
+    private static final Uri SMS_IN = TELEPHONY_API_AVAILABLE ? Telephony.Sms.Inbox.CONTENT_URI : Uri.parse("content://sms/inbox");
+    private static final Uri SMS_OUT = TELEPHONY_API_AVAILABLE ? Telephony.Sms.Sent.CONTENT_URI : Uri.parse("content://sms/sent");
+    private static final Uri MMS_IN = TELEPHONY_API_AVAILABLE ? Telephony.Mms.Inbox.CONTENT_URI : Uri.parse("content://mms/inbox");
+    private static final Uri MMS_OUT = TELEPHONY_API_AVAILABLE ? Telephony.Mms.Sent.CONTENT_URI : Uri.parse("content://mms/sent");
+    private static final String KEY_DATE = TELEPHONY_API_AVAILABLE ? Telephony.TextBasedSmsColumns.DATE : "date"; //This is the name of the date column for texts
+    private static final String KEY_ADDRESS = TELEPHONY_API_AVAILABLE ? Telephony.TextBasedSmsColumns.ADDRESS : "address";
+    private static final String KEY_THREAD_ID = TELEPHONY_API_AVAILABLE ? Telephony.TextBasedSmsColumns.THREAD_ID : "thread_id";
+    private static final String KEY_BODY = TELEPHONY_API_AVAILABLE ? Telephony.TextBasedSmsColumns.BODY : "body";
+    private static final String KEY_ID = BaseColumns._ID;
+    private static final String[] SMS_PROJECTION = { KEY_ID, KEY_DATE, KEY_ADDRESS, KEY_BODY};
+    private static final String[] MMS_PROJECTION = { KEY_ID, KEY_DATE };
+    private static final String[] SMS_CONTACTS_PROJECTION = {KEY_ADDRESS};
     private static final String MMS_CC = "130"; // 0x82 in com.google.android.mms.pdu.PduHeaders
     private static final String MMS_BCC = "129"; // 0x81 in com.google.android.mms.pdu.PduHeaders
     private static final String MMS_TO = "151"; // 0x97 in com.google.android.mms.pdu.PduHeaders
     private static final String MMS_FROM = "137"; // 0x89 in com.google.android.mms.pdu.PduHeaders
 
-    private static final String KEY_DATE = "date"; //This is the name of the date column for texts
-    private static final String KEY_ADDRESS = "address";
+
 
     private static final String LAST_FETCH = "androidtext_last_fetch";
 
     private static final String TRACKED_ADDRESSES = "TRACKED_ADDRESSES";
 
+    private static final long MS_ADJUSTMENT = 1000l;
+
+
+    private void countThreadIdsAndAssignAddresses(Uri uri, HashMap<String, Integer> addressCountMap,
+                                                  HashMap<String, Integer> addressToThreadIdMap){
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ADDRESS}, null, null,
+                KEY_DATE + " DESC LIMIT 500");
+        int currentThreadId;
+        String currentAddress;
+        while (c != null && c.moveToNext()){
+            currentThreadId = c.getInt(0);
+            currentAddress = c.getString(1);
+            Logger.error(currentAddress);
+            addressCountMap.put(currentAddress,
+                    addressCountMap.containsValue(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
+            addressToThreadIdMap.put(currentAddress, currentThreadId);
+        }
+        c.close();
+    }
+
+    private void countMmsThreadIdsAndAssignAddresses(Uri uri, HashMap<String, Integer> addressCountMap,
+                                                  HashMap<String, Integer> addressToThreadIdMap){
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ID}, null, null,
+                KEY_DATE + " DESC LIMIT 500");
+        int currentThreadId;
+        int mmsId;
+        String currentAddress;
+        while (c != null && c.moveToNext()){
+            currentThreadId = c.getInt(0);
+            mmsId = c.getInt(1);
+            String filter = "type=" + MMS_FROM;
+            Cursor innerC = Core.getContext().getContentResolver().query(
+                    Uri.parse("content://mms/" + mmsId + "/addr"),
+                    new String[] { "address" }, filter, null, null);
+            if (!innerC.moveToFirst()){
+                Logger.info("Could not get MMS address with id "+mmsId);
+                continue;
+            }
+
+            currentAddress = innerC.getString(0);
+            Logger.error(currentAddress);
+            addressCountMap.put(currentAddress,
+                    addressCountMap.containsValue(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
+            addressToThreadIdMap.put(currentAddress, currentThreadId);
+        }
+        c.close();
+    }
+
+
+
+    private void retainThreadIdInformation(HashMap<String, Integer> addressToThreadIdMap,
+                                           HashMap<Integer, Integer> threadIdToCountMap) {
+        //TODO: preserve input somehow; probably android specific. we'll need to load it when we reload this class
+    }
 
     /*
     VERY BLOCKING
@@ -59,14 +121,17 @@ public class AndroidTextManager extends AccountManager{
     @Override
     public void updateAddresses(){
         try{
-            HashMap<String, Integer> addressCounts = new HashMap<String, Integer>();
-            HashMap<String, String> addressNames = new HashMap<String, String>();
-            Cursor c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_CONTACTS_PROJECTION, null, null, KEY_DATE + " DESC LIMIT 500");
-            while (c.moveToNext()){
-                addressCounts.put(c.getString(0), addressCounts.containsKey(c.getString(0)) ? addressCounts.get(c.getString(0))+1 : 1);
-            }
-            c.close();
+            HashMap<String, Integer> addressCountMap = new HashMap<String, Integer>();
+            HashMap<String, Integer> addressToThreadIdMap = new HashMap<String, Integer>();
+            //TODO: we actually need to crawl received as well, for address variety reasons. We don't have to use the
+            //TODO: messages we find in sent for counts, but we need to scan them anyway purely to associate thread IDs and addresses
 
+            //TODO: if we don't count them though, gonna have to carefully rewrite some code so we use uncounted mappings (in one hashmap and not the other)
+            countThreadIdsAndAssignAddresses(SMS_OUT, addressCountMap, addressToThreadIdMap);
+            countMmsThreadIdsAndAssignAddresses(MMS_OUT, addressCountMap, addressToThreadIdMap);
+
+
+            HashMap<String, String> addressNames = new HashMap<String, String>();
             //It'd be nice if we could filter this query, but phone number formatting is dangerously inconsistent
             Cursor contacts = Core.getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                     new String[] {
@@ -81,17 +146,26 @@ public class AndroidTextManager extends AccountManager{
                 addressNames.put(Core.formatPhoneNumber(contacts.getString(1)), contacts.getString(0));
             }
             contacts.close();
-            String[] addresses = new String[addressCounts.size()];
-            int[] counts = new int[addressCounts.size()];
-            String[] names = new String[addressCounts.size()];
 
+            String[] addresses = new String[addressCountMap.size()];
+            int[] counts = new int[addressCountMap.size()];
+            String[] names = new String[addressCountMap.size()];
+            HashMap<Integer, Integer> threadIdToCountMap = new HashMap<Integer, Integer>();
+
+            Logger.error("WOOOOOOO " + addressCountMap.size() + " addresses");
             int counter = 0;
-            for (Map.Entry<String, Integer> entry : addressCounts.entrySet()){
+            for (Map.Entry<String, Integer> entry : addressCountMap.entrySet()){
+                Logger.error(entry.getKey());
                 addresses[counter] = entry.getKey();
                 counts[counter] = entry.getValue();
                 names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
                 counter++;
+
+                int threadId = addressToThreadIdMap.get(entry.getKey());
+                threadIdToCountMap.put(threadId,
+                        addressCountMap.containsValue(threadId) ? addressCountMap.get(threadId) +1 : 1);
             }
+            retainThreadIdInformation(addressToThreadIdMap, threadIdToCountMap);
             _saveAddresses(type, addresses, counts, names);
         } catch (Exception e){
             e.printStackTrace();
@@ -120,21 +194,23 @@ public class AndroidTextManager extends AccountManager{
         String normalSelection = addressSelection + " AND ";
         if (catchup) normalSelection += KEY_DATE + " <= " + lastFetchDate;
         else normalSelection += KEY_DATE + " > " + lastFetchDate;
+        Logger.info(normalSelection); //TODO: deleteme
+        normalSelection = "1 = 1";
         //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly. Also, we can't filter our initial search on
         //addresses, so we just have to look at every MMS and immediately give up if it's not to/from someone we want.
-        String MMSSelection =  KEY_DATE + " > " + lastFetchDate/1000l;
+        String MMSSelection =  KEY_DATE + " > " + lastFetchDate/MS_ADJUSTMENT;
 
         Cursor c = Core.getContext().getContentResolver().query(SMS_IN, SMS_PROJECTION,
                 normalSelection, null, KEY_DATE);
         while (c.moveToNext()) {
-            holdMessage(false, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+            holdMessage(false, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, "THREAD_ID:"+c.getInt(4)+":"+c.getString(3));
         }
         c.close();
 
         c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
                 normalSelection, null, KEY_DATE);
         while (c.moveToNext()) {
-            holdMessage(true, c.getLong(0), c.getLong(1), c.getString(2), false, c.getString(3));
+            holdMessage(true, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, "THREAD_ID:"+c.getInt(4)+":"+c.getString(3));
         }
         c.close();
 
@@ -195,8 +271,6 @@ public class AndroidTextManager extends AccountManager{
 
     private void sentMMS(long id, long date, Set<String> addrSet) {
         // MMS IDs are negative to avoid overlap
-        // Additionally, MMS dates must be multiplied by 1000 to work properly
-        // vs SMS dates
 
 
         ArrayList<String> addrs = new ArrayList<String>();
@@ -211,12 +285,13 @@ public class AndroidTextManager extends AccountManager{
             while (c.moveToNext()){
                 if (addrSet.contains(c.getString(0))) addrs.add(c.getString(0));
             }
-        } else if (c.moveToFirst() && addrSet.contains(c.getString(0))) addrs.add(c.getString(0));
+        } else if (c.moveToFirst() && addrSet.contains(c.getString(0))) {
+            addrs.add(c.getString(0));
+        }
         c.close();
 
         if (addrs.size() == 0) return; //No reason to keep parsing if there are no good addresses
 
-        date = date * 1000l;
         boolean media = false;
         String type, data = "";
         c = Core.getContext().getContentResolver().query(
@@ -238,9 +313,6 @@ public class AndroidTextManager extends AccountManager{
 
     private void receivedMMS(long id, long date, Set<String> addrSet) {
         // MMS IDs are negative to avoid overlap
-        // Additionally, MMS dates must be multiplied by 1000 to work properly
-        // vs SMS dates
-        date = date * 1000l;
         boolean media = false;
         String type, data = "";
 
@@ -248,7 +320,10 @@ public class AndroidTextManager extends AccountManager{
         Cursor c = Core.getContext().getContentResolver().query(
                 Uri.parse("content://mms/" + id + "/addr"),
                 new String[] { "address" }, filter, null, null);
-        c.moveToFirst();
+        if (!c.moveToFirst()){
+            Logger.info("Could not get MMS with id "+id);
+            return;
+        }
         String address = c.getString(0);
         if (!addrSet.contains(address)) return; //No reason to keep parsing if this isn't a relevant address
         c.close();

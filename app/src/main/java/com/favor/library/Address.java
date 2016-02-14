@@ -23,6 +23,8 @@ import java.io.Serializable;
  * Created by josh on 12/27/14.
  */
 public class Address implements Serializable {
+    public static int NO_CONTACT_ID = -1;
+
     private String addr;
     private long contactId;
     private long count;
@@ -42,10 +44,11 @@ public class Address implements Serializable {
         return type;
     }
 
-    public Address(String addr, long contactId, Core.MessageType type) {
+    public Address(String addr, long count, long contactId, Core.MessageType type) {
         this.addr = addr;
         this.contactId = contactId;
         this.type = type;
+        this.count = count;
     }
 
     //We need this to call from the C++ layer, because using types down there'd be a mess

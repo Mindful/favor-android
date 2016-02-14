@@ -46,7 +46,8 @@ public class Debug {
         HashMap<String, String> cols = new HashMap<String, String>();
 
         Uri u = Uri.parse(uri);
-        Cursor c = act.getContentResolver().query(u, null, null, null, null);
+        final String[] projection = new String[]{"*"};
+        Cursor c = act.getContentResolver().query(u, projection, null, null, null);
 
         while(c.moveToNext())
         {

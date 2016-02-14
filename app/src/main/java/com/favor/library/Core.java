@@ -62,6 +62,7 @@ public class Core {
     }
 
     private static void buildDefaultPhoneContacts(AndroidTextManager account){
+        //TODO: this should be refactored into the AccountManager, and use the threadID state we get now
         account.updateAddresses();
         ArrayList<Address> addrs = new ArrayList<Address>(Arrays.asList(Reader.allAddresses(false)));
         Collections.sort(addrs, new AddressComparator());

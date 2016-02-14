@@ -47,4 +47,14 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:onClick="updateMessages"/>
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Debug/Testing Button"
+            android:id="@+id/debug_test_button"
+            android:layout_below="@+id/export_database"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="testMethod"/>
 </RelativeLayout>

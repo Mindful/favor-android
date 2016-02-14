@@ -53,7 +53,7 @@ public class AccountManager {
         for (int i = 0; i < messages.size(); ++i){
             sent[i] = messages.get(i).isSent();
             id[i] = messages.get(i).getId();
-            date[i] = messages.get(i).getDate(); //TODO: is this how should be passed in? This might need some looking at
+            date[i] = messages.get(i).getDate();
             address[i] = messages.get(i).getAddress();
             media[i] = messages.get(i).isMedia();
             msg[i] = messages.get(i).getMsg();

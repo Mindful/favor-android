@@ -43,7 +43,7 @@ public class ContactStatsActivity extends FavorActivity {
         BarData data = chart.getData();
         data.addXValue("You");
         data.addXValue(contact.getDisplayName());
-        chart.setDescription("");
+        //chart.setDescription("");
         chart.getXAxis().setDrawGridLines(false);
         for (IBarDataSet dataSet : data.getDataSets()){
             dataSet.setValueTextSize(15);
@@ -59,11 +59,13 @@ public class ContactStatsActivity extends FavorActivity {
         double sentResponseTime = Processor.responseTimeNintieth(account, contact, -1, -1, true);
         double recResponseTime = Processor.responseTimeNintieth(account, contact, -1, -1, false);
         MPAndroidChartAdapter.sentReceivedBar(responseTime, sentResponseTime, recResponseTime);
+        responseTime.setDescription("Response Time");
 
 
         double sentAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, true);
         double recAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, false);
         MPAndroidChartAdapter.sentReceivedBar(avgCharCount, sentAvgCharCount, recAvgCharCount);
+        avgCharCount.setDescription("Average Character Count");
 
         //TODO: msgs over total time should be broken up into days over the last two weeks
 
