@@ -17,7 +17,6 @@
 
 package com.favor.library;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -53,6 +52,8 @@ public class AndroidTextManager extends AccountManager{
     private static final String MMS_BCC = "129"; // 0x81 in com.google.android.mms.pdu.PduHeaders
     private static final String MMS_TO = "151"; // 0x97 in com.google.android.mms.pdu.PduHeaders
     private static final String MMS_FROM = "137"; // 0x89 in com.google.android.mms.pdu.PduHeaders
+    private static final String MMS_TO_FILTER = "(type=" + MMS_TO + " OR type=" + MMS_CC + " OR type=" + MMS_BCC + ")";
+    private static final String MMS_FROM_FILTER = "type=" + MMS_FROM;
 
 
 
@@ -63,56 +64,140 @@ public class AndroidTextManager extends AccountManager{
     private static final long MS_ADJUSTMENT = 1000l;
 
 
-    private void countThreadIdsAndAssignAddresses(Uri uri, HashMap<String, Integer> addressCountMap,
-                                                  HashMap<String, Integer> addressToThreadIdMap){
-        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ADDRESS}, null, null,
+    private static void countSmsAddresses(Uri uri, HashMap<String, Integer> addressCountMap){
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_ADDRESS}, null, null,
                 KEY_DATE + " DESC LIMIT 500");
-        int currentThreadId;
-        String currentAddress;
         while (c != null && c.moveToNext()){
-            currentThreadId = c.getInt(0);
-            currentAddress = c.getString(1);
+            String currentAddress = c.getString(0);
             Logger.error(currentAddress);
             addressCountMap.put(currentAddress,
-                    addressCountMap.containsValue(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
-            addressToThreadIdMap.put(currentAddress, currentThreadId);
+                    addressCountMap.containsKey(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
         }
         c.close();
     }
 
-    private void countMmsThreadIdsAndAssignAddresses(Uri uri, HashMap<String, Integer> addressCountMap,
-                                                  HashMap<String, Integer> addressToThreadIdMap){
-        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ID}, null, null,
+    private static void countMmsAddresses(Uri uri, HashMap<String, Integer> addressCountMap){
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_ID}, null, null,
                 KEY_DATE + " DESC LIMIT 500");
+        while (c != null && c.moveToNext()){
+            int mmsId = c.getInt(0);
+            ArrayList<String> addresses = getSentMMSAddresses(mmsId);
+
+            for (String currentAddress : addresses) {
+                Logger.error(currentAddress);
+                addressCountMap.put(currentAddress,
+                        addressCountMap.containsKey(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
+            }
+        }
+        c.close();
+    }
+
+    private static String addressSelection(Address[] addresses){
+        String selection = "";
+        boolean first = true;
+        for(int i = 0; i < addresses.length; ++i){
+            if(first){
+                first = false;
+            } else {
+                selection += " OR ";
+            }
+            selection += KEY_ADDRESS + "='" + addresses[i].getAddr()+"'";
+        }
+        return selection;
+    }
+
+    private static String threadIdSelection(List<Integer> threadIds){
+        String selection = "";
+        boolean first = true;
+        for(int i = 0; i < threadIds.size(); ++i){
+            if(first){
+                first = false;
+            } else {
+                selection += " OR ";
+            }
+            selection += KEY_THREAD_ID + "=" +threadIds.get(i);
+        }
+        return selection;
+    }
+
+
+    private static void mapSmsAddressesToThreadIds(Uri uri, HashMap<String, Integer> addressToThreadIdMap,
+                                            String selection){
+
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ADDRESS},
+                selection, null, null);
+        if (c != null){
+            while (c.moveToNext()){
+                String currentAddress = c.getString(1);
+                int currentThreadId = c.getInt(0);
+                addressToThreadIdMap.put(currentAddress, currentThreadId);
+
+            }
+            c.close();
+        } else Logger.warning("SMS table cursor null for URI "+uri);
+    }
+
+    private static void mapMmsAddressesToThreadIds(Uri uri, HashMap<String, Integer> addressToThreadIdMap,
+                                            String selection, boolean sent){
+        Cursor c = Core.getContext().getContentResolver().query(uri, new String[]{KEY_THREAD_ID, KEY_ID},
+                selection, null, null);
         int currentThreadId;
         int mmsId;
-        String currentAddress;
-        while (c != null && c.moveToNext()){
-            currentThreadId = c.getInt(0);
-            mmsId = c.getInt(1);
-            String filter = "type=" + MMS_FROM;
-            Cursor innerC = Core.getContext().getContentResolver().query(
-                    Uri.parse("content://mms/" + mmsId + "/addr"),
-                    new String[] { "address" }, filter, null, null);
-            if (!innerC.moveToFirst()){
-                Logger.info("Could not get MMS address with id "+mmsId);
-                continue;
-            }
+        if (c != null){
+            while (c.moveToNext()){
+                currentThreadId = c.getInt(0);
+                mmsId = c.getInt(1);
+                if (sent){
+                    for (String currentAddress : getSentMMSAddresses(mmsId)) {
+                        if (currentAddress != null) {
+                            addressToThreadIdMap.put(currentAddress, currentThreadId);
+                        } else {
+                            Logger.info("Skipping null address for MMS message with id "+mmsId+" and sent="+sent);
+                        }
+                    }
+                } else {
+                    String currentAddress = getReceivedMMSAddress(mmsId);
+                    if (currentAddress != null) {
+                        addressToThreadIdMap.put(currentAddress, currentThreadId);
+                    } else {
+                        Logger.info("Skipping null address for MMS message with id "+mmsId+" and sent="+sent);
+                    }
+                }
 
-            currentAddress = innerC.getString(0);
-            Logger.error(currentAddress);
-            addressCountMap.put(currentAddress,
-                    addressCountMap.containsValue(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
-            addressToThreadIdMap.put(currentAddress, currentThreadId);
-        }
-        c.close();
+
+            }
+            c.close();
+        } else Logger.warning("MMS table cursor null for URI "+uri);
     }
 
 
 
-    private void retainThreadIdInformation(HashMap<String, Integer> addressToThreadIdMap,
-                                           HashMap<Integer, Integer> threadIdToCountMap) {
-        //TODO: preserve input somehow; probably android specific. we'll need to load it when we reload this class
+
+    public static HashMap<String, Integer> mapThreadIds(Address[] addresses){
+        HashMap<String, Integer> addressToThreadIdMap = new HashMap<String, Integer>();
+
+        //Keep going until we have all the addresses mapped to a thread ID
+        String selection = addressSelection(addresses);
+        mapSmsAddressesToThreadIds(SMS_IN, addressToThreadIdMap, selection);
+        if (addressToThreadIdMap.size() != addresses.length){
+            mapSmsAddressesToThreadIds(SMS_OUT, addressToThreadIdMap, selection);
+        }
+        if (addressToThreadIdMap.size() != addresses.length){
+            mapMmsAddressesToThreadIds(MMS_IN, addressToThreadIdMap, null, false);
+        }
+        if (addressToThreadIdMap.size() != addresses.length){
+            mapMmsAddressesToThreadIds(MMS_OUT, addressToThreadIdMap, null, true);
+        }
+
+        //Take our newly found thread IDs and redo the mapping looking for everything with that thread ID
+        selection = threadIdSelection(new ArrayList<Integer>(addressToThreadIdMap.values()));
+        mapSmsAddressesToThreadIds(SMS_IN, addressToThreadIdMap, selection);
+        mapSmsAddressesToThreadIds(SMS_OUT, addressToThreadIdMap, selection);
+        mapMmsAddressesToThreadIds(MMS_IN, addressToThreadIdMap, selection, false);
+        mapMmsAddressesToThreadIds(MMS_OUT, addressToThreadIdMap, selection, true);
+
+
+        return addressToThreadIdMap;
     }
 
     /*
@@ -122,13 +207,8 @@ public class AndroidTextManager extends AccountManager{
     public void updateAddresses(){
         try{
             HashMap<String, Integer> addressCountMap = new HashMap<String, Integer>();
-            HashMap<String, Integer> addressToThreadIdMap = new HashMap<String, Integer>();
-            //TODO: we actually need to crawl received as well, for address variety reasons. We don't have to use the
-            //TODO: messages we find in sent for counts, but we need to scan them anyway purely to associate thread IDs and addresses
-
-            //TODO: if we don't count them though, gonna have to carefully rewrite some code so we use uncounted mappings (in one hashmap and not the other)
-            countThreadIdsAndAssignAddresses(SMS_OUT, addressCountMap, addressToThreadIdMap);
-            countMmsThreadIdsAndAssignAddresses(MMS_OUT, addressCountMap, addressToThreadIdMap);
+            countSmsAddresses(SMS_OUT, addressCountMap);
+            countMmsAddresses(MMS_OUT, addressCountMap);
 
 
             HashMap<String, String> addressNames = new HashMap<String, String>();
@@ -150,24 +230,20 @@ public class AndroidTextManager extends AccountManager{
             String[] addresses = new String[addressCountMap.size()];
             int[] counts = new int[addressCountMap.size()];
             String[] names = new String[addressCountMap.size()];
-            HashMap<Integer, Integer> threadIdToCountMap = new HashMap<Integer, Integer>();
+            //HashMap<Integer, Integer> threadIdToCountMap = new HashMap<Integer, Integer>();
 
             Logger.error("WOOOOOOO " + addressCountMap.size() + " addresses");
             int counter = 0;
             for (Map.Entry<String, Integer> entry : addressCountMap.entrySet()){
-                Logger.error(entry.getKey());
                 addresses[counter] = entry.getKey();
                 counts[counter] = entry.getValue();
                 names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
+                Logger.error(entry.getKey()+", count:"+entry.getValue()+", name:"+addressNames.get(entry.getKey()));
                 counter++;
-
-                int threadId = addressToThreadIdMap.get(entry.getKey());
-                threadIdToCountMap.put(threadId,
-                        addressCountMap.containsValue(threadId) ? addressCountMap.get(threadId) +1 : 1);
             }
-            retainThreadIdInformation(addressToThreadIdMap, threadIdToCountMap);
             _saveAddresses(type, addresses, counts, names);
         } catch (Exception e){
+            //TODO: do better
             e.printStackTrace();
         }
     }
@@ -194,7 +270,6 @@ public class AndroidTextManager extends AccountManager{
         String normalSelection = addressSelection + " AND ";
         if (catchup) normalSelection += KEY_DATE + " <= " + lastFetchDate;
         else normalSelection += KEY_DATE + " > " + lastFetchDate;
-        Logger.info(normalSelection); //TODO: deleteme
         normalSelection = "1 = 1";
         //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly. Also, we can't filter our initial search on
         //addresses, so we just have to look at every MMS and immediately give up if it's not to/from someone we want.
@@ -268,37 +343,50 @@ public class AndroidTextManager extends AccountManager{
     //TODO: the new sent and received MMS methods have had basically no testing, and really need some more thorough
     //testing but... I got a new phone right before switching countries. Alas, I am MMS-less
 
+    private static ArrayList<String> getSentMMSAddresses(long id){
+        ArrayList<String> addrs = new ArrayList<String>();
+        Cursor c = Core.getContext().getContentResolver().query(
+                Uri.parse("content://mms/" + id + "/addr"),
+                new String[] { "address" }, MMS_TO_FILTER, null, null);
+        if (c == null){
+            Logger.info("Null cursor for sent MMS messages with id:"+id);
+            return addrs;
+        }
+        if (c.getCount() > 1) {
+            while (c.moveToNext()){
+                addrs.add(c.getString(0));
+            }
+        } else if (c.moveToFirst()) {
+            addrs.add(c.getString(0));
+        }
+        c.close();
+        return addrs;
+    }
 
     private void sentMMS(long id, long date, Set<String> addrSet) {
         // MMS IDs are negative to avoid overlap
 
 
-        ArrayList<String> addrs = new ArrayList<String>();
-        String filter = "(type=" + MMS_TO + " OR type=" + MMS_CC + " OR type="
-                + MMS_BCC + ")";
-
-        //The extra code here is so we can insert multiple entries for sending to multiple people
-        Cursor c = Core.getContext().getContentResolver().query(
-                Uri.parse("content://mms/" + id + "/addr"),
-                new String[] { "address" }, filter, null, null);
-        if (c.getCount() > 1) {
-            while (c.moveToNext()){
-                if (addrSet.contains(c.getString(0))) addrs.add(c.getString(0));
-            }
-        } else if (c.moveToFirst() && addrSet.contains(c.getString(0))) {
-            addrs.add(c.getString(0));
+        ArrayList<String> initialAddrs = getSentMMSAddresses(id);
+        if (initialAddrs.size() == 0) {
+            Logger.info("Could not get addresses for MMS with id "+id);
+            return; //This case means we couldn't get any addresses at all
         }
-        c.close();
-
-        if (addrs.size() == 0) return; //No reason to keep parsing if there are no good addresses
+        ArrayList<String> addrs = new ArrayList<String>();
+        for (String addr : initialAddrs){
+            if (addrSet.contains(addr)) addrs.add(addr);
+        }
+        if (addrs.size() == 0) {
+            return; //No reason to keep parsing if there are no good addresses
+        }
 
         boolean media = false;
         String type, data = "";
-        c = Core.getContext().getContentResolver().query(
+        Cursor c = Core.getContext().getContentResolver().query(
                 Uri.parse("content://mms/" + id + "/part"),
                 new String[] { "_data", "text", "ct" },
                 "ct<>\"application/smil\"", null, null);
-        while (c.moveToNext()) {
+        while (c != null && c.moveToNext()) {
             type = c.getString(2);
             if (type.equals("text/plain")) {
                 data = c.getString(0);
@@ -311,25 +399,32 @@ public class AndroidTextManager extends AccountManager{
         for (String addr : addrs) holdMessage(true, -id, date, addr, media, data);
     }
 
+    private static String getReceivedMMSAddress(long id){
+        String address;
+        Cursor c = Core.getContext().getContentResolver().query(
+                Uri.parse("content://mms/" + id + "/addr"),
+                new String[] { "address" }, MMS_FROM_FILTER, null, null);
+        if (c == null || !c.moveToFirst()){
+            Logger.info("Could not get address for MMS with id "+id);
+            address = null;
+        } else {
+            address = c.getString(0);
+        }
+        c.close();
+        return address;
+    }
+
     private void receivedMMS(long id, long date, Set<String> addrSet) {
         // MMS IDs are negative to avoid overlap
         boolean media = false;
         String type, data = "";
 
-        String filter = "type=" + MMS_FROM;
-        Cursor c = Core.getContext().getContentResolver().query(
-                Uri.parse("content://mms/" + id + "/addr"),
-                new String[] { "address" }, filter, null, null);
-        if (!c.moveToFirst()){
-            Logger.info("Could not get MMS with id "+id);
-            return;
-        }
-        String address = c.getString(0);
+
+        String address = getReceivedMMSAddress(id);
         if (!addrSet.contains(address)) return; //No reason to keep parsing if this isn't a relevant address
-        c.close();
 
 
-        c = Core.getContext().getContentResolver().query(
+        Cursor c = Core.getContext().getContentResolver().query(
                 Uri.parse("content://mms/" + id + "/part"),
                 new String[] { "_data", "text", "ct" },
                 "ct<>\"application/smil\"", null, null);

@@ -24,6 +24,7 @@ import java.io.Serializable;
  */
 public class Address implements Serializable {
     public static int NO_CONTACT_ID = -1;
+    public static int NO_COUNT = -1;
 
     private String addr;
     private long contactId;
