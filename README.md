@@ -2,7 +2,7 @@ Just getting things set up right now.
 
 Todo:
  - Change Java Address' count to int to be in sync with C++ level; be careful about constructors called from JNI code though.
- - Why isn't the name guessing code getting Dror's contact name right?
+ - We're going to need levenshtein distance and/or some other clever method of guessing for contact names because phone # formatting is inconsistent.
  - Is there a better way to deal with getting MMSs by address? Right now because it's a separate query we have to look at all of them. Might be able to cheat with thread IDs or
  another table (conversations, perhaps? Though in that case the samsung specific issues will make things more complicated).
  - Cursors can apparently be null with relative frequently; find all our .query calls and add null checks for the consequently produced variables

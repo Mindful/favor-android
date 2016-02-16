@@ -85,14 +85,13 @@ public class Core {
 
         //This could very well have more addresses than the selection we got from reader; it will have all of the
         //addresses connected by thread ID to any addresses in input
-        HashMap<String, Integer> addressToThreadIdMap = AndroidTextManager.mapThreadIds(addresses); 
+        HashMap<String, Integer> addressToThreadIdMap = AndroidTextManager.mapThreadIds(addresses);
 
         HashMap<Integer, ArrayList<String>> threadIdToAddressesMap = new HashMap<>();
         for (Map.Entry<String, Integer> entry : addressToThreadIdMap.entrySet()){
             if (!threadIdToAddressesMap.containsKey(entry.getValue())){
                 threadIdToAddressesMap.put(entry.getValue(), new ArrayList<String>());
             }
-            Logger.error("Map "+entry.getValue()+" to "+entry.getKey());
             threadIdToAddressesMap.get(entry.getValue()).add(entry.getKey());
         }
 
@@ -112,7 +111,6 @@ public class Core {
         threadIds.addAll(threadIdCount.entrySet());
         Collections.sort(threadIds, new ThreadIdCountEntryComparator());
         for (int i = 0; i < threadIds.size() && i < 10; ++i){
-            Logger.error("Try and get arraylist for "+threadIds.get(i));
             ArrayList<String> correspondingAddresses = threadIdToAddressesMap.get(threadIds.get(i).getKey());
 
             ArrayList<Address> existingCorrespondingAddresses = new ArrayList<Address>();
@@ -132,36 +130,28 @@ public class Core {
                 //the contact
                 long contactId = Address.NO_CONTACT_ID;
                 Collections.sort(existingCorrespondingAddresses, new AddressCountComparator()); //Sorts with larger counts at lower indices
-                boolean first = true;
                 for(int j = 0; j < existingCorrespondingAddresses.size(); ++j){
                     Address addr = existingCorrespondingAddresses.get(j);
-                    if (first){
-                        first = false;
+                    if (j == 0){
                         try {
-                            contactId = contactFromAddress(existingCorrespondingAddresses.get(j),MessageType.TYPE_ANDROIDTEXT);
-                            Logger.error("Contact id :"+contactId+" for contact "+addr.getAddr());
+                            contactId = contactFromAddress(addr,MessageType.TYPE_ANDROIDTEXT);
+                            if (contactId == Address.NO_CONTACT_ID){
+                                throw new FavorException("Failed to set contact ID after creation");
+                            }
                         }
                         catch (FavorException e){
                             Logger.error("Failed to create default contact "+addr.getAddr()+ " : "+e.getMessage());
                             //TODO: give up on this contact's other addresses to; we have nothing to map it to here
                         }
                     } else {
-                        if (contactId == Address.NO_CONTACT_ID){
-                            //TODO: well, that's wrong
-                        } else {
-                            //TODO: we have to update an existing address, which we actually need a different method for
-                        }
+                        Worker.updateAddressContactId(addr.getAddr(), MessageType.TYPE_ANDROIDTEXT, contactId);
                     }
                 }
                 for (int j = 0; j < newCorrespondingAddresses.size(); ++j){
-                    if (contactId == Address.NO_CONTACT_ID){
-                        //TODO: well, that's wrong
-                    } else {
-                        try{
-                            Worker.createAddress(newCorrespondingAddresses.get(j), MessageType.TYPE_ANDROIDTEXT, 0, contactId);
-                        } catch (FavorException e){
-                            Logger.error("Faled to create secondary new address "+newCorrespondingAddresses.get(j)+" : "+e.getMessage());
-                        }
+                    try{
+                        Worker.createAddress(newCorrespondingAddresses.get(j), MessageType.TYPE_ANDROIDTEXT, 0, contactId);
+                    } catch (FavorException e){
+                        Logger.error("Faled to create secondary new address "+newCorrespondingAddresses.get(j)+" : "+e.getMessage());
                     }
                 }
             }

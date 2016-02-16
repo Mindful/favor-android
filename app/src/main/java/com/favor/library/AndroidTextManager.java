@@ -94,11 +94,8 @@ public class AndroidTextManager extends AccountManager{
 
     private static String addressSelection(Address[] addresses){
         String selection = "";
-        boolean first = true;
         for(int i = 0; i < addresses.length; ++i){
-            if(first){
-                first = false;
-            } else {
+            if(i != 0){
                 selection += " OR ";
             }
             selection += KEY_ADDRESS + "='" + addresses[i].getAddr()+"'";
@@ -108,11 +105,8 @@ public class AndroidTextManager extends AccountManager{
 
     private static String threadIdSelection(List<Integer> threadIds){
         String selection = "";
-        boolean first = true;
         for(int i = 0; i < threadIds.size(); ++i){
-            if(first){
-                first = false;
-            } else {
+            if(i != 0){
                 selection += " OR ";
             }
             selection += KEY_THREAD_ID + "=" +threadIds.get(i);
@@ -232,13 +226,12 @@ public class AndroidTextManager extends AccountManager{
             String[] names = new String[addressCountMap.size()];
             //HashMap<Integer, Integer> threadIdToCountMap = new HashMap<Integer, Integer>();
 
-            Logger.error("WOOOOOOO " + addressCountMap.size() + " addresses");
             int counter = 0;
             for (Map.Entry<String, Integer> entry : addressCountMap.entrySet()){
                 addresses[counter] = entry.getKey();
                 counts[counter] = entry.getValue();
                 names[counter] = addressNames.get(entry.getKey()); //This may be null when we don't know, which is intentional
-                Logger.error(entry.getKey()+", count:"+entry.getValue()+", name:"+addressNames.get(entry.getKey()));
+                Logger.info(entry.getKey()+", count:"+entry.getValue()+", name:"+addressNames.get(entry.getKey()));
                 counter++;
             }
             _saveAddresses(type, addresses, counts, names);
@@ -270,7 +263,6 @@ public class AndroidTextManager extends AccountManager{
         String normalSelection = addressSelection + " AND ";
         if (catchup) normalSelection += KEY_DATE + " <= " + lastFetchDate;
         else normalSelection += KEY_DATE + " > " + lastFetchDate;
-        normalSelection = "1 = 1";
         //MMS dates are formatted retardedly, so we have to divide lastFetch accordingly. Also, we can't filter our initial search on
         //addresses, so we just have to look at every MMS and immediately give up if it's not to/from someone we want.
         String MMSSelection =  KEY_DATE + " > " + lastFetchDate/MS_ADJUSTMENT;
@@ -278,14 +270,14 @@ public class AndroidTextManager extends AccountManager{
         Cursor c = Core.getContext().getContentResolver().query(SMS_IN, SMS_PROJECTION,
                 normalSelection, null, KEY_DATE);
         while (c.moveToNext()) {
-            holdMessage(false, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, "THREAD_ID:"+c.getInt(4)+":"+c.getString(3));
+            holdMessage(false, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, c.getString(3));
         }
         c.close();
 
         c = Core.getContext().getContentResolver().query(SMS_OUT, SMS_PROJECTION,
                 normalSelection, null, KEY_DATE);
         while (c.moveToNext()) {
-            holdMessage(true, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, "THREAD_ID:"+c.getInt(4)+":"+c.getString(3));
+            holdMessage(true, c.getLong(0), c.getLong(1)/MS_ADJUSTMENT, c.getString(2), false, c.getString(3));
         }
         c.close();
 

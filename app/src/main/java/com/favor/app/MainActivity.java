@@ -58,8 +58,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void testMethod(View view){
-        Logger.info(Telephony.MmsSms.CONTENT_CONVERSATIONS_URI.toString());
-        Logger.info(Telephony.MmsSms.CONTENT_URI.toString());
         Debug.uriProperties("content://mms-sms/conversations/?simple=true", this);
     }
 }
