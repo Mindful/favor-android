@@ -62,6 +62,18 @@ public class Contact implements Serializable {
         return false;
     }
 
+    public String getAddressListString() {
+        StringBuilder str = new StringBuilder("(");
+        for (int i = 0; i < addresses.size(); ++i){
+            str.append(addresses.get(i));
+            if (i < addresses.size() -1 ) {
+                str.append(", ");
+            }
+        }
+        str.append(")");
+        return str.toString();
+    }
+
     @Override
     public String toString() {
         return "Contact{" +

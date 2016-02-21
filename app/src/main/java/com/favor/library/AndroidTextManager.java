@@ -69,7 +69,6 @@ public class AndroidTextManager extends AccountManager{
                 KEY_DATE + " DESC LIMIT 500");
         while (c != null && c.moveToNext()){
             String currentAddress = c.getString(0);
-            Logger.error(currentAddress);
             addressCountMap.put(currentAddress,
                     addressCountMap.containsKey(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
         }
@@ -84,7 +83,6 @@ public class AndroidTextManager extends AccountManager{
             ArrayList<String> addresses = getSentMMSAddresses(mmsId);
 
             for (String currentAddress : addresses) {
-                Logger.error(currentAddress);
                 addressCountMap.put(currentAddress,
                         addressCountMap.containsKey(currentAddress) ? addressCountMap.get(currentAddress) +1 : 1);
             }

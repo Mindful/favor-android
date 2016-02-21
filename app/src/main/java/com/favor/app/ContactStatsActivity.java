@@ -1,16 +1,10 @@
 package com.favor.app;
 
-import android.accounts.Account;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import com.favor.graphs.HorizontalTwoValueGraph;
 import com.favor.library.*;
-import com.favor.util.MPAndroidChartAdapter;
-import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.charts.HorizontalBarChart;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import lecho.lib.hellocharts.view.LineChartView;
 
 public class ContactStatsActivity extends FavorActivity {
@@ -38,40 +32,27 @@ public class ContactStatsActivity extends FavorActivity {
         updateGraphs();
     }
 
-    private void formatBarChart(BarChart chart){
-        chart.setTouchEnabled(false);
-        BarData data = chart.getData();
-        data.addXValue("You");
-        data.addXValue(contact.getDisplayName());
-        //chart.setDescription("");
-        chart.getXAxis().setDrawGridLines(false);
-        for (IBarDataSet dataSet : data.getDataSets()){
-            dataSet.setValueTextSize(15);
-        }
-    }
-
     private void updateGraphs(){
         LineChartView msgTotalOverTime = (LineChartView) findViewById(R.id.total_msg_over_time_chart);
-        HorizontalBarChart avgCharCount = (HorizontalBarChart) findViewById(R.id.avg_character_count_chart);
-        HorizontalBarChart responseTime = (HorizontalBarChart) findViewById(R.id.response_time_chart);
+        HorizontalTwoValueGraph avgCharCount = (HorizontalTwoValueGraph) findViewById(R.id.avg_character_count_chart);
+        HorizontalTwoValueGraph responseTime = (HorizontalTwoValueGraph) findViewById(R.id.response_time_chart);
 
 
         double sentResponseTime = Processor.responseTimeNintieth(account, contact, -1, -1, true);
         double recResponseTime = Processor.responseTimeNintieth(account, contact, -1, -1, false);
-        MPAndroidChartAdapter.sentReceivedBar(responseTime, sentResponseTime, recResponseTime);
-        responseTime.setDescription("Response Time");
+        responseTime.setTwoValueData(contact.getDisplayName(), sentResponseTime, recResponseTime);
+        responseTime.setDefaults();
+        responseTime.setGraphName("Response Time");
 
 
         double sentAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, true);
         double recAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, false);
-        MPAndroidChartAdapter.sentReceivedBar(avgCharCount, sentAvgCharCount, recAvgCharCount);
-        avgCharCount.setDescription("Average Character Count");
+        avgCharCount.setTwoValueData(contact.getDisplayName(), sentAvgCharCount, recAvgCharCount);
+        avgCharCount.setDefaults();
+        avgCharCount.setGraphName("Average Character Count");
 
         //TODO: msgs over total time should be broken up into days over the last two weeks
 
-
-        formatBarChart(avgCharCount);
-        formatBarChart(responseTime);
         msgTotalOverTime.setValueTouchEnabled(false); //TODO: this right? different library than the other two charts
     }
 

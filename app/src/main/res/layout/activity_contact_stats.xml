@@ -43,14 +43,14 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:gravity="top" />
-    <com.github.mikephil.charting.charts.HorizontalBarChart
+    <com.favor.graphs.HorizontalTwoValueGraph
             android:id="@+id/avg_character_count_chart"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"/>
-    <com.github.mikephil.charting.charts.HorizontalBarChart
+    <com.favor.graphs.HorizontalTwoValueGraph
             android:id="@+id/response_time_chart"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"

@@ -16,4 +16,5 @@
 
     <string name="sent">Sent</string>
     <string name="received">Received</string>
+    <string name="sent_name">You</string>
 </resources>
