@@ -2,23 +2,19 @@ package com.favor.app;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.app.ListFragment;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import com.favor.library.Contact;
 import com.favor.library.Debug;
-import com.favor.library.Logger;
 import com.favor.library.Reader;
 
 public class ContactSelectFragment extends ListFragment {
 
-    private ArrayAdapter<Contact> contacts;
+    private ContactAdapter adapter;
     public final static String CONTACT = "CONTACT";
 
 
@@ -29,11 +25,8 @@ public class ContactSelectFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        contacts = new ArrayAdapter<Contact>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, Reader.contacts());
-
-
-        setListAdapter(contacts);
+        adapter = new ContactAdapter(getActivity(), Reader.contacts());
+        setListAdapter(adapter);
 
     }
 
@@ -44,7 +37,8 @@ public class ContactSelectFragment extends ListFragment {
         getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Debug.debugToast("LONG CLICK", getActivity().getApplicationContext());
+                Debug.debugToast("LONG CLICK "+i, getActivity().getApplicationContext());
+                adapter.toggleItem(i);
                 return true;
             }
         });
@@ -72,7 +66,7 @@ public class ContactSelectFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
 
         Intent contactStatsIntent = new Intent(getActivity(), ContactStatsActivity.class);
-        contactStatsIntent.putExtra(CONTACT, contacts.getItem(position));
+        contactStatsIntent.putExtra(CONTACT, adapter.getItem(position));
         startActivity(contactStatsIntent);
 
 

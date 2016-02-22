@@ -35,7 +35,7 @@
 
     </RelativeLayout>
 
-    <lecho.lib.hellocharts.view.LineChartView
+    <com.favor.graphs.TimeLapseTwoLineGraph
             android:id="@+id/total_msg_over_time_chart"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"

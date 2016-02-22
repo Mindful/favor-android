@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.favor.graphs.HorizontalTwoValueGraph;
+import com.favor.graphs.TimeLapseTwoLineGraph;
 import com.favor.library.*;
 import lecho.lib.hellocharts.view.LineChartView;
 
@@ -33,7 +34,7 @@ public class ContactStatsActivity extends FavorActivity {
     }
 
     private void updateGraphs(){
-        LineChartView msgTotalOverTime = (LineChartView) findViewById(R.id.total_msg_over_time_chart);
+        TimeLapseTwoLineGraph msgTotalOverTime = (TimeLapseTwoLineGraph) findViewById(R.id.total_msg_over_time_chart);
         HorizontalTwoValueGraph avgCharCount = (HorizontalTwoValueGraph) findViewById(R.id.avg_character_count_chart);
         HorizontalTwoValueGraph responseTime = (HorizontalTwoValueGraph) findViewById(R.id.response_time_chart);
 
@@ -53,7 +54,7 @@ public class ContactStatsActivity extends FavorActivity {
 
         //TODO: msgs over total time should be broken up into days over the last two weeks
 
-        msgTotalOverTime.setValueTouchEnabled(false); //TODO: this right? different library than the other two charts
+        msgTotalOverTime.setDefaults();
     }
 
     @Override
