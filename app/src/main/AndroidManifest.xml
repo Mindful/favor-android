@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.favor.app" >
-    <uses-permission android:name="android.permission.READ_CONTACTS"/>
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <!--TODO: The above is here largely for exporting the database for debugging, and can likely be deleted afterward -->
 
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- TODO: The above is here largely for exporting the database for debugging, and can likely be deleted afterward -->
     <application
         android:allowBackup="true"
         android:icon="@drawable/favor_icon_launcher"
@@ -27,6 +28,10 @@
         <activity
             android:name=".ContactStatsActivity"
             android:label="@string/title_activity_contact_stats" >
+        </activity>
+        <activity
+            android:name=".ContactCompareActivity"
+            android:label="@string/title_activity_contact_compare" >
         </activity>
     </application>
 

@@ -8,6 +8,7 @@
     <string name="title_activity_contact_select">Select Contacts</string>
     <string name="title_activity_contact_stats">Contact Info</string>
     <string name="unknown_contact">Unknown Contact</string>
+    <string name="compare_contacts">Compare Contacts</string>
 
     <string name="msg_type_android_display">Local Text Messages</string>
     <string name="msg_type_line_display">Line</string>
@@ -17,4 +18,5 @@
     <string name="sent">Sent</string>
     <string name="received">Received</string>
     <string name="sent_name">You</string>
+    <string name="title_activity_contact_compare">ContactCompareActivity</string>
 </resources>

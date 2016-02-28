@@ -1,12 +1,17 @@
 package com.favor.app;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
-public class ContactSelectActivity extends FavorActivity{
+public class ContactSelectActivity extends FavorActivity implements ContactAdapter.OnContactSelectModeListener{
+
+    private ContactAdapter adapter; //Set by the adapter on its initialization
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,5 +39,26 @@ public class ContactSelectActivity extends FavorActivity{
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void setContactSelectMode(boolean mode) {
+        Button compareButton = (Button)findViewById(R.id.compare_contacts_button);
+        if (mode == true){
+            compareButton.setVisibility(View.VISIBLE);
+        } else {
+            compareButton.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void setAdapter(ContactAdapter inputAdapter) {
+        adapter = inputAdapter;
+    }
+
+    public void launchCompareContacts(View view){
+        Intent contactCompareIntent = new Intent(this, ContactCompareActivity.class);
+        contactCompareIntent.putExtra(ContactSelectFragment.CONTACT_LIST, adapter.getSelectedContacts());
+        startActivity(contactCompareIntent);
     }
 }

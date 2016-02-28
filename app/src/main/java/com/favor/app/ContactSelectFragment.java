@@ -16,6 +16,7 @@ public class ContactSelectFragment extends ListFragment {
 
     private ContactAdapter adapter;
     public final static String CONTACT = "CONTACT";
+    public final static String CONTACT_LIST = "CONTACT_LIST";
 
 
     public ContactSelectFragment() {
@@ -33,11 +34,9 @@ public class ContactSelectFragment extends ListFragment {
     @Override
     public void onStart(){
         super.onStart();
-        //TODO: this needs to be set, but can't be set here because we're not done inflating this view yet
         getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Debug.debugToast("LONG CLICK "+i, getActivity().getApplicationContext());
                 adapter.toggleItem(i);
                 return true;
             }
@@ -48,12 +47,7 @@ public class ContactSelectFragment extends ListFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-//        try {
-//            mListener = (OnFragmentInteractionListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
+
     }
 
     @Override
@@ -69,17 +63,6 @@ public class ContactSelectFragment extends ListFragment {
         contactStatsIntent.putExtra(CONTACT, adapter.getItem(position));
         startActivity(contactStatsIntent);
 
-
-//        if (null != mListener) {
-//            // Notify the active callbacks interface (the activity, if the
-//            // fragment is attached to one) that an item has been selected.
-//            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-//        }
-    }
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
     }
 
 }

@@ -1,12 +1,12 @@
 package com.favor.app;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.favor.library.Contact;
-import com.favor.library.Logger;
 
 import java.util.ArrayList;
 
@@ -15,24 +15,35 @@ import java.util.ArrayList;
  */
 public class ContactAdapter extends BaseAdapter {
 
-
+    public interface OnContactSelectModeListener {
+        public void setContactSelectMode(boolean mode);
+        public void setAdapter(ContactAdapter adapter);
+    }
 
     private ArrayList<ContactWrapper> contacts;
     private Context context;
     private LayoutInflater inflater;
+    OnContactSelectModeListener listener;
 
     private final int LIST_ITEM_TYPE_COUNT = 2;
     private final int LIST_ITEM_TYPE_SELECTMODE = 1;
     private final int LIST_ITEM_TYPE_NORMAL = 0;
 
 
-    public ContactAdapter(Context inputContext, ArrayList<Contact> inputContacts) {
+    public ContactAdapter(Activity activity, ArrayList<Contact> inputContacts) {
         contacts = new ArrayList<ContactWrapper>();
         for (Contact contact : inputContacts){
             contacts.add(new ContactWrapper(contact));
         }
-        context = inputContext;
+        context = activity;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        try {
+            listener = (OnContactSelectModeListener) activity;
+            listener.setAdapter(this);
+        } catch (ClassCastException e){
+            throw new ClassCastException(activity.toString()+ " must implement OnContactSelectModeListener");
+        }
     }
 
     public boolean selectMode(){
@@ -43,8 +54,19 @@ public class ContactAdapter extends BaseAdapter {
         return ret;
     }
 
+    public ArrayList<Contact> getSelectedContacts(){
+        ArrayList<Contact> ret = new ArrayList<Contact>();
+        for (ContactWrapper contactWrapper : contacts){
+            if (contactWrapper.getSelected()){
+                ret.add(contactWrapper.getContact());
+            }
+        }
+        return ret;
+    }
+
     public void toggleItem(int position){
         contacts.get(position).toggleSelected();
+        listener.setContactSelectMode(true);
         notifyDataSetChanged();
     }
 
@@ -77,7 +99,7 @@ public class ContactAdapter extends BaseAdapter {
         return position;
     }
 
-    private void associateContactWrapper(final ContactWrapper contact, final CheckBox checkbox){
+    private void associateContactWrapperToCheckbox(final ContactWrapper contact, final CheckBox checkbox){
         checkbox.setChecked(contact.getSelected());
         checkbox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +108,7 @@ public class ContactAdapter extends BaseAdapter {
 
                 if (!selectMode()){
                     notifyDataSetChanged();
+                    listener.setContactSelectMode(false);
                 }
             }
         });
@@ -94,25 +117,25 @@ public class ContactAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        boolean currentSelectMode = selectMode();
-        int type = currentSelectMode ? LIST_ITEM_TYPE_SELECTMODE : LIST_ITEM_TYPE_NORMAL;
+        boolean currentlySelectMode = selectMode();
+        int type = currentlySelectMode ? LIST_ITEM_TYPE_SELECTMODE : LIST_ITEM_TYPE_NORMAL;
         TextView textView;
-        if (convertView == null || (Boolean)(convertView.getTag(R.id.contact_tag_id)) != currentSelectMode) {
+        if (convertView == null || (Boolean)(convertView.getTag(R.id.contact_tag_id)) != currentlySelectMode) {
             switch(type) {
                 case LIST_ITEM_TYPE_NORMAL:
                     convertView = inflater.inflate(R.layout.contact_list_element, null);
                     break;
                 case LIST_ITEM_TYPE_SELECTMODE:
                     convertView = inflater.inflate(R.layout.contact_list_element_selectmode, null);
-                    associateContactWrapper(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_element_text));
+                    associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
                     break;
             }
             textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
-            convertView.setTag(R.id.contact_tag_id, currentSelectMode);
+            convertView.setTag(R.id.contact_tag_id, currentlySelectMode);
         } else {
             textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
-            if (currentSelectMode){
-                associateContactWrapper(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_element_text));
+            if (currentlySelectMode){
+                associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
             }
         }
         textView.setText(contacts.get(position).getContact().getDisplayName()); //TODO: do this better

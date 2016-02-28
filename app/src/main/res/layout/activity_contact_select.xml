@@ -14,4 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+
+    <Button
+            android:id="@+id/compare_contacts_button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/compare_contacts"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone"
+            android:onClick="launchCompareContacts"/>
+
 </RelativeLayout>

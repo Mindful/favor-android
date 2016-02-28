@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/contact_list_element"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" >
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <CheckBox
+            android:id="@+id/contact_list_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:width="0dp"/>
 
     <TextView
             android:id="@+id/contact_list_element_text"
@@ -12,6 +16,7 @@
             android:layout_height="wrap_content"
             android:text="Default text"
             android:textSize="20dp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:layout_toRightOf="@+id/contact_list_checkbox"/>
 
-</LinearLayout>
+</RelativeLayout>

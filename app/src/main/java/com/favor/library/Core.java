@@ -201,6 +201,7 @@ public class Core {
     }
 
     public enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}
+    public enum MetricType {CHARCOUNT_TOTAL, CHARCOUNT_AVERAGE, RESPONSE_TIME, MESSAGE_TOTAL}
 
     /**
      *     Input here should be the application context so we can use it whenever we want
