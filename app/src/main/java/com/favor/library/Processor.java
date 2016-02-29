@@ -81,7 +81,7 @@ public class Processor {
 
     public static double[] batchAverageCharCount(AccountManager account, ArrayList<Contact> contacts, long fromDate, long untilDate, boolean sent){
         long[] contactIds = idsFromContacts(contacts);
-        return doubleMultiQuery(MESSAGECOUNT_TOTAL, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
+        return doubleMultiQuery(CHARCOUNT_AVERAGE, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
     }
 
     public static native void clearCache();

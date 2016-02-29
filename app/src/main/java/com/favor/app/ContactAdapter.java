@@ -66,7 +66,7 @@ public class ContactAdapter extends BaseAdapter {
 
     public void toggleItem(int position){
         contacts.get(position).toggleSelected();
-        listener.setContactSelectMode(true);
+        listener.setContactSelectMode(getSelectedContacts().size() > 1);
         notifyDataSetChanged();
     }
 
@@ -105,10 +105,10 @@ public class ContactAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 contact.toggleSelected();
+                listener.setContactSelectMode(getSelectedContacts().size() > 1);
 
                 if (!selectMode()){
                     notifyDataSetChanged();
-                    listener.setContactSelectMode(false);
                 }
             }
         });

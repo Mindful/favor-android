@@ -15,6 +15,16 @@ public class TimeLapseTwoLineGraph extends LineChartView implements FavorTimeLap
         super(context);
     }
 
+    public TimeLapseTwoLineGraph(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public TimeLapseTwoLineGraph(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+
+
 
     @Override
     public void setDefaults() {

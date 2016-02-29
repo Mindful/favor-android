@@ -1,6 +1,7 @@
 package com.favor.graphs;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import com.favor.app.R;
 import com.favor.library.Core;
 import com.favor.library.Util;
@@ -17,11 +18,22 @@ import java.util.ArrayList;
  */
 public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTwoValueGraph {
 
+
     //Mirroring the library implementation constructors
 
     public HorizontalTwoBarGraph(Context context) {
         super(context);
     }
+
+    public HorizontalTwoBarGraph(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public HorizontalTwoBarGraph(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+
 
 
     public void setTwoValueData(String contactName, double sent, double rec){
@@ -53,6 +65,8 @@ public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTw
     @Override
     public void setDefaults() {
         setTouchEnabled(false);
+        setDescription("");
+        getLegend().setEnabled(false);
         getXAxis().setDrawGridLines(false);
 
         //TODO: this really a default? text size may vary by activity, maybe it should be a FavorGraph root method

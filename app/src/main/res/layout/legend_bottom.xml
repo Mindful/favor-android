@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+    <View
+            android:id="@+id/sent_legend_box"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@layout/sent_box"/>
+
+    <TextView android:id="@+id/sent_legend_textview"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/sent"
+              android:paddingLeft="5dp"
+              android:paddingRight="15dp"
+              android:layout_toRightOf="@+id/sent_legend_box"/>
+
+    <View
+            android:id="@+id/rec_legend_box"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@layout/rec_box"
+            android:layout_toRightOf="@+id/sent_legend_textview"/>
+
+    <TextView android:id="@+id/rec_legend_textview"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/received"
+              android:paddingLeft="5dp"
+              android:layout_toRightOf="@+id/rec_legend_box"/>
+
+</RelativeLayout>
