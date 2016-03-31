@@ -34,6 +34,8 @@ public class ContactSelectFragment extends ListFragment {
     @Override
     public void onStart(){
         super.onStart();
+//        getListView().setDivider(null);
+//        getListView().setDividerHeight(0);
         getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {

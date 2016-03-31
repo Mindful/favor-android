@@ -118,26 +118,18 @@ public class ContactAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         boolean currentlySelectMode = selectMode();
-        int type = currentlySelectMode ? LIST_ITEM_TYPE_SELECTMODE : LIST_ITEM_TYPE_NORMAL;
-        TextView textView;
-        if (convertView == null || (Boolean)(convertView.getTag(R.id.contact_tag_id)) != currentlySelectMode) {
-            switch(type) {
-                case LIST_ITEM_TYPE_NORMAL:
-                    convertView = inflater.inflate(R.layout.contact_list_element, null);
-                    break;
-                case LIST_ITEM_TYPE_SELECTMODE:
-                    convertView = inflater.inflate(R.layout.contact_list_element_selectmode, null);
-                    associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
-                    break;
-            }
-            textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
-            convertView.setTag(R.id.contact_tag_id, currentlySelectMode);
-        } else {
-            textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
-            if (currentlySelectMode){
-                associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
-            }
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.contact_list_element, null);
         }
+        CheckBox checkBox = (CheckBox)convertView.findViewById(R.id.contact_list_checkbox);
+
+        if (currentlySelectMode){
+            associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
+            checkBox.setVisibility(View.VISIBLE);
+        } else {
+            checkBox.setVisibility(View.INVISIBLE);
+        }
+        TextView textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
         textView.setText(contacts.get(position).getContact().getDisplayName()); //TODO: do this better
         return convertView;
     }

@@ -4,4 +4,18 @@
     <item name="sent" type="color">#d9d9d9</item>
     <item name="rec" type="color">#80d5ff</item>
 
+    <item name="primary_light" type="color">#C5CAE9</item>
+    <item name="primary" type="color">#3F51B5</item>
+    <item name="primary_dark" type="color">#303F9F</item>
+
+    <item name="white" type="color">#FFFFFF</item>
+    <item name="white_semitransparent" type="color">#80FFFFFF</item>
+    <item name="black" type="color">#000000</item>
+    <item name="black_semitransparent" type="color">#80000000</item>
+
+    <item name="accent_light" type="color">#CE93D8</item>
+    <item name="accent" type="color">#AB47BC</item>
+    <item name="accent_dark" type="color">#7B1FA2</item>
+
+
 </resources>

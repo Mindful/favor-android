@@ -1,22 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:paddingLeft="5dp"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp">
+
+    <ImageView
+            android:id="@+id/contact_photo"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:padding="4dp"
+            android:src="@drawable/samsung_contact_blue_circle"
+            android:layout_alignParentLeft="true"/>
+
+    <RelativeLayout
+            android:id="@+id/contact_list_element_text_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:layout_toRightOf="@+id/contact_photo">
+
+        <TextView
+                android:id="@+id/contact_list_element_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="default text"
+                android:layout_centerVertical="true"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:paddingBottom="4dp"/>
+
+        <TextView
+                android:id="@+id/contact_list_element_subtext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="default subtext"
+                android:textSize="12sp"
+                android:textColor="@color/black_semitransparent"
+                android:layout_below="@+id/contact_list_element_text"
+                android:paddingTop="4dp"/>
+
+    </RelativeLayout>
 
     <CheckBox
             android:id="@+id/contact_list_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text=""
+            android:scaleX="1.50"
+            android:scaleY="1.50"
+            android:buttonTint="@color/accent_light"
+            android:layout_alignParentRight="true"
+            android:layout_centerInParent="true"
             android:visibility="invisible"
-            android:width="0dp"/>
+            android:padding="4dp"/>
 
-    <TextView
-            android:id="@+id/contact_list_element_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Default text"
-            android:textSize="20dp"
-            android:textStyle="bold"
-            android:layout_toRightOf="@+id/contact_list_checkbox"/>
 
 </RelativeLayout>
