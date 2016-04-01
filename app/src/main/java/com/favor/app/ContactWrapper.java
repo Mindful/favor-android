@@ -1,5 +1,6 @@
 package com.favor.app;
 
+import android.graphics.Bitmap;
 import com.favor.library.Address;
 import com.favor.library.Contact;
 
@@ -11,6 +12,25 @@ import java.util.ArrayList;
 public class ContactWrapper {
     private Contact contact;
     private boolean selected;
+    private Bitmap photo;
+
+    public long getSentMessages() {
+        return sentMessages;
+    }
+
+    public void setSentMessages(long sentMessages) {
+        this.sentMessages = sentMessages;
+    }
+
+    private long sentMessages;
+
+    public Bitmap getPhoto(){
+        return photo;
+    }
+
+    public void setPhoto(Bitmap inputPhoto){
+        photo = inputPhoto;
+    }
 
     public ContactWrapper(Contact inputContact){
         contact = inputContact;

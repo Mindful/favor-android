@@ -19,7 +19,7 @@ public class ContactStatsActivity extends FavorActivity {
         if (getIntent().getSerializableExtra(ContactSelectFragment.CONTACT) != null){
             contact = (Contact) getIntent().getSerializableExtra(ContactSelectFragment.CONTACT);
             getSupportActionBar().setTitle(contact.getDisplayName());
-            setContactAccount(Reader.accountManagers()[0]); //TODO: be smarter about the default, pick the most relevant type
+            setContactAccount(Util.TEMP_ACCOUNT_FUNCTION()); //TODO: be smarter about the default, pick the most relevant type
         } else {
             Logger.error("Contact activity opened with unkown contact");
             getSupportActionBar().setTitle(R.string.unknown_contact);

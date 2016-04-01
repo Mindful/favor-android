@@ -2,13 +2,14 @@ package com.favor.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import com.favor.library.Contact;
+import com.favor.library.*;
 
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Created by josh on 2/20/16.
@@ -20,7 +21,7 @@ public class ContactAdapter extends BaseAdapter {
         public void setAdapter(ContactAdapter adapter);
     }
 
-    private ArrayList<ContactWrapper> contacts;
+    private List<ContactWrapper> contacts;
     private Context context;
     private LayoutInflater inflater;
     OnContactSelectModeListener listener;
@@ -31,10 +32,39 @@ public class ContactAdapter extends BaseAdapter {
 
 
     public ContactAdapter(Activity activity, ArrayList<Contact> inputContacts) {
+
+        long[] sentMessageCounts = Processor.batchMessageCount(Util.TEMP_ACCOUNT_FUNCTION(), inputContacts, -1, -1, true);
         contacts = new ArrayList<ContactWrapper>();
-        for (Contact contact : inputContacts){
-            contacts.add(new ContactWrapper(contact));
+        for (int i = 0; i < inputContacts.size(); ++i){
+            ContactWrapper contactWrapper = new ContactWrapper(inputContacts.get(i));
+            contactWrapper.setSentMessages(sentMessageCounts[i]);
+            contactWrapper.setPhoto(AndroidHelper.contactPhoto(inputContacts.get(i)));
+            contacts.add(contactWrapper);
         }
+
+
+
+
+        Collections.sort(contacts, new Comparator<ContactWrapper>(){
+            @Override
+            public int compare(final ContactWrapper lhs, final ContactWrapper rhs){
+                return (int)(rhs.getSentMessages() - lhs.getSentMessages());
+            }
+        });
+
+        int photoCounter = 0;
+        for (ContactWrapper wrapper : contacts){
+            if (wrapper.getPhoto() == null){
+                if (photoCounter % 2 == 0){
+                    wrapper.setPhoto(Util.defaultContactBlue());
+                } else {
+                    wrapper.setPhoto(Util.defaultContactPurple());
+                }
+                photoCounter += 1;
+            }
+        }
+
+
         context = activity;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -121,16 +151,23 @@ public class ContactAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.contact_list_element, null);
         }
-        CheckBox checkBox = (CheckBox)convertView.findViewById(R.id.contact_list_checkbox);
 
+        ContactWrapper wrapper = contacts.get(position);
+        TextView textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
+        textView.setText(wrapper.getContact().getDisplayName()); //TODO: better contact display name
+        TextView subText = (TextView)convertView.findViewById(R.id.contact_list_element_subtext);
+        subText.setText("Sent "+wrapper.getSentMessages()+" messages to this contact"); //TODO: strings from resource here for localization
+        ImageView imageView = (ImageView)convertView.findViewById(R.id.contact_list_element_photo);
+        imageView.setImageBitmap(wrapper.getPhoto());
+
+        CheckBox checkBox = (CheckBox)convertView.findViewById(R.id.contact_list_checkbox);
         if (currentlySelectMode){
             associateContactWrapperToCheckbox(contacts.get(position), (CheckBox)convertView.findViewById(R.id.contact_list_checkbox));
             checkBox.setVisibility(View.VISIBLE);
         } else {
-            checkBox.setVisibility(View.INVISIBLE);
+            checkBox.setVisibility(View.GONE);
         }
-        TextView textView = (TextView)convertView.findViewById(R.id.contact_list_element_text);
-        textView.setText(contacts.get(position).getContact().getDisplayName()); //TODO: do this better
+
         return convertView;
     }
 }

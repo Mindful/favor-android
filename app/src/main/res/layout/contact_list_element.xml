@@ -7,7 +7,7 @@
                 android:paddingTop="5dp">
 
     <ImageView
-            android:id="@+id/contact_photo"
+            android:id="@+id/contact_list_element_photo"
             android:layout_width="65dp"
             android:layout_height="65dp"
             android:padding="4dp"
@@ -19,7 +19,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
-            android:layout_toRightOf="@+id/contact_photo">
+            android:layout_toRightOf="@+id/contact_list_element_photo"
+            android:layout_toLeftOf="@+id/contact_list_checkbox">
 
         <TextView
                 android:id="@+id/contact_list_element_text"
@@ -53,7 +54,7 @@
             android:buttonTint="@color/accent_light"
             android:layout_alignParentRight="true"
             android:layout_centerInParent="true"
-            android:visibility="invisible"
+            android:visibility="gone"
             android:padding="4dp"/>
 
 
