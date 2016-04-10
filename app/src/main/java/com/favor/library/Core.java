@@ -34,6 +34,8 @@ public class Core {
 
     private static ArrayList<AccountManager> accounts = new ArrayList<AccountManager>();
 
+    public static final String PHONE_NUMBER_ILLEGAL_CHARS = "[^0-9]";
+
     /*
     Both the below comparators create lists sorted highest to lowest (for count and value, respectively)s
      */
@@ -197,7 +199,7 @@ public class Core {
     }
 
     public static String formatPhoneNumber(String number){
-        return number.replaceAll("[^0-9]", "");
+        return number.replaceAll(PHONE_NUMBER_ILLEGAL_CHARS, "");
     }
 
     public enum MessageType {TYPE_EMAIL, TYPE_ANDROIDTEXT, TYPE_LINE, TYPE_SKYPE}

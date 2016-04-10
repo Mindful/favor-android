@@ -6,12 +6,12 @@
                 android:paddingBottom="5dp"
                 android:paddingTop="5dp">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/contact_list_element_photo"
-            android:layout_width="65dp"
-            android:layout_height="65dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:padding="4dp"
-            android:src="@drawable/samsung_contact_blue_circle"
+            android:src="@drawable/samsung_contact_blue"
             android:layout_alignParentLeft="true"/>
 
     <RelativeLayout

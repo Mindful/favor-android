@@ -20,12 +20,12 @@ public class Util {
 
     public static Bitmap defaultContactBlue(){
         return BitmapFactory.decodeResource(Core.getContext().getResources(),
-                R.drawable.samsung_contact_blue_circle);
+                R.drawable.samsung_contact_blue);
     }
 
     public static Bitmap defaultContactPurple(){
         return BitmapFactory.decodeResource(Core.getContext().getResources(),
-                R.drawable.samsung_contact_purple_circle);
+                R.drawable.samsung_contact_purple);
     }
 
     public static String[] contactListToNames(List<Contact> contacts){
