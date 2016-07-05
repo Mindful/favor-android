@@ -31,7 +31,7 @@
         </activity>
         <activity
             android:name=".ContactCompareActivity"
-            android:label="@string/title_activity_contact_compare" >
+            android:label="@string/compare_avg_charcount" >
         </activity>
     </application>
 

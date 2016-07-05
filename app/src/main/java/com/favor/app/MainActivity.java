@@ -2,15 +2,12 @@ package com.favor.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import com.favor.library.Core;
 import com.favor.library.Debug;
-import com.favor.library.Logger;
-import com.favor.library.Reader;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +51,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateMessages(View view){
-        Reader.accountManagers()[0].updateMessages();
+        Core.updateAllMessages();
+
     }
 
     public void testMethod(View view){

@@ -30,6 +30,29 @@ public class MultiBarGraph extends ColumnChartView implements FavorMultiValueGra
     }
 
     @Override
+    public void setValueData(String[] contactNames, long[] sent, long[] rec){
+        List<Column> columns = new ArrayList<Column>();
+        List<AxisValue> axisValues = new ArrayList<AxisValue>();
+        for (int i = 0; i < sent.length; ++i){
+            List<SubcolumnValue> values = new ArrayList<SubcolumnValue>(2);
+            values.add(new SubcolumnValue((float)sent[i], Util.sentColor()));
+            values.add(new SubcolumnValue((float)rec[i], Util.receivedColor()));
+            Column column = new Column(values);
+            column.setHasLabelsOnlyForSelected(true);
+            columns.add(column);
+            axisValues.add(new AxisValue(i).setLabel(contactNames[i]));
+        }
+
+        ColumnChartData data = new ColumnChartData(columns);
+        Axis axisY = new Axis().setHasLines(true);
+        Axis axisX = new Axis(axisValues);
+        data.setAxisYLeft(axisY);
+        data.setAxisXBottom(axisX);
+
+        setColumnChartData(data);
+    }
+
+    @Override
     public void setValueData(String[] contactNames, double[] sent, double[] rec) {
         List<Column> columns = new ArrayList<Column>();
         List<AxisValue> axisValues = new ArrayList<AxisValue>();

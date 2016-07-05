@@ -151,7 +151,6 @@ public class AndroidHelper {
             boolean match = false;
             if (endSubstringMatch(lhs, rhs)) match = true;
             if (endSubstringMatch(rhs, lhs)) match = true;
-            Logger.info("Compare "+lhs+" to "+rhs+" with result "+match);
             return match;
         }
     }

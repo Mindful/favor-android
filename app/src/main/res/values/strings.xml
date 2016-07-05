@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Favor</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="showing_contact_type">Showing: </string>
     <string name="change_contact_type">Change</string>
     <string name="action_settings">Settings</string>
@@ -18,5 +17,13 @@
     <string name="sent">Sent</string>
     <string name="received">Received</string>
     <string name="sent_name">You</string>
-    <string name="title_activity_contact_compare">ContactCompareActivity</string>
+
+
+    <string name="compare_avg_charcount">Compare Message Length</string>
+    <string name="compare_charcount">Compare Char Count</string>
+    <string name="compare_msg_total">Compare Message Count</string>
+    <string name="compare_response_time">Compare Response Time</string>
+
+
+
 </resources>

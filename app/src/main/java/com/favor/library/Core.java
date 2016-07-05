@@ -18,7 +18,10 @@
 package com.favor.library;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v4.content.LocalBroadcastManager;
+import com.favor.app.FavorUpdateListener;
 import com.favor.app.R;
 
 
@@ -33,6 +36,8 @@ public class Core {
     private static Context context;
 
     private static ArrayList<AccountManager> accounts = new ArrayList<AccountManager>();
+
+    private static long lastUpdate = 0;
 
     public static final String PHONE_NUMBER_ILLEGAL_CHARS = "[^0-9]";
 
@@ -71,6 +76,22 @@ public class Core {
             Logger.error("Error creating default text manager: "+e.getMessage());
             return null;
         }
+    }
+
+    public static void updateAllMessages(){
+        for (AccountManager accountManager : Reader.accountManagers()){
+            accountManager.updateMessages();
+        }
+        publishUpdate();
+    }
+
+    private static void publishUpdate(){
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(new Intent(FavorUpdateListener.FAVOR_UPDATE_INTENT));
+        lastUpdate = new Date().getTime();
+    }
+
+    public static long getLastUpdate(){
+        return lastUpdate;
     }
 
     //TODO: we should probably split this method up a little bit

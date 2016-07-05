@@ -7,6 +7,6 @@ import android.support.v7.widget.Toolbar;
 /**
  * Created by josh on 2/6/16.
  */
-public class FavorActivity extends AppCompatActivity {
+public abstract class FavorActivity extends AppCompatActivity {
 
 }

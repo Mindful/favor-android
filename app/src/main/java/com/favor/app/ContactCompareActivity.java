@@ -32,7 +32,26 @@ public class ContactCompareActivity extends FavorActivity {
         }
         setContentView(R.layout.activity_contact_compare);
 
+        final String[] titles = new String[] {getResources().getString(R.string.compare_msg_total),
+                getResources().getString(R.string.compare_charcount),
+                getResources().getString(R.string.compare_avg_charcount),
+                getResources().getString(R.string.compare_response_time)};
+
+        ViewPager.OnPageChangeListener listener = new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            @Override
+            public void onPageSelected(int position) {
+                setTitle(titles[position]);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {}
+        };
+
         ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.addOnPageChangeListener(listener);
         viewPager.setAdapter(new GraphCollectionPagerAdapter(getSupportFragmentManager(), this));
     }
 
@@ -71,31 +90,34 @@ public class ContactCompareActivity extends FavorActivity {
 
         @Override
         public Fragment getItem(int position) {
-            FavorGraph graph = null;
             switch(position){
-//                case 0:
-//                    MultiBarGraph barGraph = new MultiBarGraph(context);
-//                    barGraph.setValueData(Util.contactListToNames(contacts),
-//                            Processor.batchAverageCharCount(account, contacts, -1, -1, true),
-//                            Processor.batchAverageCharCount(account, contacts, -1, -1, false));
-//                    graph = barGraph;
-//                case 1:
-//                    break;
-//                case 2:
-//                    break;
-//                case 3:
-//                    break;
-                default:
-                    MultiBarGraph barGraph = new MultiBarGraph(context);
-                    barGraph.setValueData(Util.contactListToNames(contacts),
+                case 0:
+                    MultiBarGraph messageCountGraph = new MultiBarGraph(context);
+                    messageCountGraph.setValueData(Util.contactListToNames(contacts),
+                            Processor.batchMessageCount(account, contacts, -1, -1, true),
+                            Processor.batchMessageCount(account, contacts, -1, -1, false));
+                    return new GraphFragment(messageCountGraph);
+                case 1:
+                    MultiBarGraph charCountGraph = new MultiBarGraph(context);
+                    charCountGraph.setValueData(Util.contactListToNames(contacts),
+                            Processor.batchCharCount(account, contacts, -1, -1, true),
+                            Processor.batchCharCount(account, contacts, -1, -1, false));
+                    return new GraphFragment(charCountGraph);
+                case 2:
+                    MultiBarGraph avgCharCountGraph = new MultiBarGraph(context);
+                    avgCharCountGraph.setValueData(Util.contactListToNames(contacts),
                             Processor.batchAverageCharCount(account, contacts, -1, -1, true),
                             Processor.batchAverageCharCount(account, contacts, -1, -1, false));
-                    graph = barGraph;
-//                default:
-//                    throw new IndexOutOfBoundsException("No contact comparison graph at index "+position);
+                    return new GraphFragment(avgCharCountGraph);
+                case 3:
+                    MultiBarGraph responseTimeGraph = new MultiBarGraph(context);
+                    responseTimeGraph.setValueData(Util.contactListToNames(contacts),
+                            Processor.batchResponseTimeNintieth(account, contacts, -1, -1, true),
+                            Processor.batchResponseTimeNintieth(account, contacts, -1, -1, false));
+                    return new GraphFragment(responseTimeGraph);
+                default:
+                    throw new IndexOutOfBoundsException("No contact comparison graph at index "+position);
             }
-            GraphFragment fragment = new GraphFragment(graph);
-            return fragment;
         }
 
         @Override
