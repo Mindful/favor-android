@@ -10,31 +10,6 @@
                 tools:context="com.favor.app.ContactStatsActivity">
 
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal" >
-
-        <TextView
-                android:id="@+id/contact_title_text"
-                android:text="@string/showing_contact_type"
-                android:layout_width="wrap_content"
-                android:textSize="20sp"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_centerHorizontal="true"/>
-
-        <Button
-                android:id="@+id/change_contact_type"
-                android:text="@string/change_contact_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true">
-        </Button>
-
-
-    </RelativeLayout>
-
     <com.favor.graphs.TimeLapseTwoLineGraph
             android:id="@+id/total_msg_over_time_chart"
             android:paddingTop="10dp"

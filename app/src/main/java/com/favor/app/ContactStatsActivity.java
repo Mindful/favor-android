@@ -3,6 +3,7 @@ package com.favor.app;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import com.favor.graphs.HorizontalTwoBarGraph;
 import com.favor.graphs.TimeLapseTwoLineGraph;
 import com.favor.library.*;
@@ -52,6 +53,12 @@ public class ContactStatsActivity extends FavorActivity {
 //        avgCharCount.setGraphName("Average Character Count");
 
         //TODO: msgs over total time should be broken up into days over the last two weeks
+
+        TextView sentLegendText = (TextView) findViewById(R.id.sent_legend_textview);
+        TextView recLegendText = (TextView) findViewById(R.id.rec_legend_textview);
+
+        sentLegendText.setText(contact.getDisplayName());
+        recLegendText.setText(Core.getContext().getString(R.string.sent_name));
 
         msgTotalOverTime.setDefaults();
     }

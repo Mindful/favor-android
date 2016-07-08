@@ -6,6 +6,7 @@ import com.favor.app.R;
 import com.favor.library.Core;
 import com.favor.library.Util;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
@@ -33,6 +34,8 @@ public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTw
         super(context, attrs, defStyle);
     }
 
+    private static final float BAR_SIZE = 5f;
+
 
 
 
@@ -44,30 +47,44 @@ public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTw
         BarData data = new BarData();
 
         ArrayList<BarEntry> sentEntries = new ArrayList<BarEntry>();
-        sentEntries.add(new BarEntry((float) sent, 0));
+        sentEntries.add(new BarEntry(BAR_SIZE * 0, (float) sent));
         BarDataSet sentDataSet= new BarDataSet(sentEntries, Core.getContext().getString(R.string.sent));
         sentDataSet.setColor(Util.sentColor());
         data.addDataSet(sentDataSet);
 
         ArrayList<BarEntry> recEntries = new ArrayList<BarEntry>();
-        recEntries.add(new BarEntry((float) rec, 1));
+        recEntries.add(new BarEntry(BAR_SIZE * 1, (float) rec));
         BarDataSet recDataSet= new BarDataSet(recEntries, Core.getContext().getString(R.string.received));
         recDataSet.setColor(Util.receivedColor());
         data.addDataSet(recDataSet);
 
-        data.addXValue(Core.getContext().getString(R.string.sent_name));
-        data.addXValue(contactName);
 
         setData(data);
+
+        data.setBarWidth(BAR_SIZE - 1);
+        data.setValueTextSize(10f);
+        setFitBars(true);
+
+        getLegend().setForm(Legend.LegendForm.LINE);
+        getLegend().setCustom(new int[] {Util.sentColor(), Util.receivedColor()},
+                new String[] {contactName, Core.getContext().getString(R.string.sent_name)});
+        getLegend().setPosition(Legend.LegendPosition.RIGHT_OF_CHART_CENTER);
+
         notifyDataSetChanged();
     }
 
     @Override
     public void setDefaults() {
         setTouchEnabled(false);
+        setDrawValueAboveBar(true);
         setDescription("");
-        getLegend().setEnabled(false);
+        //getLegend().setEnabled(false);
         getXAxis().setDrawGridLines(false);
+        getAxisLeft().setAxisMinValue(0);
+        getAxisRight().setAxisMinValue(0);
+        getAxisRight().setDrawLabels(false);
+
+        getXAxis().setDrawLabels(false);
 
         //TODO: this really a default? text size may vary by activity, maybe it should be a FavorGraph root method
         BarData data = getData();

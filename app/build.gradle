@@ -36,7 +36,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.+'
     compile 'com.github.lecho:hellocharts-library:1.5.8@aar'
-    compile 'com.github.PhilJay:MPAndroidChart:v2.2.0'
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
     compile 'de.hdodenhof:circleimageview:2.0.0'
 
 }
