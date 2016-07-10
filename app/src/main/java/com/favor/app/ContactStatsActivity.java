@@ -17,6 +17,8 @@ public class ContactStatsActivity extends FavorActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_stats);
+
+        TextView title = (TextView) findViewById(R.id.avg_character_count_chart_title);
         if (getIntent().getSerializableExtra(ContactSelectFragment.CONTACT) != null){
             contact = (Contact) getIntent().getSerializableExtra(ContactSelectFragment.CONTACT);
             getSupportActionBar().setTitle(contact.getDisplayName());

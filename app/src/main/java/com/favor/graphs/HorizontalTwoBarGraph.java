@@ -92,10 +92,7 @@ public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTw
 
         getXAxis().setAxisMinValue(0);
         getXAxis().setAxisMaxValue(barMax(2));
-
         notifyDataSetChanged();
-
-
     }
 
     @Override
@@ -110,7 +107,6 @@ public class HorizontalTwoBarGraph extends HorizontalBarChart implements FavorTw
         getAxisRight().setAxisMinValue(0);
         getAxisLeft().setDrawLabels(false);
         setDrawValueAboveBar(true);
-        setBackgroundColor(Color.RED);
 
         BarData data = getData();
         if (data != null){
