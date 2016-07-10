@@ -10,29 +10,72 @@
                 tools:context="com.favor.app.ContactStatsActivity">
 
 
-    <com.favor.graphs.TimeLapseTwoLineGraph
-            android:id="@+id/total_msg_over_time_chart"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:orientation="vertical"
             android:layout_weight="1"
-            android:gravity="top" />
+            android:layout_height="0dp"
+            android:paddingBottom="10dp"
+            android:weightSum="8">
+        <TextView
+                android:id="@+id/total_msg_over_time_chart_title"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/last_two_weeks_message_count"
+                android:gravity="center_horizontal"
+                android:paddingBottom="3dp"/>
+        <com.favor.graphs.TimeLapseTwoLineGraph
+                android:id="@+id/total_msg_over_time_chart"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="7"/>
+    </LinearLayout>
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:paddingBottom="10dp"
+            android:weightSum="8">
+        <TextView
+                android:id="@+id/avg_character_count_chart_title"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/average_character_count"
+                android:gravity="center_horizontal"/>
     <com.favor.graphs.HorizontalTwoBarGraph
             android:id="@+id/avg_character_count_chart"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
-    <com.favor.graphs.HorizontalTwoBarGraph
-            android:id="@+id/response_time_chart"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:layout_weight="7"/>
+    </LinearLayout>
+    <LinearLayout
             android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="1"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:paddingBottom="10dp"
+            android:weightSum="8">
+        <TextView
+                android:id="@+id/response_time_chart_title"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/percentile_response_time"
+                android:gravity="center_horizontal"/>
+        <com.favor.graphs.HorizontalTwoBarGraph
+                android:id="@+id/response_time_chart"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="7"/>
+        </LinearLayout>
 
-    <include layout="@layout/legend_bottom"/>
+    <include layout="@layout/legend_bottom"
+             android:layout_gravity="center_horizontal"
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:paddingTop="10dp"/>
 
 </LinearLayout>

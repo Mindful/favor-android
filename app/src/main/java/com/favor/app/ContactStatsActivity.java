@@ -43,16 +43,15 @@ public class ContactStatsActivity extends FavorActivity {
         double recResponseTime = Processor.responseTimeNintieth(account, contact, -1, -1, false);
         responseTime.setTwoValueData(contact.getDisplayName(), sentResponseTime, recResponseTime);
         responseTime.setDefaults();
-//        responseTime.setGraphName("Response Time");
 
 
         double sentAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, true);
         double recAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, false);
         avgCharCount.setTwoValueData(contact.getDisplayName(), sentAvgCharCount, recAvgCharCount);
         avgCharCount.setDefaults();
-//        avgCharCount.setGraphName("Average Character Count");
 
-        //TODO: msgs over total time should be broken up into days over the last two weeks
+        //TODO: msgs over total time should be broken up into days over the last two weeks since a message was sent/rec
+        //from this contact
 
         TextView sentLegendText = (TextView) findViewById(R.id.sent_legend_textview);
         TextView recLegendText = (TextView) findViewById(R.id.rec_legend_textview);

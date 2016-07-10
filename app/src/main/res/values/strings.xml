@@ -24,6 +24,16 @@
     <string name="compare_msg_total">Compare Message Count</string>
     <string name="compare_response_time">Compare Response Time</string>
 
+    <string name="last_two_weeks_message_count">Last Two Weeks</string>
+
+    <string name="average_character_count">Average Message Length</string>
+    <string name="total_character_count">Total Character Count</string>
+    <string name="total_message_count">Total Message Count</string>
+    <string name="percentile_response_time">Response Time</string>
+    <string name="conversational_response_time">Conversational Response Time</string>
+
+
+
 
 
 </resources>
