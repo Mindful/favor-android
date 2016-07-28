@@ -84,12 +84,17 @@ public class Processor {
         return doubleMultiQuery(CHARCOUNT_AVERAGE, account.getAccountName(), Core.intFromType(account.getType()), contactIds, fromDate, untilDate, sent);
     }
 
+    public static long[] dailyMessagesLastTwoWeeks(AccountManager account, Contact contact, boolean sent){
+        return messageCountLastTwoWeeks(account.getAccountName(), Core.intFromType(account.getType()), contact.getId(), sent);
+    }
+
     public static native void clearCache();
 
     private static native long longQuery(int query, String accountName, int accountType, long contactId, long fromDate, long untilDate, boolean sent);
     private static native double doubleQuery(int query, String accountName, int accountType, long contactId, long fromDate, long untilDate, boolean sent);
     private static native long[] longMultiQuery(int query, String accountName, int accountType, long[] contactIds, long fromDate, long untilDate, boolean sent);
     private static native double[] doubleMultiQuery(int query, String accountName, int accountType, long[] contactIds, long fromDate, long untilDate, boolean sent);
+    private static native long[] messageCountLastTwoWeeks(String accountName, int accountType, long contactId, boolean sent);
 
 
 }

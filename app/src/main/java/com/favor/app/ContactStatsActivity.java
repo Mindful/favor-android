@@ -8,6 +8,8 @@ import com.favor.graphs.HorizontalTwoBarGraph;
 import com.favor.graphs.TimeLapseTwoLineGraph;
 import com.favor.library.*;
 
+import java.util.Arrays;
+
 public class ContactStatsActivity extends FavorActivity {
 
     private Contact contact;
@@ -51,6 +53,9 @@ public class ContactStatsActivity extends FavorActivity {
         double recAvgCharCount = Processor.averageCharcount(account, contact, -1, -1, false);
         avgCharCount.setTwoValueData(contact.getDisplayName(), sentAvgCharCount, recAvgCharCount);
         avgCharCount.setDefaults();
+
+        long[] sentLastTwoWeeks = Processor.dailyMessagesLastTwoWeeks(account, contact, true);
+        Logger.info("Sent last two weeks:"+ Arrays.toString(sentLastTwoWeeks));
 
         //TODO: msgs over total time should be broken up into days over the last two weeks since a message was sent/rec
         //from this contact
